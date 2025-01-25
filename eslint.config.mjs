@@ -1,16 +1,30 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import shopifyEslintPlugin from '@shopify/eslint-plugin';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+/** @type {import('eslint').Linter.Config[]} */
+const config = [
+  ...shopifyEslintPlugin.configs.node,
+  ...shopifyEslintPlugin.configs.react,
+  ...shopifyEslintPlugin.configs.typescript,
+  ...shopifyEslintPlugin.configs.prettier,
+  ...shopifyEslintPlugin.configs['typescript-type-checking'],
+  {
+    languageOptions: {
+      parserOptions: {
+        project: 'tsconfig.json',
+      },
+    },
+    rules: {
+      'no-console': 'off',
+      'no-process-env': 'off',
+      '@typescript-eslint/naming-convention': 'off',
+      'line-comment-position': 'off',
+      'import/no-cycle': 'off',
+      '@typescript-eslint/no-unnecessary-condition': 'off',
+      'prettier/prettier': 'warn',
+      'no-warning-comments': 'off',
+    },
+    ignores: ['.git/', '.next/', '**/node_modules/'],
+  },
 ];
 
-export default eslintConfig;
+export default config;
