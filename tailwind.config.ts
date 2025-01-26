@@ -1,5 +1,4 @@
 import type { Config } from 'tailwindcss';
-import tailwindPresetMantine from 'tailwind-preset-mantine';
 
 export default {
   content: [
@@ -7,6 +6,13 @@ export default {
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
-  presets: [tailwindPresetMantine],
+  theme: {
+    extend: {
+      colors: {
+        background: 'var(--background)',
+        foreground: 'var(--foreground)',
+      },
+    },
+  },
   plugins: [],
 } satisfies Config;
