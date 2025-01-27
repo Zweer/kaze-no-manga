@@ -17,6 +17,8 @@
     "@neondatabase/serverless": "^0.10.4",
     "@prisma/adapter-neon": "^6.2.1",
     "@prisma/client": "^6.2.1",
+    "@simplewebauthn/browser": "^9.0.1",
+    "@simplewebauthn/server": "^9.0.3",
     "change-case": "^5.4.4",
     "framer-motion": "^12.0.5",
     "next": "15.1.6",
