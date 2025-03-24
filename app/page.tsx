@@ -1,17 +1,24 @@
-import UserDropdown from '@/components/UserDropdown';
-import { auth } from '@/lib/auth';
+import type { Manga } from '@prisma/client';
+
+import axios from 'axios';
 import Image from 'next/image';
 import Link from 'next/link';
 
-// Placeholder data for recently updated manga (replace with API call later)
-const recentManga = [
-  { id: '1', title: 'Manga Title 1', coverImageUrl: '/placeholder-cover.jpg' },
-  { id: '2', title: 'Manga Title 2', coverImageUrl: '/placeholder-cover.jpg' },
-  { id: '3', title: 'Manga Title 3', coverImageUrl: '/placeholder-cover.jpg' },
-];
+import UserDropdown from '@/components/UserDropdown';
+import { auth } from '@/lib/auth';
 
 export default async function Home() {
   const session = await auth();
+
+  let recentManga: Manga[] = [];
+
+  try {
+    const { data } = await axios.get<Manga[]>('/api/manga');
+    recentManga = data;
+  }
+  catch (error) {
+    console.error(error);
+  }
 
   return (
     <div>

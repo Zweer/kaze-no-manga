@@ -16,18 +16,22 @@ datasource db {
 }
 
 model User {
-  id            String          @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String          @unique
+  email         String    @unique
   emailVerified DateTime?
   image         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   accounts      Account[]
   sessions      Session[]
   // Optional for WebAuthn support
   Authenticator Authenticator[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  MangaList   MangaList[]
+  ReadChapter ReadChapter[]
 }
 
 model Account {
@@ -52,35 +56,115 @@ model Account {
 }
 
 model Session {
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionToken  String   @unique
+  userId        String
+  expires       DateTime
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
-  identifier String
-  token      String
-  expires    DateTime
+  identifier  String
+  token       String
+  expires     DateTime
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@id([identifier, token])
 }
 
 // Optional for WebAuthn support
 model Authenticator {
-  credentialID         String  @unique
-  userId               String
-  providerAccountId    String
-  credentialPublicKey  String
-  counter              Int
-  credentialDeviceType String
-  credentialBackedUp   Boolean
-  transports           String?
+  credentialID          String  @unique
+  userId                String
+  providerAccountId     String
+  credentialPublicKey   String
+  counter               Int
+  credentialDeviceType  String
+  credentialBackedUp    Boolean
+  transports            String?
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, credentialID])
+}
+
+model MangaList {
+  id        String  @id @default(cuid())
+  userId    String
+  name      String
+  isPublic  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User            @relation(fields: [userId], references: [id])
+  mangas MangaListItem[]
+
+  @@unique([userId, name])
+}
+
+model MangaListItem {
+  id          String @id @default(cuid())
+  mangaListId String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  mangaList MangaList @relation(fields: [mangaListId], references: [id], onDelete: Cascade)
+  manga     Manga     @relation(fields: [id], references: [id], onDelete: Cascade)
+}
+
+model ReadChapter {
+  id        String @id @default(cuid())
+  userId    String
+  mangaId   String
+  chapterId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, mangaId, chapterId])
+}
+
+model Manga {
+  id            String  @id
+  title         String
+  coverImageUrl String
+  description   String?
+  source        String // To store which connector the manga came from (e.g., "mangaDex", "myAnimeList")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  chapters  Chapter[]
+  listItems MangaListItem[]
+
+  @@index([source, id]) // Composite index for efficient querying
+}
+
+model Chapter {
+  id            String   @id
+  mangaId       String
+  title         String
+  chapterNumber String
+  pages         String[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  manga  Manga         @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+  readBy ReadChapter[]
+
+  @@index([mangaId, chapterNumber]) // Composite index for efficient querying
 }
