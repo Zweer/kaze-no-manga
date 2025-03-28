@@ -9,6 +9,7 @@ export default antfu({
     tsconfigPath: 'tsconfig.json',
   },
   rules: {
+    'ts/strict-boolean-expressions': 'off',
     'perfectionist/sort-imports': ['error', {
       internalPattern: ['^~/.+', '^@/.+', '^#.+'],
       groups: [

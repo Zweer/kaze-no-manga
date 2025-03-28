@@ -1,14 +1,18 @@
 import type { Metadata } from 'next';
-import { ThemeProvider } from '@/components/ThemeProvider';
-import { SessionProvider } from 'next-auth/react';
+
 import { Inter } from 'next/font/google';
+
+import { UserNav } from '@/components/auth/UserNav'; // Import UserNav
+import { cn } from '@/lib/utils';
+import SessionProviderWrapper from '@/providers/sessionProvider'; // Import the wrapper
+
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Kaze no Manga',
-  description: 'Read your favorite manga online!',
+  title: 'Manga Tracker',
+  description: 'Track your favorite manga',
 };
 
 export default function RootLayout({
@@ -17,19 +21,30 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <SessionProvider>
+    // Wrap with the SessionProviderWrapper
+    <SessionProviderWrapper>
+      <html lang="en" suppressHydrationWarning>
+        <body className={cn('min-h-screen bg-background font-sans antialiased', inter.className)}>
+          <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="container flex h-14 items-center">
+              <div className="mr-4 hidden md:flex">
+                {/* Add Logo/Title here */}
+                <span className="font-bold">MangaTracker</span>
+              </div>
+              {/* Add Navigation here if needed */}
+              <div className="flex flex-1 items-center justify-end space-x-4">
+                <UserNav />
+                {' '}
+                {/* Add the UserNav component */}
+              </div>
+            </div>
+          </header>
+          <main className="container py-6">
             {children}
-          </SessionProvider>
-        </ThemeProvider>
-      </body>
-    </html>
+          </main>
+          {/* Add Footer here if needed */}
+        </body>
+      </html>
+    </SessionProviderWrapper>
   );
 }
