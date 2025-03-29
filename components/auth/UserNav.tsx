@@ -20,12 +20,20 @@ export function UserNav() {
   const { data: session, status } = useSession();
 
   if (status === 'loading') {
-    // Optional: Render a loading state
     return <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />;
   }
 
   if (!session) {
-    return <SignInButton provider="google" />;
+    // Let's list available providers or have a generic sign-in
+    // For now, keeping GitHub/Google example logic might require adjustment
+    // based on your actual providers in lib/auth.ts
+    return (
+      <div className="flex space-x-2">
+        <SignInButton provider="google" />
+        {/* Add other provider buttons if needed */}
+        {/* <SignInButton provider="github" /> */}
+      </div>
+    );
   }
 
   return (
@@ -63,16 +71,14 @@ export function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href="/dashboard">My Mangas</Link>
-          {' '}
-          {/* Link to user's list */}
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/settings">Settings</Link>
-          {' '}
-          {/* Link to settings page */}
-        </DropdownMenuItem>
+        {/* You might want a profile/settings link later */}
+        {/* <DropdownMenuItem asChild>
+            <Link href="/settings">Settings</Link>
+        </DropdownMenuItem> */}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => signOut() as unknown as void}>
+        {/* Updated Sign Out Item */}
+        <DropdownMenuItem onClick={() => signOut() as unknown as void} className="cursor-pointer">
           Log out
         </DropdownMenuItem>
       </DropdownMenuContent>

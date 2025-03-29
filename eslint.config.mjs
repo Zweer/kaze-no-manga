@@ -4,6 +4,10 @@ export default antfu({
   react: true,
   stylistic: {
     semi: true,
+    overrides: {
+      'style/brace-style': ['error', '1tbs'],
+      'no-console': 'off',
+    },
   },
   typescript: {
     tsconfigPath: 'tsconfig.json',

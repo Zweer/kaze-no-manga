@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 
 import { UserNav } from '@/components/auth/UserNav'; // Import UserNav
+import { Toaster } from '@/components/ui/sonner';
 import { cn } from '@/lib/utils';
 import SessionProviderWrapper from '@/providers/sessionProvider'; // Import the wrapper
 
@@ -42,6 +43,7 @@ export default function RootLayout({
           <main className="container py-6">
             {children}
           </main>
+          <Toaster />
           {/* Add Footer here if needed */}
         </body>
       </html>
