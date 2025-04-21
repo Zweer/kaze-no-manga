@@ -1,0 +1,20 @@
+import type { Config } from 'drizzle-kit';
+
+import process from 'node:process';
+
+import 'dotenv/config';
+
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
+
+export default {
+  schema: './lib/db/schema.ts',
+  out: './drizzle',
+  dialect: 'postgresql',
+  dbCredentials: {
+    url: process.env.DATABASE_URL,
+  },
+  verbose: true,
+  strict: true,
+} satisfies Config;
