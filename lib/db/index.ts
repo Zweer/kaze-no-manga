@@ -3,7 +3,7 @@ import process from 'node:process';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from 'ws';
 
-import * as schema from './schema';
+import * as schema from '@/lib/db/schema';
 
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is required');
