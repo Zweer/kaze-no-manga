@@ -8,7 +8,7 @@ import { ThemeToggle } from './ThemeToggle';
 export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 max-w-screen-2xl items-center">
+      <div className="flex h-14 items-center px-4 sm:px-6 lg:px-8">
         {/* Logo Section */}
         <div className="mr-4 flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
@@ -20,14 +20,16 @@ export function Header() {
             </span>
           </Link>
           {/* Optional: Main navigation links for desktop */}
-          {/* <nav className="hidden md:flex items-center gap-6 text-sm">
+          {/*
+          <nav className="hidden md:flex items-center gap-6 text-sm">
             <Link href="/library" className="text-foreground/60 transition-colors hover:text-foreground/80">
               Library
             </Link>
              <Link href="/lists" className="text-foreground/60 transition-colors hover:text-foreground/80">
               Lists
             </Link>
-          </nav> */}
+          </nav>
+          */}
         </div>
 
         {/* Spacer to push right items */}
@@ -42,12 +44,14 @@ export function Header() {
         </div>
 
         {/* Mobile Navigation (Hamburger - future implementation) */}
-        {/* <div className="md:hidden">
+        {/*
+        <div className="md:hidden">
            <Button variant="ghost" size="icon">
              <Menu className="h-5 w-5" />
              <span className="sr-only">Toggle Menu</span>
            </Button>
-        </div> */}
+        </div>
+        */}
 
       </div>
     </header>
