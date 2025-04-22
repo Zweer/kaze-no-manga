@@ -13,6 +13,7 @@ export default antfu({
     tsconfigPath: 'tsconfig.json',
   },
   rules: {
+    'node/prefer-global/process': 'off',
     'ts/strict-boolean-expressions': 'off',
     'perfectionist/sort-imports': ['error', {
       internalPattern: ['^~/.+', '^@/.+', '^#.+'],

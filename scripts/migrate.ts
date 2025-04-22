@@ -1,5 +1,3 @@
-import process from 'node:process';
-
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import { migrate } from 'drizzle-orm/neon-serverless/migrator';
 

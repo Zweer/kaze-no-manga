@@ -1,11 +1,8 @@
 import type { AuthConfig } from '@auth/core/types';
 
-import process from 'node:process';
-
 import Google from '@auth/core/providers/google';
 
 export const authConfig = {
-  debug: process.env.NODE_ENV !== 'production',
   providers: [Google],
   session: { strategy: 'jwt' },
   callbacks: {
