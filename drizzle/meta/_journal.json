@@ -8,6 +8,13 @@
       "when": 1745230752699,
       "tag": "0000_opposite_bromley",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1745340598805,
+      "tag": "0001_narrow_vapor",
+      "breakpoints": true
     }
   ]
 }
