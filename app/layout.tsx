@@ -4,7 +4,7 @@ import { SessionProvider } from 'next-auth/react'; // Client-side session provid
 import { Inter } from 'next/font/google';
 
 // Import your Header and Footer components here
-// import Header from '@/components/layout/Header';
+import { Header } from '@/components/layout/Header';
 // import Footer from '@/components/layout/Footer';
 // Import your ThemeProvider if you have one for Light/Dark mode
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
@@ -25,21 +25,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${inter.className} antialiased flex flex-col min-h-screen`}>
         <ThemeProvider
-          attribute="class" // Apply theme using class (adds 'light' or 'dark' to <html>)
-          defaultTheme="system" // Default to user's system preference
-          enableSystem // Allow system preference detection
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
           // disableTransitionOnChange // Optional: improve performance during theme change
         >
           {/* SessionProvider enables the useSession() hook in Client Components */}
           <SessionProvider>
-            {/* Add Header and Footer components here */}
-            {/* <Header /> */}
-            <main className="flex-grow">
-              {/* Ensure main content can grow */}
+            <Header />
+
+            <main className="flex-grow container py-6">
               {children}
             </main>
+
             {/* <Footer /> */}
           </SessionProvider>
         </ThemeProvider>
