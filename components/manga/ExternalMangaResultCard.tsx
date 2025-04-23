@@ -27,13 +27,17 @@ export function ExternalMangaResultCard({ result, onImportSuccess }: ExternalMan
 
     try {
       // Call the server action to import this specific manga
-      const importResult = await importMangaMetadataAction(result.sourceName, result.sourceId);
+      const importResult = await importMangaMetadataAction({
+        sourceId: result.sourceId,
+        sourceName: result.sourceName,
+        title: result.title,
+      });
 
       if (importResult.success) {
         setImportStatus('success');
         // Optionally call the callback with the new slug
         if (onImportSuccess) {
-          onImportSuccess(importResult.manga.slug);
+          onImportSuccess(importResult.slug);
         }
         // Keep button disabled or change its state permanently? For now, success state.
       } else {

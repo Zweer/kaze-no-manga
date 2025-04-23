@@ -24,8 +24,9 @@ export async function searchMangas(query: string): Promise<MangaSearchResult[]> 
   return results;
 }
 
-export async function getMangaDetails(sourceId: string, sourceName: ConnectorNames): Promise<Manga> {
-  const connector = connectors[sourceName];
+export async function getMangaDetails(sourceId: string, sourceName: string): Promise<Manga> {
+  const connectorName = sourceName as ConnectorNames;
+  const connector = connectors[connectorName];
   if (!connector) {
     throw new Error(`Connector for source ${sourceName} not found`);
   }

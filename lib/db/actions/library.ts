@@ -88,7 +88,7 @@ export async function addMangaToLibrary(mangaId: string): Promise<{ success: boo
     revalidatePath(`/manga/${manga!.slug}`); // Revalidate the manga detail page
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     const dbError = error as DatabaseError;
     console.error('Error adding manga to library:', dbError);
 

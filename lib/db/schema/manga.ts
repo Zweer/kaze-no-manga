@@ -8,7 +8,7 @@ export const manga = pgTable(
   'manga',
   {
     id: uuid('id').default(sql`gen_random_uuid()`).primaryKey(), // UUID PK
-    slug: varchar('slug', { length: 255 }).notNull(),
+    slug: varchar('slug', { length: 255 }).notNull(), // Unique, URL-friendly slug (from first/best import)
     title: varchar('title', { length: 255 }).notNull(),
     author: varchar('author', { length: 255 }),
     artist: varchar('artist', { length: 255 }), // If available separately
@@ -16,22 +16,41 @@ export const manga = pgTable(
     coverUrl: text('cover_url'), // URL to the cover image
     status: varchar('status', { length: 50 }), // e.g., 'Ongoing', 'Completed', 'Hiatus'
     genres: jsonb('genres').$type<string[]>(), // Store genres as a JSON array of strings
-
-    // --- NEW Source Tracking Fields ---
-    sourceName: varchar('source_name', { length: 100 }).notNull(), // Name of the source site/API
-    sourceMangaId: text('source_manga_id').notNull(), // ID of the manga on the source site
-    sourceUrl: text('source_url'), // URL to the main manga page on the source site
-
-    lastChapterChecked: doublePrecision('last_chapter_checked'), // Store last chapter number found by scraper
-    lastCheckedAt: timestamp('last_checked_at', { mode: 'date' }), // When scraper last checked
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { mode: 'date' }).$onUpdate(() => new Date()), // Auto-update timestamp
   },
   table => [
     {
-      titleIndex: uniqueIndex('manga_title_idx').on(table.title),
-      // --- Ensure combination of sourceName and sourceMangaId is unique ---
-      sourceUniqueIndex: uniqueIndex('manga_source_unique_idx').on(table.sourceName, table.sourceMangaId),
+      slugIndex: uniqueIndex('manga_slug_idx').on(table.slug), // Ensure slug is unique
+      titleIndex: index('manga_title_idx').on(table.title),
+    },
+  ],
+);
+
+// Manga Sources Table (NEW) - Links canonical manga to its sources
+export const mangaSources = pgTable(
+  'manga_sources',
+  {
+    id: serial('id').primaryKey(), // Simple PK for this table
+    mangaId: uuid('manga_id') // Link to the canonical manga entry
+      .notNull()
+      .references(() => manga.id, { onDelete: 'cascade' }),
+    sourceName: varchar('source_name', { length: 100 }).notNull(), // e.g., "ScanSiteX"
+    sourceMangaId: text('source_manga_id').notNull(), // ID of the manga on that specific source
+    sourceUrl: text('source_url'), // URL to the manga page on that source
+    lastChapterChecked: varchar('last_chapter_checked', { length: 50 }), // Last chapter found on THIS source
+    lastCheckedAt: timestamp('last_checked_at', { mode: 'date' }), // When THIS source was last checked
+    isPreferredSource: boolean('is_preferred_source').default(false), // Maybe mark one source as default for reading?
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  table => [
+    {
+      // Ensure a manga doesn't have the same source listed twice
+      sourceUniqueIndex: uniqueIndex('manga_sources_unique_idx').on(table.mangaId, table.sourceName),
+      // Optional: More constrained uniqueness if sourceMangaId is reliable
+      // sourceIdUniqueIndex: uniqueIndex('manga_sources_id_unique_idx').on(table.sourceName, table.sourceMangaId),
+      // Index for finding sources for a specific manga
+      mangaIdIndex: index('manga_sources_manga_id_idx').on(table.mangaId),
     },
   ],
 );
@@ -46,7 +65,6 @@ export const chapters = pgTable(
       .references(() => manga.id, { onDelete: 'cascade' }), // Reference manga.id
     chapterNumber: doublePrecision('chapter_number'), // Optional: Store numeric part for sorting
     title: varchar('title', { length: 255 }), // Optional chapter title
-    sourceUrl: text('source_url'), // URL to read this specific chapter (initially external)
     pages: jsonb('pages').$type<string[]>(), // Optional: Store array of page image URLs if hosted internally (Phase 2)
     publishedAt: timestamp('published_at', { mode: 'date' }), // Optional: When the chapter was published
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
@@ -95,10 +113,19 @@ export const usersRelations = relations(users, ({ many }) => ({
   // sessions: many(sessions), // Add if needed
 }));
 
-// Manga can be in many user libraries
-export const mangaMetadataRelations = relations(manga, ({ many }) => ({
+// Updated Manga Relations - Now includes mangaSources
+export const mangaRelations = relations(manga, ({ many }) => ({
   libraryEntries: many(userLibrary),
   chapters: many(chapters),
+  sources: many(mangaSources), // A manga can have multiple sources listed
+}));
+
+// NEW MangaSources Relations
+export const mangaSourcesRelations = relations(mangaSources, ({ one }) => ({
+  manga: one(manga, { // A source entry belongs to one canonical manga
+    fields: [mangaSources.mangaId],
+    references: [manga.id],
+  }),
 }));
 
 export const chaptersRelations = relations(chapters, ({ one }) => ({
