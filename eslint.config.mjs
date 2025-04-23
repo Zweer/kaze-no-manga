@@ -14,6 +14,7 @@ export default antfu({
   },
   rules: {
     'node/prefer-global/process': 'off',
+    'ts/no-floating-promises': 'off',
     'ts/no-misused-promises': 'off',
     'ts/strict-boolean-expressions': 'off',
     'perfectionist/sort-imports': ['error', {

@@ -5,8 +5,8 @@ import { revalidatePath } from 'next/cache'; // For revalidating cache after mut
 
 import { auth } from '@/lib/auth'; // Get server-side session
 
-import { db } from './index'; // Your Drizzle instance
-import { userLibrary } from './schema'; // Your userLibrary table schema
+import { db } from '../index'; // Your Drizzle instance
+import { userLibrary } from '../schema'; // Your userLibrary table schema
 
 /**
  * Checks if a specific manga is in the current user's library.

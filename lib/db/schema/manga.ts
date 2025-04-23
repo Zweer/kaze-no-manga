@@ -17,7 +17,7 @@ export const manga = pgTable(
     status: varchar('status', { length: 50 }), // e.g., 'Ongoing', 'Completed', 'Hiatus'
     genres: jsonb('genres').$type<string[]>(), // Store genres as a JSON array of strings
     sourceUrl: text('source_url'), // Original source URL where manga was found
-    lastChapterChecked: varchar('last_chapter_checked', { length: 50 }), // Store last chapter number/name found by scraper
+    lastChapterChecked: doublePrecision('last_chapter_checked'), // Store last chapter number found by scraper
     lastCheckedAt: timestamp('last_checked_at', { mode: 'date' }), // When scraper last checked
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { mode: 'date' }).$onUpdate(() => new Date()), // Auto-update timestamp
@@ -37,8 +37,7 @@ export const chapters = pgTable(
     mangaSlug: varchar('manga_slug', { length: 255 })
       .notNull()
       .references(() => manga.slug, { onDelete: 'cascade' }), // Link to the manga
-    // chapterNumber: varchar('chapter_number', { length: 50 }).notNull(), // Chapter number (can be string like '10.5' or 'Extra')
-    chapterNumberFloat: doublePrecision('chapter_number_float'), // Optional: Store numeric part for sorting
+    chapterNumber: doublePrecision('chapter_number'), // Optional: Store numeric part for sorting
     title: varchar('title', { length: 255 }), // Optional chapter title
     sourceUrl: text('source_url'), // URL to read this specific chapter (initially external)
     pages: jsonb('pages').$type<string[]>(), // Optional: Store array of page image URLs if hosted internally (Phase 2)
@@ -52,7 +51,7 @@ export const chapters = pgTable(
       // Ensure a manga doesn't have duplicate chapter numbers
       // mangaChapterUnique: uniqueIndex('chapters_manga_chapter_unique_idx').on(table.mangaSlug, table.chapterNumber),
       // Optional index for sorting by number if using chapterNumberFloat
-      chapterNumFloatIndex: index('chapters_num_float_idx').on(table.chapterNumberFloat),
+      chapterNumFloatIndex: index('chapters_num_float_idx').on(table.chapterNumber),
     },
   ],
 );
@@ -67,7 +66,7 @@ export const userLibrary = pgTable(
     mangaSlug: varchar('manga_slug', { length: 255 })
       .notNull()
       .references(() => manga.slug, { onDelete: 'cascade' }), // Link to manga metadata
-    lastChapterRead: varchar('last_chapter_read', { length: 50 }).default('0'), // Chapter number/name last read
+    lastChapterRead: doublePrecision('last_chapter_read').default(0), // Chapter number/name last read
     addedAt: timestamp('added_at', { mode: 'date' }).defaultNow().notNull(),
     status: varchar('reading_status', { length: 50 }).default('Reading'), // Optional: e.g., Reading, Completed, Paused, Dropped
     rating: integer('rating'), // Optional: User's rating (1-5 or 1-10)

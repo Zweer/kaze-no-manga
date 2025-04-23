@@ -6,7 +6,7 @@ import { LibraryToggleButton } from '@/components/manga/LibraryToggleButton'; //
 import { Button } from '@/components/ui/button';
 import { auth } from '@/lib/auth'; // Server-side session
 import { db } from '@/lib/db';
-import { isMangaInLibrary } from '@/lib/db/libraryActions'; // Server action to check library status
+import { isMangaInLibrary } from '@/lib/db/actions/library'; // Server action to check library status
 import { manga as mangaTable } from '@/lib/db/schema'; // Manga table schema
 
 // Optional: Revalidate this page periodically or on demand

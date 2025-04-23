@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react'; // Use client-side session hook
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
-import { addMangaToLibrary, removeMangaFromLibrary } from '@/lib/db/libraryActions'; // Import server actions
+import { addMangaToLibrary, removeMangaFromLibrary } from '@/lib/db/actions/library'; // Import server actions
 import { cn } from '@/lib/utils'; // Utility for class names
 
 interface LibraryToggleButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
