@@ -1,81 +1,68 @@
-**Project Goal:**
-Create a web application (desktop & mobile responsive) called "Kaze No Manga" allowing users to read their favorite manga online. Key features include tracking reading progress across devices (remembering the last chapter read), managing a personal library of manga being read, receiving notifications for new chapter releases, and discovering new manga similar to ones they like. A core challenge is handling manga potentially available from multiple external sources and presenting a unified view.
+**Project Summary: Kaze No Manga**
 
-**Chosen Technology Stack:**
-- **Framework:** Next.js (v14+ with App Router)
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS
-- **UI Components:** shadcn/ui (components stored locally, customizable)
-- **Database:** Neon (Serverless Postgres)
-- **ORM:** Drizzle ORM (with drizzle-kit for migrations)
-- **DB Driver:** @neondatabase/serverless (optimized for serverless/edge)
-- **Authentication:** Auth.js (v5, formerly NextAuth.js) using Google provider (potentially others later) with JWT strategy and Drizzle Adapter.
-- **Hosting & Serverless Compute:** Vercel
-- **Scheduled Tasks (Cron):** Vercel Cron Jobs (calling API Routes or Server Actions)
-- **External Data Fetching:** Custom library '@zweer/manga-scraper' (assumed available) for searching/fetching details from external sources.
+**1. Project Goal:**
+   - Build a responsive web app for reading manga online.
+   - Core Features: Track reading progress (last chapter read per manga per user), manage personal library, get notifications for new chapters, discover similar manga.
+   - Key Challenge: Handle and normalize manga data potentially originating from multiple external sources.
 
-**Database Schema (Drizzle - Key Tables):**
-- **`users`:** Standard Auth.js user table.
-- **`accounts`:** Standard Auth.js accounts table.
-- **`sessions`:** Standard Auth.js sessions table (if using 'database' strategy, though currently JWT).
-- **`verificationTokens`:** Standard Auth.js verification tokens table.
-- **`manga`:** Stores "canonical" manga entries.
-    - `id` (UUID, PK, auto-generated)
-    *   `slug` (VARCHAR, Unique Index) - URL-friendly identifier.
-    *   `title`, `author`, `artist`, `description`, `coverUrl`, `status`, `genres` (JSONB) - Canonical metadata.
-- **`manga_sources`:** Links canonical manga to external sources.
-    *   `id` (Serial, PK)
-    *   `mangaId` (UUID, FK to `manga.id`)
-    *   `sourceName` (VARCHAR, Not Null) - Name of the external source.
-    *   `sourceMangaId` (TEXT, Not Null) - ID of the manga on the external source.
-    *   `sourceUrl` (TEXT) - URL on the external source.
-    *   `lastChapterChecked` (VARCHAR) - Last chapter found on this source.
-    *   `lastCheckedAt` (TIMESTAMP) - Last check time for this source.
-    *   `isPreferredSource` (BOOLEAN) - Indicates default source for reading.
-    *   Unique Index on `(mangaId, sourceName)`.
-- **`chapters`:** Stores canonical chapter list for a manga.
-    *   `id` (Serial, PK)
-    *   `mangaId` (UUID, FK to `manga.id`)
-    *   `chapterNumber` (VARCHAR, Not Null)
-    *   `title` (VARCHAR)
-    *   `publishedAt` (TIMESTAMP)
-    *   Unique Index on `(mangaId, chapterNumber)`.
-    *   *(Note: Populating this table and handling chapter URLs dynamically based on preferred source needs further implementation).*
-- **`userLibrary`:** Junction table linking users and canonical manga.
-    *   `userId` (TEXT, FK to `users.id`)
-    *   `mangaId` (UUID, FK to `manga.id`)
-    *   `lastChapterRead` (VARCHAR) - Tracks user progress.
-    *   `addedAt` (TIMESTAMP)
-    *   `status` (VARCHAR - Reading, Completed, etc.)
-    *   `rating` (INTEGER)
-    *   `notes` (TEXT)
-    *   `notificationsEnabled` (BOOLEAN)
-    *   Primary Key on `(userId, mangaId)`.
+**2. Technology Stack:**
+   - Framework: Next.js (v14+, App Router)
+   - Language: TypeScript
+   - Styling: Tailwind CSS
+   - UI Components: shadcn/ui (local components)
+   - Database: Neon (Serverless Postgres)
+   - ORM: Drizzle ORM + drizzle-kit
+   - DB Driver: @neondatabase/serverless
+   - Authentication: Auth.js (v5) with Google provider, JWT strategy, Drizzle Adapter.
+   - Hosting & Compute: Vercel
+   - Scheduled Tasks: Vercel Cron Jobs
+   - External Data: Custom '@zweer/manga-scraper' library.
 
-**Key User Flows & Features Implemented/Planned:**
-- User Registration/Login via Google (Auth.js).
-- Search Page: Searches internal DB (`manga` table via Server Action) and external sources (via API Route calling scraper).
-- Import Flow: External search results allow triggering an "Import" Server Action. This action fetches detailed metadata, performs basic title/slug matching to find/create a canonical `manga` entry, and adds/updates the entry in `manga_sources`. Returns canonical manga ID/slug.
-- Manga Detail Page (`/manga/[slug]`): Displays canonical manga info. Shows Add/Remove to Library button (Client Component using Server Actions `add/removeMangaFromLibrary` which operate on `userLibrary` using `mangaId`).
-- User Library Page (`/library`): Protected route. Displays manga the user has added (`userLibrary`), fetching related canonical `manga` data using Drizzle relations. Shows "NEW" badge if `manga_sources.lastChapterChecked` (from preferred source - logic TBD) > `userLibrary.lastChapterRead`.
-- Reading Progress Tracking (Partially implemented via `userLibrary.lastChapterRead`).
-- Manga Reader UI (Component exists, needs integration/chapter fetching logic).
-- Scheduled Job (Vercel Cron): Planned for checking chapter updates using scraper and updating `manga_sources.lastChapterChecked`.
+**3. Database Schema (Drizzle - Key Tables):**
+   - `users`, `accounts`, `sessions`, `verificationTokens`: Standard Auth.js tables.
+   - `manga`: Stores canonical manga entries (UUID PK `id`, unique `slug`, `title`, metadata).
+   - `manga_sources`: Links canonical `manga` (`mangaId` FK) to external sources (`sourceName`, `sourceMangaId` PK/Unique, `sourceUrl`, source-specific `lastChapterChecked`, `lastCheckedAt`, `isPreferredSource` flag).
+   - `chapters`: Stores canonical chapter list for a manga (`mangaId` FK, `chapterNumber` (VARCHAR, unique with mangaId), `title`, `publishedAt`). *Currently needs population logic.*
+   - `userLibrary`: Junction table (User ID FK, Manga ID FK). Tracks `lastChapterRead` (VARCHAR), `status`, `rating`, `notes`, `notificationsEnabled`.
 
-**Key Architectural Decisions:**
-- Server Actions are preferred for UI-triggered mutations (import, add/remove library).
-- API Routes can be used for queries or potentially external access (like external search).
-- UUIDs used as primary keys for `manga` table to handle multiple sources robustly.
-- Slugs are unique identifiers for URLs (`/manga/[slug]`).
-- Separate `manga_sources` table tracks individual source information.
-- Using `@neondatabase/serverless` driver for optimal Neon connection from Vercel.
-- Using Drizzle ORM and Drizzle Kit for schema management and migrations.
+**4. Key User Flows & Features Status:**
+   - **Auth:** Google Login/Logout working (Auth.js, UI components in Header).
+   - **Library:** Add/Remove manga working via `LibraryToggleButton` (Client Component) calling Server Actions (`add/removeMangaFromLibrary`) operating on `userLibrary` using `mangaId`. `/library` page displays user's manga using `MangaCard`.
+   - **Search:** `/search` page allows internal DB search (via `searchInternalManga` Server Action) and external source search (via `/api/search/external` API Route calling scraper).
+   - **Import:** External results shown in `ExternalMangaResultCard` with an "Import" button calling `importMangaMetadataAction` (Server Action). This action fetches details, matches/creates canonical `manga` entry, and adds/updates `manga_sources` record.
+   - **Chapter List:** `/manga/[slug]` page displays chapter list fetched *from DB* using `getMangaChaptersFromDB` (Server Action) and `ChapterList` component. DB table `chapters` needs population via `syncChaptersWithSource` action (likely triggered by cron). Chapter sorting needs improvement (handles varchar).
+   - **Reader:** `/manga/[slug]/reader/[chapter]` page exists. Server-side fetches preferred source info and calls scraper's `getChapterDetails` to get image URLs *on request*. Client component `MangaReader` displays images, basic controls, and progress bar.
+   - **Progress Update:** `MangaReader` uses `IntersectionObserver` to detect chapter end and calls `updateReadingProgress` (Server Action) to save `lastChapterRead` in `userLibrary`.
 
-**UI Style:**
-- Minimal, elegant, clean, modern.
-- Light/Dark mode support via `next-themes` and CSS variables.
-- Primary accent color: Lilac.
-- Component Library: shadcn/ui with Tailwind CSS.
+**5. Key Architectural Decisions:**
+   - Prefer Server Actions for UI-triggered mutations.
+   - API Routes for external search query (could be Server Action too).
+   - UUID PK for `manga`, unique `slug` for URLs.
+   - Separate `manga_sources` tracking.
+   - `@neondatabase/serverless` driver used.
+   - Drizzle ORM.
 
-**Current Status:**
-Core authentication, DB schema for manga/sources/library, search (internal/external), basic import action, library add/remove, and library view page are implemented. Need to implement chapter fetching/display, reader logic, scheduled update job, notifications, user lists, and UI refinements.
+**6. UI Style:**
+   - Minimal, elegant, clean.
+   - Light/Dark mode via `next-themes`, shadcn/ui CSS variables.
+   - Primary color: Lilac.
+
+**7. Next Steps (Suggested Priority):**
+   - **Implement Chapter Syncing:**
+     - Create/Refine `syncChaptersWithSource` Server Action to fetch chapter list from preferred source via scraper and populate/update the `chapters` DB table.
+     - Implement logic for determining/setting `isPreferredSource` in `manga_sources`.
+     - Address numeric sorting issue for `chapterNumber` in `getMangaChaptersFromDB`.
+   - **Implement Chapter Navigation in Reader:**
+     - Fetch ordered list of `chapterNumber`s on reader page load.
+     - Determine previous/next chapter numbers.
+     - Pass them to `MangaReader` component.
+     - Enable Prev/Next buttons with correct links/navigation.
+   - **Implement Vercel Cron Job:**
+     - Create an API Route/Server Action endpoint for the update task.
+     - Logic: Iterate sources/manga, check for new chapters using scraper, call `syncChaptersWithSource` if needed, update `lastCheckedAt`.
+     - Configure job in `vercel.json`.
+   - **Implement "NEW" Chapter Notifications:**
+     - Update logic in `/library` (`MangaCard`) to compare `userLibrary.lastChapterRead` with the latest chapter available *in the `chapters` DB table*.
+     - Display "NEW" badge.
+   - **UI/UX Refinements:** Improve external result card, add toasts, implement user lists UI, mobile header menu, loading/error states.
+   - **Future:** Sharing lists, recommendations, offline reading.
