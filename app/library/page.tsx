@@ -41,7 +41,7 @@ export default async function LibraryPage() {
       },
     },
     columns: { // Select only needed columns from userLibrary
-      mangaSlug: true,
+      mangaId: true,
       lastChapterRead: true,
       addedAt: true,
       status: true, // Include reading status
@@ -74,7 +74,7 @@ export default async function LibraryPage() {
                 // Render a MangaCard for each entry
                 // Pass necessary props to the card component
                 <MangaCard
-                  key={entry.mangaSlug}
+                  key={entry.mangaId}
                   slug={entry.manga.slug} // From included manga data
                   title={entry.manga.title} // From included manga data
                   coverUrl={entry.manga.coverUrl} // From included manga data
