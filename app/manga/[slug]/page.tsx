@@ -2,10 +2,12 @@ import { eq } from 'drizzle-orm';
 import Image from 'next/image'; // Use Next.js Image for optimization
 import { notFound } from 'next/navigation';
 
+import { ChapterList } from '@/components/manga/ChapterList';
 import { LibraryToggleButton } from '@/components/manga/LibraryToggleButton'; // Our new client component
 import { Button } from '@/components/ui/button';
 import { auth } from '@/lib/auth'; // Server-side session
 import { db } from '@/lib/db';
+import { getMangaChaptersFromDB } from '@/lib/db/actions/chapter';
 import { isMangaInLibrary } from '@/lib/db/actions/library'; // Server action to check library status
 import { manga as mangaTable } from '@/lib/db/schema'; // Manga table schema
 
@@ -36,7 +38,11 @@ export default async function MangaDetailPage({ params }: MangaDetailPageProps) 
   // Check if manga is in library (only if user is logged in)
   const initialIsInLibrary = userId ? await isMangaInLibrary(slug) : false;
 
+  const chapters = await getMangaChaptersFromDB(mangaData.id, 'desc');
+
   // TODO: Fetch user's reading progress for this manga if logged in
+  // const userLibraryEntry = userId ? await db.query.userLibrary.findFirst(...) : null;
+  // const lastChapterRead = userLibraryEntry?.lastChapterRead;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -110,7 +116,18 @@ export default async function MangaDetailPage({ params }: MangaDetailPageProps) 
             </Button>
           </div>
 
-          {/* TODO: Chapter List Section */}
+          {/* --- Chapter List Section --- */}
+          <div className="mt-10 pt-6 border-t">
+            {' '}
+            {/* Added margin and border */}
+            <h2 className="text-2xl font-semibold mb-4">Chapters</h2>
+            {/* Pass chapters and potentially last read chapter to the list component */}
+            <ChapterList
+              chapters={chapters}
+              mangaSlug={slug} // Pass slug for link generation
+            // lastChapterRead={lastChapterRead} // Pass progress later
+            />
+          </div>
 
         </div>
       </div>

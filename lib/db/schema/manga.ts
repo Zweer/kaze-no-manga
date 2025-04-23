@@ -63,7 +63,7 @@ export const chapters = pgTable(
     mangaId: uuid('manga_id') // Changed from mangaSlug
       .notNull()
       .references(() => manga.id, { onDelete: 'cascade' }), // Reference manga.id
-    chapterNumber: doublePrecision('chapter_number'), // Optional: Store numeric part for sorting
+    chapterNumber: doublePrecision('chapter_number').notNull(), // Optional: Store numeric part for sorting
     title: varchar('title', { length: 255 }), // Optional chapter title
     pages: jsonb('pages').$type<string[]>(), // Optional: Store array of page image URLs if hosted internally (Phase 2)
     publishedAt: timestamp('published_at', { mode: 'date' }), // Optional: When the chapter was published

@@ -151,5 +151,76 @@ export async function removeMangaFromLibrary(mangaId: string): Promise<{ success
   }
 }
 
+/**
+ * Updates the last read chapter for a specific manga in the user's library.
+ * @param mangaId - The UUID of the canonical manga.
+ * @param chapterNumber - The chapter number (string identifier) that was just read.
+ * @param mangaSlug - The slug of the manga (needed for revalidation).
+ * @returns Object indicating success or error.
+ */
+export async function updateReadingProgress(
+  mangaId: string,
+  chapterNumber: number,
+  mangaSlug: string,
+): Promise<{ success: boolean; error?: string }> {
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  if (!userId)
+    return { success: false, error: 'User not authenticated.' };
+  if (!mangaId)
+    return { success: false, error: 'Manga ID is required.' };
+  if (!chapterNumber)
+    return { success: false, error: 'Chapter number is required.' };
+  if (!mangaSlug)
+    return { success: false, error: 'Manga slug is required for revalidation.' };
+
+  console.log(`Updating progress for user ${userId}, manga ${mangaId}, chapter ${chapterNumber}`);
+
+  try {
+    // TODO: Add logic to prevent setting progress backwards? Or allow it?
+    // Optional: Fetch current progress first to compare
+    // const currentEntry = await db.query.userLibrary.findFirst({
+    //     where: and(eq(userLibrary.userId, userId), eq(userLibrary.mangaId, mangaId)),
+    //     columns: { lastChapterRead: true }
+    // });
+    // const currentReadNum = parseFloat(currentEntry?.lastChapterRead || '0');
+    // const newReadNum = parseFloat(chapterNumber);
+    // if (!isNaN(newReadNum) && !isNaN(currentReadNum) && newReadNum <= currentReadNum) {
+    //     console.log("New chapter number is not greater than current progress. Skipping update.");
+    //     return { success: true }; // Still success, just no change needed
+    // }
+
+    const result = await db.update(userLibrary)
+      .set({
+        lastChapterRead: chapterNumber,
+        // Optionally update updatedAt timestamp if needed, though DB might handle it
+      })
+      .where(
+        and(
+          eq(userLibrary.userId, userId),
+          eq(userLibrary.mangaId, mangaId),
+        ),
+      )
+      .returning({ mangaId: userLibrary.mangaId }); // Check if update occurred
+
+    if (result.length === 0) {
+      // This means the user wasn't following the manga in the first place. Should not happen ideally.
+      console.warn(`User ${userId} tried to update progress for manga ${mangaId} not in library.`);
+      return { success: false, error: 'Manga not found in library.' };
+    }
+
+    // Revalidate library and manga detail page
+    revalidatePath(`/library`);
+    revalidatePath(`/manga/${mangaSlug}`);
+
+    console.log(`Progress updated successfully for user ${userId}, manga ${mangaId} to chapter ${chapterNumber}`);
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating reading progress:', error);
+    return { success: false, error: 'Failed to update reading progress.' };
+  }
+}
+
 // --- Add functions for updating status, rating, notes etc. later ---
 // export async function updateMangaStatus(...) { ... }

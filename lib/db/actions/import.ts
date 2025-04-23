@@ -10,170 +10,172 @@ import slugify from 'slugify';
 
 import { getMangaDetails } from '@/lib/manga';
 
-import { db } from '../';
-import { mangaSources, manga as mangaTable } from '../schema'; // Import both schemas
+import { db } from '../index';
+import { mangaSources, manga as mangaTable } from '../schema';
 
 interface ImportMangaInput {
-  title: string;
+  title: string; // Title from search result (for matching/fallback)
   sourceName: string;
-  sourceId: string;
+  sourceMangaId: string; // ID on the source
+  sourceUrl?: string; // URL from search result (optional)
 }
 
-type ImportResult = {
-  success: true;
-  slug: string;
-  mangaId: string;
-  isNewEntry: boolean;
-} | {
-  success: false;
-  error: string;
-};
+interface ImportResult {
+  success: boolean;
+  slug?: string;
+  mangaId?: string;
+  isNewEntry?: boolean;
+  error?: string;
+}
 
 export async function importMangaMetadataAction(input: ImportMangaInput): Promise<ImportResult> {
-  console.log(`Import request for: "${input.title}" from ${input.sourceName} (ID: ${input.sourceId})`);
+  console.log(`Import request for sourceId: "${input.sourceMangaId}" from ${input.sourceName}`);
 
-  if (!input.title || !input.sourceName || !input.sourceId) {
-    return { success: false, error: 'Missing required fields (title, sourceName, sourceId).' };
+  if (!input.sourceName || !input.sourceMangaId) {
+    return { success: false, error: 'Missing required sourceName or sourceMangaId.' };
   }
 
-  // --- 1. Try to find existing canonical manga (Simple Title/Slug Match) ---
-  // eslint-disable-next-line ts/no-unsafe-call
-  const generatedSlug = slugify(input.title, { lower: true, strict: true, trim: true }) as string;
-  let existingMangaId: string | null = null;
-  let existingMangaSlug: string | null = null;
-
-  if (generatedSlug) {
-    try {
-      const potentialMatch = await db.query.manga.findFirst({
-        // Match on slug OR do a case-insensitive title match
-        where: or(
-          eq(mangaTable.slug, generatedSlug),
-          ilike(mangaTable.title, input.title), // Basic title match
-          // TODO: Could use more advanced matching here (pg_trgm?)
-        ),
-        columns: { id: true, slug: true },
-      });
-
-      if (potentialMatch) {
-        existingMangaId = potentialMatch.id;
-        existingMangaSlug = potentialMatch.slug;
-        console.log(`Potential match found for "${input.title}" with existing manga ID: ${existingMangaId}`);
-      }
-    } catch (error) {
-      console.error('Error checking for existing manga:', error);
-      // Continue execution, will attempt to create new if match fails
-    }
-  } else {
-    console.warn('Could not generate slug for title:', input.title);
-    // Proceed without slug matching if slug generation failed
-  }
-
-  // --- 2. Fetch Detailed Metadata (Always fetch for latest info?) ---
-  // Decide if you fetch details even if manga exists (to update) or only for new ones
+  // --- 1. Fetch Detailed Metadata using your wrapper ---
   let detailedData: Manga | null = null;
   try {
-    detailedData = await getMangaDetails(input.sourceId, input.sourceName);
-    if (!detailedData) {
-      throw new Error('Scraper did not return detailed data.');
+    detailedData = await getMangaDetails(input.sourceMangaId, input.sourceName);
+    if (!detailedData || !detailedData.title) { // Ensure we got essential data like title
+      throw new Error('Scraper did not return valid detailed data or title.');
     }
-    console.log('Fetched details for:', detailedData.title || input.title);
+    console.log('Fetched details for:', detailedData.title);
   } catch (error) {
-    console.error('Error fetching detailed manga data:', error);
-    // If we failed to fetch details, maybe we shouldn't proceed? Or proceed with minimal data?
-    // For now, let's return an error.
+    console.error('Error fetching detailed manga data via getMangaDetails:', error);
     return { success: false, error: 'Failed to fetch complete details from source.' };
   }
 
-  // Prefer data from detailed fetch
-  const finalTitle = detailedData.title || input.title;
+  // --- 2. Generate Slug and Check for Existing Canonical Manga ---
+  const finalTitle = detailedData.title; // Use the definitive title from details
   // eslint-disable-next-line ts/no-unsafe-call
-  const finalSlug = existingMangaSlug || slugify(finalTitle, { lower: true, strict: true, trim: true }) as string;
-  if (!finalSlug)
-    return { success: false, error: 'Could not generate final slug.' };
+  const generatedSlug = slugify(finalTitle, { lower: true, strict: true, trim: true }) as string;
+  if (!generatedSlug) {
+    return { success: false, error: 'Could not generate a valid slug from the title.' };
+  }
 
-  // --- 3. Handle Existing Manga Match ---
+  let existingMangaId: string | null = null;
+  let existingMangaSlug: string | null = null;
+
+  try {
+    // Prioritize matching by unique source first
+    const sourceMatch = await db.query.mangaSources.findFirst({
+      where: and(
+        eq(mangaSources.sourceName, input.sourceName),
+        eq(mangaSources.sourceMangaId, input.sourceMangaId),
+      ),
+      columns: { mangaId: true }, // Get the linked canonical manga ID
+      with: { // Include the slug from the canonical manga
+        manga: { columns: { slug: true } },
+      },
+    });
+
+    if (sourceMatch && sourceMatch.manga) {
+      // Already imported this exact source before
+      console.log(`Source "${input.sourceName}/${input.sourceMangaId}" already linked to manga ID: ${sourceMatch.mangaId}`);
+      return { success: true, slug: sourceMatch.manga.slug, mangaId: sourceMatch.mangaId, isNewEntry: false };
+    }
+
+    // If exact source not found, try matching by slug/title for potential linking
+    const potentialMatch = await db.query.manga.findFirst({
+      where: or(
+        eq(mangaTable.slug, generatedSlug),
+        ilike(mangaTable.title, finalTitle),
+      ),
+      columns: { id: true, slug: true },
+    });
+    if (potentialMatch) {
+      existingMangaId = potentialMatch.id;
+      existingMangaSlug = potentialMatch.slug; // Use the existing slug
+      console.log(`Potential match found for "${finalTitle}" with existing manga ID: ${existingMangaId}`);
+    }
+  } catch (error) {
+    console.error('Error checking for existing manga/source:', error);
+    return { success: false, error: 'Database error during check.' };
+  }
+
+  const finalSlug = existingMangaSlug || generatedSlug; // Use existing slug if matched
+
+  // --- 3. Handle Existing Manga Match (Link New Source) ---
   if (existingMangaId) {
-    // Check if this specific source is already linked
+    console.log(`Linking new source "${input.sourceName}/${input.sourceMangaId}" to existing manga ${existingMangaId}.`);
     try {
-      const existingSource = await db.query.mangaSources.findFirst({
-        where: and(
-          eq(mangaSources.mangaId, existingMangaId),
-          eq(mangaSources.sourceName, input.sourceName),
-        ),
-        columns: { id: true },
-      });
+      await db.insert(mangaSources).values({
+        mangaId: existingMangaId,
+        sourceName: input.sourceName,
+        sourceMangaId: input.sourceMangaId,
+        sourceUrl: detailedData.url, // Use URL from detailed data
+        // Don't set chapter info here, that's for the update job
+        // lastChapterChecked: ??? ,
+        // lastCheckedAt: ??? ,
+        isPreferredSource: false, // Maybe set first source added as preferred later?
+      }).onConflictDoNothing(); // Avoid errors if somehow inserted concurrently
 
-      if (existingSource) {
-        console.log(`Source "${input.sourceName}" already linked to manga ${existingMangaId}. Updating check info.`);
+      // Update canonical manga if new source has better data? (e.g., cover)
+      // await db.update(mangaTable).set({ coverUrl: detailedData.image }).where(eq(mangaTable.id, existingMangaId));
 
-        // Optionally: Update canonical manga data if detailed data is better? (e.g., cover)
-        // await db.update(mangaTable).set({ coverUrl: ... }).where(eq(mangaTable.id, existingMangaId));
-
-        return { success: true, slug: finalSlug, mangaId: existingMangaId, isNewEntry: false };
-      } else {
-        console.log(`Linking new source "${input.sourceName}" to existing manga ${existingMangaId}.`);
-
-        // Link new source to existing manga
-        await db.insert(mangaSources).values({
-          mangaId: existingMangaId,
-          sourceName: input.sourceName,
-          sourceMangaId: input.sourceId,
-          sourceUrl: detailedData.url,
-          isPreferredSource: false, // Set preferred source logic later if needed
-        });
-
-        // Revalidate paths?
-        revalidatePath(`/manga/${finalSlug}`);
-        return { success: true, slug: finalSlug, mangaId: existingMangaId, isNewEntry: false };
-      }
+      revalidatePath(`/manga/${finalSlug}`);
+      return { success: true, slug: finalSlug, mangaId: existingMangaId, isNewEntry: false };
     } catch (error) {
-      console.error('Error handling existing manga source linking:', error);
-      return { success: false, error: 'Failed to link source to existing manga.' };
+      console.error('Error linking source to existing manga:', error);
+      return { success: false, error: 'Failed to link source.' };
     }
   } else {
     console.log(`Creating new canonical manga entry for "${finalTitle}" with slug "${finalSlug}".`);
-    // Create new canonical manga entry AND the first source entry
     try {
       const insertedManga = await db.transaction(async (tx) => {
-        // Insert canonical manga data
         const newManga = await tx.insert(mangaTable).values({
-          // id: generated automatically by DB
           slug: finalSlug,
           title: finalTitle,
+          // author: detailedData.author,
+          // artist: ???, // If your scraper provides it
           description: detailedData.excerpt,
           coverUrl: detailedData.image,
           status: detailedData.status,
           genres: detailedData.genres || [],
-        }).returning({ id: mangaTable.id, slug: mangaTable.slug }); // Return the new ID and slug
+        }).returning({ id: mangaTable.id, slug: mangaTable.slug });
 
-        if (!newManga || newManga.length === 0 || !newManga[0].id) {
-          throw new Error('Failed to insert new manga or retrieve its ID.');
-        }
+        if (!newManga?.[0]?.id)
+          throw new Error('Failed to insert new manga.');
         const newMangaId = newManga[0].id;
-        const newMangaSlug = newManga[0].slug;
 
-        // Insert the first source link
         await tx.insert(mangaSources).values({
           mangaId: newMangaId,
           sourceName: input.sourceName,
-          sourceMangaId: input.sourceId,
+          sourceMangaId: input.sourceMangaId,
           sourceUrl: detailedData.url,
-          isPreferredSource: true, // Mark the first source as preferred by default
+          // Don't set chapter info here
+          isPreferredSource: true, // Mark first source as preferred
         });
 
-        return { id: newMangaId, slug: newMangaSlug };
+        return { id: newMangaId, slug: finalSlug };
       });
 
       console.log('Successfully created new manga and source:', insertedManga.slug);
-      // Revalidate? Probably not needed immediately for a new entry.
       return { success: true, slug: insertedManga.slug, mangaId: insertedManga.id, isNewEntry: true };
     } catch (error) {
       const dbError = error as DatabaseError;
-      console.error('Error creating new manga entry:', error);
+      console.error('Error creating new manga entry:', dbError);
 
-      // Check for unique constraint violation on slug (race condition?)
       if (dbError.code === '23505' && dbError.constraint?.includes('manga_slug_idx')) {
-        return { success: false, error: 'A manga with a similar title might have been added concurrently. Please try searching again.' };
+        return { success: false, error: 'A manga with this slug already exists. Try searching again.' };
+      }
+      if (dbError.code === '23505' && dbError.constraint?.includes('manga_sources_unique_idx')) {
+        // This case means the source was likely just added by another process/retry
+        console.warn('Source likely already exists:', input.sourceName, input.sourceMangaId);
+        // Attempt to find the mangaId it belongs to
+        const existingSource = await db.query.mangaSources.findFirst({
+          where: and(eq(mangaSources.sourceName, input.sourceName), eq(mangaSources.sourceMangaId, input.sourceMangaId)),
+          columns: { mangaId: true },
+          with: { manga: { columns: { slug: true } } },
+        });
+        if (existingSource?.manga) {
+          return { success: true, slug: existingSource.manga.slug, mangaId: existingSource.mangaId, isNewEntry: false };
+        } else {
+          return { success: false, error: 'Failed to save manga source (conflict).' };
+        }
       }
       return { success: false, error: 'Failed to save new manga to database.' };
     }
