@@ -1,14 +1,8 @@
-import type { ConnectorNames } from '@zweer/manga-scraper';
+import type { ConnectorNames, Manga } from '@zweer/manga-scraper';
+
+import type { MangaSearchResult } from './types';
 
 import { connectors } from '@zweer/manga-scraper';
-
-export interface MangaSearchResult {
-  sourceId: string;
-  sourceName: ConnectorNames;
-  title: string;
-  slug: string;
-  coverUrl: string;
-}
 
 export async function searchMangas(query: string): Promise<MangaSearchResult[]> {
   const results = await Object.entries(connectors).reduce(
@@ -28,4 +22,15 @@ export async function searchMangas(query: string): Promise<MangaSearchResult[]> 
   );
 
   return results;
+}
+
+export async function getMangaDetails(sourceId: string, sourceName: ConnectorNames): Promise<Manga> {
+  const connector = connectors[sourceName];
+  if (!connector) {
+    throw new Error(`Connector for source ${sourceName} not found`);
+  }
+
+  const mangaDetails = await connector.getManga(sourceId);
+
+  return mangaDetails;
 }

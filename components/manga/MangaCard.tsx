@@ -8,15 +8,15 @@ interface MangaCardProps {
   slug: string;
   title: string;
   coverUrl: string | null;
-  lastChapterRead: number | null;
-  lastChapterChecked: number | null;
-  readingStatus: string | null;
+  lastChapterRead: number | null | undefined;
+  lastChapterChecked: number | null | undefined;
+  readingStatus: string | null | undefined;
   className?: string;
 }
 
 // Helper to compare chapter strings (basic numeric comparison)
 // TODO: Improve this to handle complex chapter numbers (e.g., '10.5', 'Extra')
-function isNewChapterAvailable(lastRead: number | null, lastChecked: number | null): boolean {
+function isNewChapterAvailable(lastRead: number | null | undefined, lastChecked: number | null | undefined): boolean {
   if (!lastChecked) {
     return false; // No checked chapter info
   }

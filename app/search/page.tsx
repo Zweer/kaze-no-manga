@@ -1,12 +1,13 @@
 'use client';
 
-import type { MangaSearchResult } from '@/lib/manga';
+import type { MangaSearchResult } from '@/lib/manga/types';
 
 import { AlertCircle, Loader2, Search } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
+import { ExternalMangaResultCard } from '@/components/manga/ExternalMangaResultCard';
 import { MangaCard } from '@/components/manga/MangaCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -104,6 +105,15 @@ export default function SearchPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Callback function after successful import
+  const handleImportSuccess = (slug: string) => {
+    console.log('Import successful, slug:', slug);
+    // Optional: Redirect to the new manga's page
+    // router.push(`/manga/${slug}`);
+    // Optional: Show a success toast message
+    // Optional: Refresh internal search results? Or remove the imported item from external list?
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Search Manga</h1>
@@ -159,8 +169,9 @@ export default function SearchPage() {
                 title={manga.title}
                 coverUrl={manga.coverUrl}
                 // Pass other needed props if MangaCard requires them
-                // lastChapterRead={undefined} // Not available directly from search
-                // lastChapterChecked={undefined} // Not available directly from search
+                lastChapterRead={undefined} // Not available directly from search
+                lastChapterChecked={undefined} // Not available directly from search
+                readingStatus={undefined} // Not available directly from search
               />
             ))}
           </div>
@@ -168,11 +179,20 @@ export default function SearchPage() {
       )}
 
       {/* External Results Section */}
-      {isLoadingExternal && ( // Show loading specifically for external
-        <div className="text-center py-4">
-          <Loader2 className="h-6 w-6 animate-spin inline-block text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Searching external sources...</p>
-        </div>
+      {!isLoadingExternal && externalResults.length > 0 && (
+        <section>
+          <h2 className="text-xl font-semibold mb-4 border-b pb-2">Found on External Sources</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {externalResults.map(result => (
+              // Use ExternalMangaResultCard
+              <ExternalMangaResultCard
+                key={`${result.sourceName}-${result.sourceId}`}
+                result={result}
+                onImportSuccess={handleImportSuccess}
+              />
+            ))}
+          </div>
+        </section>
       )}
       {!isLoadingExternal && externalResults.length > 0 && (
         <section>
