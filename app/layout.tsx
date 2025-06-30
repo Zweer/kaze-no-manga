@@ -1,14 +1,15 @@
 import type { Metadata } from 'next';
 
-import { Inter } from 'next/font/google';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 
-import Header from '@/components/Header';
+import Footer from '@/components/layout/Footer';
+import Header from '@/components/layout/Header';
 import Providers from '@/components/provider';
 import { cn } from '@/lib/utils';
 
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Kaze No Manga',
@@ -24,14 +25,21 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          'min-h-screen bg-background antialiased',
-          inter.className,
+          'bg-background antialiased',
+          jakarta.className,
         )}
       >
         <Providers>
-          <div className="relative flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
+          <div className="relative flex size-full min-h-screen flex-col group/design-root overflow-x-hidden">
+            <div className="layout-container flex h-full grow flex-col">
+              <Header />
+              <div className="px-40 flex flex-1 justify-center py-5">
+                <main className="layout-content-container flex flex-col max-w-[960px] flex-1">
+                  {children}
+                </main>
+              </div>
+              <Footer />
+            </div>
           </div>
         </Providers>
       </body>

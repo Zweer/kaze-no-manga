@@ -1,0 +1,1 @@
+ALTER TABLE "manga" ALTER COLUMN "image" SET NOT NULL;

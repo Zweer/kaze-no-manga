@@ -1,0 +1,1 @@
+ALTER TABLE "manga" ALTER COLUMN "status" SET NOT NULL;
