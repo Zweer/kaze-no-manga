@@ -69,10 +69,10 @@ The project will be developed in small, iterative phases to ensure we have a fun
 
 ### **Phase 2: The Simplest Reader (Proof of Concept)**
 *The goal is to display a single, hard-coded manga chapter.*
-- [ ] Manually add data for **one** manga, **one** chapter, and a few pages (image URLs) into the database.
-- [ ] Create the reader page: `/read/[chapterId]`.
-- [ ] On this page, fetch the hard-coded page images for the given chapter and display them vertically.
-- [ ] Style the reader for a basic, clean, vertical scroll experience.
+- [X] Manually add data for **one** manga, **one** chapter, and a few pages (image URLs) into the database.
+- [X] Create the reader page: `/read/[chapterId]`.
+- [X] On this page, fetch the hard-coded page images for the given chapter and display them vertically.
+- [X] Style the reader for a basic, clean, vertical scroll experience.
 
 ---
 
