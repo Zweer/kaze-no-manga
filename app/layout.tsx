@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 
 import { Inter } from 'next/font/google';
 
-import { SessionProvider } from '@/components/provider/SessionProvider';
-import { ThemeProvider } from '@/components/provider/ThemeProvider';
+import Header from '@/components/Header';
+import Providers from '@/components/provider';
 import { cn } from '@/lib/utils';
 
 import './globals.css';
@@ -28,17 +28,12 @@ export default function RootLayout({
           inter.className,
         )}
       >
-        <SessionProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-          // disableTransitionOnChange // Optional: improve performance during theme change
-          >
-            {/* The group layouts ((www) or (app)) will inject their specific structure here */}
-            {children}
-          </ThemeProvider>
-        </SessionProvider>
+        <Providers>
+          <div className="relative flex min-h-screen flex-col">
+            <Header />
+            <main className="flex-1">{children}</main>
+          </div>
+        </Providers>
       </body>
     </html>
   );

@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
@@ -9,13 +10,12 @@ export default async function ProfilePage() {
   if (!session?.user?.id) {
     redirect('/');
   }
-
   const user = session.user;
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-50">
-      <div className="bg-white p-8 rounded-lg shadow-md max-w-sm w-full text-center">
-        <h1 className="text-2xl font-bold mb-4">Profile</h1>
+    <div className="container max-w-2xl py-10">
+      <div className="bg-card text-card-foreground p-8 rounded-lg border">
+        <h1 className="text-2xl font-bold mb-4 text-center">Profile</h1>
 
         {user.image && (
           <Image
@@ -27,10 +27,10 @@ export default async function ProfilePage() {
           />
         )}
 
-        <h2 className="text-xl font-semibold">{user.name}</h2>
-        <p className="text-slate-500 mb-6">{user.email}</p>
+        <h2 className="text-xl font-semibold text-center">{user.name}</h2>
+        <p className="text-muted-foreground mb-6 text-center">{user.email}</p>
 
-        <div className="text-left bg-slate-100 p-4 rounded-md">
+        <div className="text-left bg-muted p-4 rounded-md">
           <h3 className="font-semibold mb-2">Session Data (from Server):</h3>
           <pre className="text-xs overflow-x-auto bg-slate-800 text-white p-2 rounded">
             <code>{JSON.stringify(session, null, 2)}</code>
@@ -38,7 +38,7 @@ export default async function ProfilePage() {
         </div>
 
         <Button asChild className="mt-6 w-full">
-          <a href="/">Back to Home</a>
+          <Link href="/">Back to Home</Link>
         </Button>
       </div>
     </div>

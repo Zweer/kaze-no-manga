@@ -1,15 +1,10 @@
-import UserAuth from '@/components/UserAuth';
-
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="absolute top-4 right-4">
-        <UserAuth />
-      </div>
+    <div className="container flex flex-col items-center justify-center flex-1 py-10">
       <h1 className="text-4xl font-bold">Welcome to MangaVerse</h1>
       <p className="mt-4 text-lg text-muted-foreground">
-        Authentication is now set up. Try signing in!
+        Basic layout is set up. Ready for Phase 2!
       </p>
-    </main>
+    </div>
   );
 }
