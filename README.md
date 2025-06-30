@@ -63,7 +63,7 @@ The project will be developed in small, iterative phases to ensure we have a fun
 - [X] Configure the `drizzle-adapter` for `Auth.js` to manage user, session, and account tables.
 - [X] Add a login provider (e.g., Google or Email).
 - [X] Create a simple UI with Login/Logout buttons using Shadcn components.
-- [ ] Create a protected route (e.g., `/profile`) that shows the logged-in user's email and avatar.
+- [X] Create a protected route (e.g., `/profile`) that shows the logged-in user's email and avatar.
 
 ---
 
