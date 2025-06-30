@@ -47,62 +47,46 @@ export default async function ReaderPage({ params }: { params: Promise<ReaderPag
   });
 
   return (
-    <div className="bg-background text-foreground">
-      <div className="fixed top-0 left-0 right-0 h-14 bg-background/80 backdrop-blur z-50 border-b">
-        <div className="container mx-auto h-full flex items-center justify-between">
-          <Link href={`/manga/${manga.slug}`} className="text-lg font-bold hover:underline">
-            MangaVerse Test Comic
-          </Link>
-          <div className="text-center">
-            <h1 className="font-semibold">
-              Chapter
-              {chapter.index}
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
-          </div>
+    <div className="container max-w-5xl mx-auto py-8">
+      <div className="flex flex-col md:flex-row gap-8 items-start">
+        <div className="flex-grow">
+          <span className="text-sm font-semibold text-primary">{manga.title}</span>
+          <h1 className="text-4xl font-bold mt-1 mb-2">{chapter.title ?? `Chapter ${chapter.index}`}</h1>
         </div>
       </div>
 
-      <div className="pt-14">
-        {' '}
-        <div className="max-w-3xl mx-auto flex flex-col items-center">
-          <div className="w-full min-h-screen">
-            {' '}
-            {chapter.images.map((image, index) => (
-              // eslint-disable-next-line react/no-array-index-key
-              <div key={index} className="relative w-full">
-                <Image
-                  src={image}
-                  alt={`Page ${index}`}
-                  width={800}
-                  height={1200}
-                  sizes="100vw"
-                  className="w-full h-auto"
-                  priority={index <= 2}
-                />
-              </div>
-            ))}
-          </div>
+      <div className="flex flex-col items-center mt-12">
+        {chapter.images.map((image, index) => (
+          <Image
+            // eslint-disable-next-line react/no-array-index-key
+            key={index}
+            src={image}
+            alt={`Page ${index}`}
+            width={800}
+            height={1200}
+            sizes="100vw"
+            className="h-auto"
+            priority={index <= 2}
+          />
+        ))}
+      </div>
 
-          <div className="w-full flex justify-between items-center my-8 px-4">
-            {prevChapter
-              ? (
-                  <Link href={`/manga/${manga.slug}/${prevChapter.index}`}>
-                    <Button variant="outline">Previous Chapter</Button>
-                  </Link>
-                )
-              : <div></div>}
+      <div className="w-full flex justify-between items-center my-8 px-4">
+        {prevChapter
+          ? (
+              <Link href={`/manga/${manga.slug}/${prevChapter.index}`}>
+                <Button variant="outline">Previous Chapter</Button>
+              </Link>
+            )
+          : <div></div>}
 
-            {nextChapter
-              ? (
-                  <Link href={`/manga/${manga.slug}/${nextChapter.index}`}>
-                    <Button variant="outline">Next Chapter</Button>
-                  </Link>
-                )
-              : <div></div>}
-          </div>
-        </div>
+        {nextChapter
+          ? (
+              <Link href={`/manga/${manga.slug}/${nextChapter.index}`}>
+                <Button variant="outline">Next Chapter</Button>
+              </Link>
+            )
+          : <div></div>}
       </div>
     </div>
   );

@@ -1,36 +1,58 @@
 import Link from 'next/link';
 
-import Logo from '@/components/layout/Header/Logo';
+import Icons from '@/components/Icons';
+import { MainNav } from '@/components/layout/Header/MainNav';
+import { MobileNav } from '@/components/layout/Header/MobileNav';
+import ThemeToggle from '@/components/layout/Header/ThemeToggle';
 import UserAuth from '@/components/layout/Header/UserAuth';
-
-const pages = [
-  { label: 'Home', href: '/' },
-  { label: 'Browse', href: '/browse' },
-  { label: 'Library', href: '/library' },
-];
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import config from '@/lib/config';
 
 export default function Header() {
   return (
-    <header className="flex items-center justify-between whitespace-nowrap border-b border-solid px-10 py-3">
-      <div className="flex items-center gap-8">
-        <div className="flex items-center gap-4">
-          <Logo />
-        </div>
+    <header className="bg-background sticky top-0 z-50 w-full">
+      <div className="container-wrapper px-6">
+        <div className="flex h-(--header-height) items-center gap-2 **:data-[slot=separator]:!h-4">
+          <MobileNav items={config.nav} className="flex lg:hidden" />
 
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-          {pages.map(page => (
-            <Link key={page.label.toLowerCase()} href={page.href} className="text-foreground/60 transition-colors hover:text-foreground/80">
-              {page.label}
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            className="hidden size-8 lg:flex"
+          >
+            <Link href="/">
+              <Icons.logo className="size-5" />
+              <span className="sr-only">{config.name}</span>
             </Link>
-          ))}
-        </nav>
-      </div>
+          </Button>
 
-      <div className="flex flex-1 justify-end gap-8">
-        <div className="flex flex-1 items-center justify-end">
-          <nav className="flex items-center space-x-2">
+          <h2 className="text-lg font-bold leading-tight tracking-[-0.015em]">
+            <Link href="/">{config.name}</Link>
+          </h2>
+
+          <MainNav items={config.nav} className="hidden lg:flex" />
+
+          <div className="ml-auto flex items-center gap-2 md:flex-1 md:justify-end">
+            <div className="hidden w-full flex-1 md:flex md:w-auto md:flex-none">
+              {/* <CommandMenu tree={pageTree} colors={colors} /> */}
+            </div>
+
+            <Separator
+              orientation="vertical"
+              className="ml-2 hidden lg:block"
+            />
+
+            <ThemeToggle />
+
+            <Separator
+              orientation="vertical"
+              className="ml-2 hidden lg:block"
+            />
+
             <UserAuth />
-          </nav>
+          </div>
         </div>
       </div>
     </header>
