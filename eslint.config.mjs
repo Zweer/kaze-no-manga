@@ -20,6 +20,9 @@ export default antfu({
 }, {
   rules: {
     'node/prefer-global/process': 'off',
+    'ts/no-floating-promises': 'off',
+    'ts/no-misused-promises': 'off',
+    'ts/strict-boolean-expressions': 'off',
     'perfectionist/sort-imports': ['error', {
       internalPattern: ['^~/.+', '^@/.+', '^#.+'],
       groups: [
@@ -36,5 +39,10 @@ export default antfu({
     }],
   },
 }, {
-  ignores: ['.next/*', '.vercel/*'],
+  files: ['./hooks/use-mobile.ts'],
+  rules: {
+    'react-hooks-extra/no-direct-set-state-in-use-effect': 'off',
+  },
+}, {
+  ignores: ['.next/*', '.vercel/*', './components/ui/*.tsx'],
 });

@@ -59,10 +59,10 @@ The project will be developed in small, iterative phases to ensure we have a fun
 
 ### **Phase 1: Core Authentication**
 *The goal is to allow users to sign up, log in, and log out.*
-- [ ] Integrate `Auth.js` into the project.
-- [ ] Configure the `drizzle-adapter` for `Auth.js` to manage user, session, and account tables.
-- [ ] Add a login provider (e.g., Google or Email).
-- [ ] Create a simple UI with Login/Logout buttons using Shadcn components.
+- [X] Integrate `Auth.js` into the project.
+- [X] Configure the `drizzle-adapter` for `Auth.js` to manage user, session, and account tables.
+- [X] Add a login provider (e.g., Google or Email).
+- [X] Create a simple UI with Login/Logout buttons using Shadcn components.
 - [ ] Create a protected route (e.g., `/profile`) that shows the logged-in user's email and avatar.
 
 ---
