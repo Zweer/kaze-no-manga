@@ -1,10 +1,4 @@
-Assolutamente! Ottimi feedback. Sostituire Prisma con **Drizzle ORM** è una scelta eccellente, molto in voga per la sua leggerezza, performance e l'approccio "SQL-like" che ti dà più controllo. L'aggiunta del ToC e delle checkbox renderà il `README` perfetto per tracciare il nostro lavoro.
-
-Ecco il file `README.md` aggiornato con tutte le tue richieste.
-
----
-
-# MangaVerse - A Modern Manga Reading Platform
+# KazeNoManga - A Modern Manga Reading Platform
 
 ## 📚 Table of Contents
 
@@ -15,7 +9,7 @@ Ecco il file `README.md` aggiornato con tutte le tue richieste.
 
 ## 🚀 Project Overview
 
-**MangaVerse** is a modern, responsive web portal for manga and webtoon enthusiasts. The core problem it aims to solve is the lack of a seamless, cross-device reading experience in existing platforms. Users often lose track of their progress when switching between their phone, tablet, and desktop.
+**KazeNoManga** is a modern, responsive web portal for manga and webtoon enthusiasts. The core problem it aims to solve is the lack of a seamless, cross-device reading experience in existing platforms. Users often lose track of their progress when switching between their phone, tablet, and desktop.
 
 Our primary focus is to provide a "sync-first" platform where a user's reading progress—down to the exact scroll position in a chapter—is automatically saved and synchronized across all their logged-in devices.
 
@@ -54,12 +48,12 @@ The project will be developed in small, iterative phases to ensure we have a fun
 
 ### **Phase 0: Foundation & Setup**
 *The goal is to have a "Hello World" Next.js project connected to the database and deployed on Vercel.*
-- [ ] Initialize Next.js project with the App Router.
-- [ ] Install and configure Tailwind CSS.
-- [ ] Set up a Neon database and connect it to the Vercel project.
-- [ ] Install Drizzle ORM and configure it.
-- [ ] Create the initial database schema using Drizzle's syntax and run the first migration.
-- [ ] Push a basic "Welcome" page to Vercel to confirm deployment works.
+- [X] Initialize Next.js project with the App Router.
+- [X] Install and configure Tailwind CSS.
+- [X] Set up a Neon database and connect it to the Vercel project.
+- [X] Install Drizzle ORM and configure it.
+- [X] Create the initial database schema using Drizzle's syntax and run the first migration.
+- [X] Push a basic "Welcome" page to Vercel to confirm deployment works.
 
 ---
 
