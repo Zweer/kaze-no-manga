@@ -17,7 +17,7 @@ if (!process.env.DATABASE_URL_UNPOOLED) {
 
 export default {
   schema: './lib/db/model',
-  out: './drizzle',
+  out: './db',
   dialect: 'postgresql',
   dbCredentials: {
     url: process.env.DATABASE_URL_UNPOOLED,
