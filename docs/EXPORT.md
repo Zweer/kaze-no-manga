@@ -122,7 +122,11 @@ kaze-no-manga
 ├── postcss.config.mjs
 ├── public
 │   └── site.webmanifest
-└── tsconfig.json
+├── test
+│   ├── example.test.ts
+│   └── setup.ts
+├── tsconfig.json
+└── vitest.config.ts
 
 ```
 
@@ -206,8 +210,8 @@ next-env.d.ts
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
-# npm run test:coverage
-# npm run script:coverage
+npm run test:coverage
+npm run script:coverage
 # git add ./README.md
 npm run script:export
 git add ./docs/EXPORT.md
@@ -239,6 +243,8 @@ git update-index --again
 
 ````markdown
 # KazeNoManga - A Modern Manga Reading Platform
+
+![Coverage Badge](https://img.shields.io/badge/coverage-16%25-red?style=flat)
 
 ## 📚 Table of Contents
 
@@ -7350,7 +7356,11 @@ export default nextConfig;
     "db:migrate": "drizzle-kit migrate",
     "db": "npm run db:generate && npm run db:migrate",
     "prepare": "husky",
-    "script:export": "npx --yes @zweer/export-code --ignore-list /db/meta"
+    "test": "vitest run",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "script:export": "npx --yes @zweer/export-code --ignore-list /db/meta",
+    "script:coverage": "npx --yes @zweer/coverage-badge-readme"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.10.0",
@@ -7412,6 +7422,7 @@ export default nextConfig;
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.16.1",
+    "@electric-sql/pglite": "^0.3.4",
     "@eslint-react/eslint-plugin": "^1.52.2",
     "@next/eslint-plugin-next": "^15.3.4",
     "@tailwindcss/postcss": "^4",
@@ -7419,6 +7430,8 @@ export default nextConfig;
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/ws": "^8.18.1",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
     "dotenv": "^17.0.0",
     "drizzle-kit": "^0.31.4",
     "eslint-config-next": "15.3.4",
@@ -7427,7 +7440,9 @@ export default nextConfig;
     "pino-pretty": "^13.0.0",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
   }
 }
 
@@ -7452,6 +7467,91 @@ export default config;
 
 ````
 {"name":"","short_name":"","icons":[{"src":"/android-chrome-192x192.png","sizes":"192x192","type":"image/png"},{"src":"/android-chrome-512x512.png","sizes":"512x512","type":"image/png"}],"theme_color":"#ffffff","background_color":"#ffffff","display":"standalone"}
+````
+
+---
+
+/home/zweer/projects/kaze-no-manga/test/example.test.ts
+
+````typescript
+import { describe, expect, it } from 'vitest';
+
+import { db } from '@/lib/db';
+import { userTable } from '@/lib/db/model';
+
+describe('database Tests with PGlite', () => {
+  it('should have the pgliteClient available globally', () => {
+    expect(db).toBeDefined();
+  });
+
+  it('should be able to execute a simple query', async () => {
+    const result = await db.execute('SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = \'public\';');
+
+    expect(result).toHaveProperty('rows');
+    expect(result.rows).toHaveLength(7);
+  });
+
+  it('should be able to query a specific table (e.g., users) after adding a record', async () => {
+    await db.insert(userTable).values({});
+
+    const users = await db.query.userTable.findMany();
+
+    expect(users).toHaveLength(1);
+  });
+});
+
+````
+
+---
+
+/home/zweer/projects/kaze-no-manga/test/setup.ts
+
+````typescript
+import { resolve } from 'node:path';
+
+import { PgTable } from 'drizzle-orm/pg-core';
+import { drizzle } from 'drizzle-orm/pglite';
+import { migrate } from 'drizzle-orm/pglite/migrator';
+import { afterAll, afterEach, beforeEach, vi } from 'vitest';
+
+import * as schema from '@/lib/db/model';
+
+vi.mock('@/lib/db', async () => {
+  const { PGlite } = await import('@electric-sql/pglite');
+  const pgliteInstance = new PGlite(undefined, { debug: 0 });
+  const testDbInstance = drizzle(pgliteInstance, { schema, logger: false });
+
+  const migrationsFolder = resolve(__dirname, '..', 'db');
+  await migrate(testDbInstance, { migrationsFolder });
+
+  return {
+    db: testDbInstance,
+  };
+});
+
+export async function resetDatabase() {
+  const { db } = await import('@/lib/db');
+
+  await Object.values(schema)
+    .filter(table => table instanceof PgTable)
+    .reduce(async (promise, table) => {
+      await promise;
+      await db.delete(table);
+    }, Promise.resolve());
+}
+
+beforeEach(async () => {
+  await resetDatabase();
+});
+
+afterEach(() => {
+  vi.clearAllMocks();
+});
+
+afterAll(() => {
+  vi.restoreAllMocks();
+});
+
 ````
 
 ---
@@ -7486,5 +7586,45 @@ export default config;
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }
+
+````
+
+---
+
+/home/zweer/projects/kaze-no-manga/vitest.config.ts
+
+````typescript
+import tsconfigPaths from 'vite-tsconfig-paths';
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  plugins: [tsconfigPaths()],
+  test: {
+    setupFiles: ['./test/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'json-summary'],
+      exclude: [
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/coverage/**',
+        '**/.{idea,git,cache,output,temp}/**',
+        '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
+
+        'drizzle.config.ts',
+        'eslint.config.mjs',
+        'next-env.d.ts',
+        'next.config.ts',
+        'instrumentation.ts',
+        '.next',
+        'components/ui',
+        'lib/db/index.ts',
+        'lib/log.ts',
+        'test/**/*',
+        'e2e/**/*',
+      ],
+    },
+  },
+});
 
 ````
