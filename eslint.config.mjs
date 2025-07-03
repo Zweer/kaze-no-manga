@@ -44,5 +44,5 @@ export default antfu({
     'react-hooks-extra/no-direct-set-state-in-use-effect': 'off',
   },
 }, {
-  ignores: ['.next/*', '.vercel/*', './components/ui/*.tsx'],
+  ignores: ['.next/*', '.vercel/*', './components/ui/*.tsx', './docs/EXPORT.md'],
 });
