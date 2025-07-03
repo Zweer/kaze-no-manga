@@ -1,5 +1,7 @@
 # KazeNoManga - A Modern Manga Reading Platform
 
+![Coverage Badge](https://img.shields.io/badge/coverage-16%25-red?style=flat)
+
 ## 📚 Table of Contents
 
 - [🚀 Project Overview](#-project-overview)

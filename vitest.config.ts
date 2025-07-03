@@ -1,10 +1,32 @@
+import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  plugins: [tsconfigPaths()],
   test: {
-    globals: true, // Use Vitest's global APIs
-    environment: 'node', // Or 'jsdom' if you need browser APIs
-    setupFiles: ['./test/setup.ts'], // Path to your global setup file
-    include: ['**/*.{test,spec}.?(c|m)[jt]s?(x)'], // Test file patterns
+    setupFiles: ['./test/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'json-summary'],
+      exclude: [
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/coverage/**',
+        '**/.{idea,git,cache,output,temp}/**',
+        '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
+
+        'drizzle.config.ts',
+        'eslint.config.mjs',
+        'next-env.d.ts',
+        'next.config.ts',
+        'instrumentation.ts',
+        '.next',
+        'components/ui',
+        'lib/db/index.ts',
+        'lib/log.ts',
+        'test/**/*',
+        'e2e/**/*',
+      ],
+    },
   },
 });
