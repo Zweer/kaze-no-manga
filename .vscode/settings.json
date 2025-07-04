@@ -1,7 +1,8 @@
 {
   "conventionalCommits.scopes": [
+    "auth",
+    "cron",
     "db",
-    "ui",
-    "auth"
+    "ui"
   ]
 }

@@ -31,7 +31,7 @@ export const mangaTable = pgTable('manga', {
   {
     sourceUniqueIndex: uniqueIndex('source_unique_index').on(manga.sourceName, manga.sourceId),
     slugIndex: uniqueIndex('slug_index').on(manga.slug),
-    lastCheckedAtIndex: index('last_checked_at_index').on(manga.lastCheckedAt),
+    lastCheckedAtIndex: index('last_checked_at_index').on(manga.lastCheckedAt.nullsFirst()),
   },
 ]);
 export type MangaInsert = typeof mangaTable.$inferInsert;

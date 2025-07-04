@@ -16,6 +16,9 @@ kaze-no-manga
 │   │   ├── auth
 │   │   │   └── [...nextauth]
 │   │   │       └── route.ts
+│   │   ├── cron
+│   │   │   └── fetch-manga-updates
+│   │   │       └── route.ts
 │   │   └── seed
 │   │       └── route.ts
 │   ├── globals.css
@@ -116,6 +119,8 @@ kaze-no-manga
 │   │       ├── index.ts
 │   │       ├── manga.ts
 │   │       └── user.ts
+│   ├── service
+│   │   └── manga.ts
 │   └── utils.ts
 ├── next.config.ts
 ├── package.json
@@ -126,13 +131,14 @@ kaze-no-manga
 │   ├── example.test.ts
 │   └── setup.ts
 ├── tsconfig.json
+├── vercel.json
 └── vitest.config.ts
 
 ```
 
 ## File export
 
-/home/zweer/projects/kaze-no-manga/.editorconfig
+/home/nic/projects/mine/kaze-no-manga/.editorconfig
 
 ````
 # http://editorconfig.org/
@@ -155,7 +161,7 @@ indent_style = tab
 
 ---
 
-/home/zweer/projects/kaze-no-manga/.gitignore
+/home/nic/projects/mine/kaze-no-manga/.gitignore
 
 ````
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
@@ -204,7 +210,7 @@ next-env.d.ts
 
 ---
 
-/home/zweer/projects/kaze-no-manga/.husky/pre-commit
+/home/nic/projects/mine/kaze-no-manga/.husky/pre-commit
 
 ````
 export NVM_DIR="$HOME/.nvm"
@@ -224,14 +230,15 @@ git update-index --again
 
 ---
 
-/home/zweer/projects/kaze-no-manga/.vscode/settings.json
+/home/nic/projects/mine/kaze-no-manga/.vscode/settings.json
 
 ````json
 {
   "conventionalCommits.scopes": [
+    "auth",
+    "cron",
     "db",
-    "ui",
-    "auth"
+    "ui"
   ]
 }
 
@@ -239,12 +246,12 @@ git update-index --again
 
 ---
 
-/home/zweer/projects/kaze-no-manga/README.md
+/home/nic/projects/mine/kaze-no-manga/README.md
 
 ````markdown
 # KazeNoManga - A Modern Manga Reading Platform
 
-![Coverage Badge](https://img.shields.io/badge/coverage-16%25-red?style=flat)
+![Coverage Badge](https://img.shields.io/badge/coverage-14%25-red?style=flat)
 
 ## 📚 Table of Contents
 
@@ -365,7 +372,7 @@ The project will be developed in small, iterative phases to ensure we have a fun
 
 ---
 
-/home/zweer/projects/kaze-no-manga/app/api/auth/[...nextauth]/route.ts
+/home/nic/projects/mine/kaze-no-manga/app/api/auth/[...nextauth]/route.ts
 
 ````typescript
 import { handlers } from '@/lib/auth';
@@ -376,7 +383,76 @@ export const { GET, POST } = handlers;
 
 ---
 
-/home/zweer/projects/kaze-no-manga/app/api/seed/route.ts
+/home/nic/projects/mine/kaze-no-manga/app/api/cron/fetch-manga-updates/route.ts
+
+````typescript
+import { NextResponse } from 'next/server';
+
+import {
+  getLastChapter,
+  getLastCheckedMangas,
+  insertChapters,
+  retrieveChapters,
+  retrieveManga,
+  upsertManga,
+} from '@/lib/service/manga';
+
+const CRON_SECRET = process.env.CRON_SECRET;
+
+interface ResponseSuccess {
+  success: true;
+  message: string;
+}
+
+interface ResponseError {
+  success: false;
+  error: string;
+}
+
+export async function GET(request: Request): Promise<NextResponse<ResponseSuccess | ResponseError>> {
+  const authHeader = request.headers.get('authorization');
+  if (process.env.NODE_ENV === 'production' && (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`)) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+  }
+
+  console.log('Starting manga update cron job...');
+
+  const mangas = await getLastCheckedMangas();
+  if (mangas.length === 0) {
+    console.log('No mangas found');
+    return NextResponse.json({ success: true, message: 'No mangas to update' });
+  }
+
+  console.log(`Found ${mangas.length} mangas to check for updates...`);
+
+  let mangasUpdated = 0;
+  let newChaptersAdded = 0;
+
+  for (const manga of mangas) {
+    const fetchedManga = await retrieveManga(manga.sourceName, manga.sourceId);
+    if (manga.chaptersCount === fetchedManga.chaptersCount) {
+      continue;
+    }
+
+    const lastChapter = await getLastChapter(manga.id);
+    const fetchedChapters = await retrieveChapters(manga.sourceName, manga.sourceId, manga.id);
+    const newChapters = fetchedChapters.filter(chapter => chapter.index > (lastChapter?.index ?? -1));
+
+    mangasUpdated++;
+    newChaptersAdded += newChapters.length;
+
+    await upsertManga(fetchedManga);
+    await insertChapters(newChapters);
+  }
+
+  return NextResponse.json({ success: true, message: `added ${newChaptersAdded} chapters in ${mangasUpdated} mangas` });
+}
+
+````
+
+---
+
+/home/nic/projects/mine/kaze-no-manga/app/api/seed/route.ts
 
 ````typescript
 import { connectors } from '@zweer/manga-scraper';
@@ -419,7 +495,7 @@ export async function GET() {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/app/globals.css
+/home/nic/projects/mine/kaze-no-manga/app/globals.css
 
 ````css
 @import "tailwindcss";
@@ -549,7 +625,7 @@ export async function GET() {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/app/layout.tsx
+/home/nic/projects/mine/kaze-no-manga/app/layout.tsx
 
 ````tsx
 import type { Metadata } from 'next';
@@ -616,7 +692,7 @@ export default function RootLayout({
 
 ---
 
-/home/zweer/projects/kaze-no-manga/app/manga/[mangaSlug]/[chapterIndex]/page.tsx
+/home/nic/projects/mine/kaze-no-manga/app/manga/[mangaSlug]/[chapterIndex]/page.tsx
 
 ````tsx
 import Image from 'next/image';
@@ -717,7 +793,7 @@ export default async function ReaderPage({ params }: { params: Promise<ReaderPag
 
 ---
 
-/home/zweer/projects/kaze-no-manga/app/manga/[mangaSlug]/page.tsx
+/home/nic/projects/mine/kaze-no-manga/app/manga/[mangaSlug]/page.tsx
 
 ````tsx
 import { format } from 'date-fns';
@@ -812,7 +888,7 @@ export default async function MangaPage({ params }: { params: Promise<MangaPageP
 
 ---
 
-/home/zweer/projects/kaze-no-manga/app/not-found.tsx
+/home/nic/projects/mine/kaze-no-manga/app/not-found.tsx
 
 ````tsx
 import Link from 'next/link';
@@ -842,7 +918,7 @@ export default function NotFound() {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/app/page.tsx
+/home/nic/projects/mine/kaze-no-manga/app/page.tsx
 
 ````tsx
 import Image from 'next/image';
@@ -898,7 +974,7 @@ export default async function Home() {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/app/profile/page.tsx
+/home/nic/projects/mine/kaze-no-manga/app/profile/page.tsx
 
 ````tsx
 import Image from 'next/image';
@@ -952,7 +1028,7 @@ export default async function ProfilePage() {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components.json
+/home/nic/projects/mine/kaze-no-manga/components.json
 
 ````json
 {
@@ -981,7 +1057,7 @@ export default async function ProfilePage() {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/Icons.tsx
+/home/nic/projects/mine/kaze-no-manga/components/Icons.tsx
 
 ````tsx
 import type { ImageProps } from 'next/image';
@@ -1045,7 +1121,7 @@ export default {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/layout/Footer.tsx
+/home/nic/projects/mine/kaze-no-manga/components/layout/Footer.tsx
 
 ````tsx
 export default function Footer() {
@@ -1066,7 +1142,7 @@ export default function Footer() {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/layout/Header/MainNav.tsx
+/home/nic/projects/mine/kaze-no-manga/components/layout/Header/MainNav.tsx
 
 ````tsx
 'use client';
@@ -1106,7 +1182,7 @@ export function MainNav({
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/layout/Header/MobileNav.tsx
+/home/nic/projects/mine/kaze-no-manga/components/layout/Header/MobileNav.tsx
 
 ````tsx
 'use client';
@@ -1223,7 +1299,7 @@ function MobileLink({
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/layout/Header/ThemeToggle.tsx
+/home/nic/projects/mine/kaze-no-manga/components/layout/Header/ThemeToggle.tsx
 
 ````tsx
 'use client';
@@ -1271,7 +1347,7 @@ export default function ThemeToggle() {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/layout/Header/UserAuth.tsx
+/home/nic/projects/mine/kaze-no-manga/components/layout/Header/UserAuth.tsx
 
 ````tsx
 'use client';
@@ -1329,7 +1405,7 @@ export default function UserAuth() {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/layout/Header/index.tsx
+/home/nic/projects/mine/kaze-no-manga/components/layout/Header/index.tsx
 
 ````tsx
 import Link from 'next/link';
@@ -1397,7 +1473,7 @@ export default function Header() {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/provider/SessionProvider.tsx
+/home/nic/projects/mine/kaze-no-manga/components/provider/SessionProvider.tsx
 
 ````tsx
 'use client';
@@ -1417,7 +1493,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/provider/ThemeProvider.tsx
+/home/nic/projects/mine/kaze-no-manga/components/provider/ThemeProvider.tsx
 
 ````tsx
 'use client';
@@ -1435,7 +1511,7 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/provider/index.tsx
+/home/nic/projects/mine/kaze-no-manga/components/provider/index.tsx
 
 ````tsx
 import { SessionProvider } from '@/components/provider/SessionProvider';
@@ -1460,7 +1536,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/accordion.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/accordion.tsx
 
 ````tsx
 "use client"
@@ -1534,7 +1610,7 @@ export { Accordion, AccordionItem, AccordionTrigger, AccordionContent }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/alert-dialog.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/alert-dialog.tsx
 
 ````tsx
 "use client"
@@ -1699,7 +1775,7 @@ export {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/alert.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/alert.tsx
 
 ````tsx
 import * as React from "react"
@@ -1773,7 +1849,7 @@ export { Alert, AlertTitle, AlertDescription }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/aspect-ratio.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/aspect-ratio.tsx
 
 ````tsx
 "use client"
@@ -1792,7 +1868,7 @@ export { AspectRatio }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/avatar.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/avatar.tsx
 
 ````tsx
 "use client"
@@ -1853,7 +1929,7 @@ export { Avatar, AvatarImage, AvatarFallback }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/badge.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/badge.tsx
 
 ````tsx
 import * as React from "react"
@@ -1907,7 +1983,7 @@ export { Badge, badgeVariants }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/breadcrumb.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/breadcrumb.tsx
 
 ````tsx
 import * as React from "react"
@@ -2024,7 +2100,7 @@ export {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/button.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/button.tsx
 
 ````tsx
 import * as React from "react"
@@ -2091,7 +2167,7 @@ export { Button, buttonVariants }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/calendar.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/calendar.tsx
 
 ````tsx
 "use client"
@@ -2309,7 +2385,7 @@ export { Calendar, CalendarDayButton }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/card.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/card.tsx
 
 ````tsx
 import * as React from "react"
@@ -2409,7 +2485,7 @@ export {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/carousel.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/carousel.tsx
 
 ````tsx
 "use client"
@@ -2658,7 +2734,7 @@ export {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/checkbox.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/checkbox.tsx
 
 ````tsx
 "use client"
@@ -2698,7 +2774,7 @@ export { Checkbox }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/collapsible.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/collapsible.tsx
 
 ````tsx
 "use client"
@@ -2739,7 +2815,7 @@ export { Collapsible, CollapsibleTrigger, CollapsibleContent }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/command.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/command.tsx
 
 ````tsx
 "use client"
@@ -2931,7 +3007,7 @@ export {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/context-menu.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/context-menu.tsx
 
 ````tsx
 "use client"
@@ -3191,7 +3267,7 @@ export {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/dialog.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/dialog.tsx
 
 ````tsx
 "use client"
@@ -3342,7 +3418,7 @@ export {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/drawer.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/drawer.tsx
 
 ````tsx
 "use client"
@@ -3485,7 +3561,7 @@ export {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/dropdown-menu.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/dropdown-menu.tsx
 
 ````tsx
 "use client"
@@ -3750,7 +3826,7 @@ export {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/form.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/form.tsx
 
 ````tsx
 "use client"
@@ -3925,7 +4001,7 @@ export {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/hover-card.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/hover-card.tsx
 
 ````tsx
 "use client"
@@ -3977,7 +4053,7 @@ export { HoverCard, HoverCardTrigger, HoverCardContent }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/input-otp.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/input-otp.tsx
 
 ````tsx
 "use client"
@@ -4062,7 +4138,7 @@ export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/input.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/input.tsx
 
 ````tsx
 import * as React from "react"
@@ -4091,7 +4167,7 @@ export { Input }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/label.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/label.tsx
 
 ````tsx
 "use client"
@@ -4123,7 +4199,7 @@ export { Label }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/menubar.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/menubar.tsx
 
 ````tsx
 "use client"
@@ -4407,7 +4483,7 @@ export {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/navigation-menu.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/navigation-menu.tsx
 
 ````tsx
 import * as React from "react"
@@ -4583,7 +4659,7 @@ export {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/pagination.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/pagination.tsx
 
 ````tsx
 import * as React from "react"
@@ -4718,7 +4794,7 @@ export {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/popover.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/popover.tsx
 
 ````tsx
 "use client"
@@ -4774,7 +4850,7 @@ export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/progress.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/progress.tsx
 
 ````tsx
 "use client"
@@ -4813,7 +4889,7 @@ export { Progress }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/radio-group.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/radio-group.tsx
 
 ````tsx
 "use client"
@@ -4866,7 +4942,7 @@ export { RadioGroup, RadioGroupItem }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/resizable.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/resizable.tsx
 
 ````tsx
 "use client"
@@ -4930,7 +5006,7 @@ export { ResizablePanelGroup, ResizablePanel, ResizableHandle }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/scroll-area.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/scroll-area.tsx
 
 ````tsx
 "use client"
@@ -4996,7 +5072,7 @@ export { ScrollArea, ScrollBar }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/select.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/select.tsx
 
 ````tsx
 "use client"
@@ -5189,7 +5265,7 @@ export {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/separator.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/separator.tsx
 
 ````tsx
 "use client"
@@ -5225,7 +5301,7 @@ export { Separator }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/sheet.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/sheet.tsx
 
 ````tsx
 "use client"
@@ -5372,7 +5448,7 @@ export {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/sidebar.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/sidebar.tsx
 
 ````tsx
 "use client"
@@ -6106,7 +6182,7 @@ export {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/skeleton.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/skeleton.tsx
 
 ````tsx
 import { cn } from "@/lib/utils"
@@ -6127,7 +6203,7 @@ export { Skeleton }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/slider.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/slider.tsx
 
 ````tsx
 "use client"
@@ -6198,7 +6274,7 @@ export { Slider }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/sonner.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/sonner.tsx
 
 ````tsx
 "use client"
@@ -6231,7 +6307,7 @@ export { Toaster }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/switch.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/switch.tsx
 
 ````tsx
 "use client"
@@ -6270,7 +6346,7 @@ export { Switch }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/table.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/table.tsx
 
 ````tsx
 "use client"
@@ -6394,7 +6470,7 @@ export {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/tabs.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/tabs.tsx
 
 ````tsx
 "use client"
@@ -6468,7 +6544,7 @@ export { Tabs, TabsList, TabsTrigger, TabsContent }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/textarea.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/textarea.tsx
 
 ````tsx
 import * as React from "react"
@@ -6494,7 +6570,7 @@ export { Textarea }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/toggle-group.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/toggle-group.tsx
 
 ````tsx
 "use client"
@@ -6575,7 +6651,7 @@ export { ToggleGroup, ToggleGroupItem }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/toggle.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/toggle.tsx
 
 ````tsx
 "use client"
@@ -6630,7 +6706,7 @@ export { Toggle, toggleVariants }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/components/ui/tooltip.tsx
+/home/nic/projects/mine/kaze-no-manga/components/ui/tooltip.tsx
 
 ````tsx
 "use client"
@@ -6699,7 +6775,7 @@ export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
 
 ---
 
-/home/zweer/projects/kaze-no-manga/db/0000_parched_maximus.sql
+/home/nic/projects/mine/kaze-no-manga/db/0000_parched_maximus.sql
 
 ````sql
 CREATE TABLE "account" (
@@ -6756,7 +6832,7 @@ ALTER TABLE "session" ADD CONSTRAINT "session_userId_user_id_fk" FOREIGN KEY ("u
 
 ---
 
-/home/zweer/projects/kaze-no-manga/db/0001_reflective_manta.sql
+/home/nic/projects/mine/kaze-no-manga/db/0001_reflective_manta.sql
 
 ````sql
 CREATE TABLE "chapter" (
@@ -6790,7 +6866,7 @@ ALTER TABLE "chapter" ADD CONSTRAINT "chapter_mangaId_manga_id_fk" FOREIGN KEY (
 
 ---
 
-/home/zweer/projects/kaze-no-manga/db/0002_previous_gorilla_man.sql
+/home/nic/projects/mine/kaze-no-manga/db/0002_previous_gorilla_man.sql
 
 ````sql
 ALTER TABLE "chapter" ALTER COLUMN "index" SET NOT NULL;--> statement-breakpoint
@@ -6799,7 +6875,7 @@ ALTER TABLE "chapter" ALTER COLUMN "images" SET NOT NULL;
 
 ---
 
-/home/zweer/projects/kaze-no-manga/db/0003_next_night_thrasher.sql
+/home/nic/projects/mine/kaze-no-manga/db/0003_next_night_thrasher.sql
 
 ````sql
 ALTER TABLE "manga" ADD COLUMN "image" text;
@@ -6807,7 +6883,7 @@ ALTER TABLE "manga" ADD COLUMN "image" text;
 
 ---
 
-/home/zweer/projects/kaze-no-manga/db/0004_majestic_reavers.sql
+/home/nic/projects/mine/kaze-no-manga/db/0004_majestic_reavers.sql
 
 ````sql
 ALTER TABLE "manga" ALTER COLUMN "image" SET NOT NULL;
@@ -6815,7 +6891,7 @@ ALTER TABLE "manga" ALTER COLUMN "image" SET NOT NULL;
 
 ---
 
-/home/zweer/projects/kaze-no-manga/db/0005_mighty_supernaut.sql
+/home/nic/projects/mine/kaze-no-manga/db/0005_mighty_supernaut.sql
 
 ````sql
 ALTER TABLE "manga" ADD COLUMN "author" text;
@@ -6823,7 +6899,7 @@ ALTER TABLE "manga" ADD COLUMN "author" text;
 
 ---
 
-/home/zweer/projects/kaze-no-manga/db/0006_dizzy_jasper_sitwell.sql
+/home/nic/projects/mine/kaze-no-manga/db/0006_dizzy_jasper_sitwell.sql
 
 ````sql
 ALTER TABLE "manga" ADD COLUMN "status" text;
@@ -6831,7 +6907,7 @@ ALTER TABLE "manga" ADD COLUMN "status" text;
 
 ---
 
-/home/zweer/projects/kaze-no-manga/db/0007_dry_onslaught.sql
+/home/nic/projects/mine/kaze-no-manga/db/0007_dry_onslaught.sql
 
 ````sql
 ALTER TABLE "manga" ADD COLUMN "excerpt" text;
@@ -6839,7 +6915,7 @@ ALTER TABLE "manga" ADD COLUMN "excerpt" text;
 
 ---
 
-/home/zweer/projects/kaze-no-manga/db/0008_famous_sprite.sql
+/home/nic/projects/mine/kaze-no-manga/db/0008_famous_sprite.sql
 
 ````sql
 ALTER TABLE "manga" ALTER COLUMN "status" SET NOT NULL;
@@ -6847,7 +6923,7 @@ ALTER TABLE "manga" ALTER COLUMN "status" SET NOT NULL;
 
 ---
 
-/home/zweer/projects/kaze-no-manga/drizzle.config.ts
+/home/nic/projects/mine/kaze-no-manga/drizzle.config.ts
 
 ````typescript
 import type { Config } from 'drizzle-kit';
@@ -6882,7 +6958,7 @@ export default {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/eslint.config.mjs
+/home/nic/projects/mine/kaze-no-manga/eslint.config.mjs
 
 ````mjs
 import antfu from '@antfu/eslint-config';
@@ -6938,7 +7014,7 @@ export default antfu({
 
 ---
 
-/home/zweer/projects/kaze-no-manga/hooks/use-mobile.ts
+/home/nic/projects/mine/kaze-no-manga/hooks/use-mobile.ts
 
 ````typescript
 import * as React from 'react';
@@ -6965,7 +7041,7 @@ export function useIsMobile() {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/lib/auth/config.ts
+/home/nic/projects/mine/kaze-no-manga/lib/auth/config.ts
 
 ````typescript
 import type { AuthConfig } from '@auth/core/types';
@@ -7016,7 +7092,7 @@ export const authConfig = {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/lib/auth/index.ts
+/home/nic/projects/mine/kaze-no-manga/lib/auth/index.ts
 
 ````typescript
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
@@ -7034,7 +7110,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
 ---
 
-/home/zweer/projects/kaze-no-manga/lib/config.ts
+/home/nic/projects/mine/kaze-no-manga/lib/config.ts
 
 ````typescript
 export default {
@@ -7054,7 +7130,7 @@ export default {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/lib/db/index.ts
+/home/nic/projects/mine/kaze-no-manga/lib/db/index.ts
 
 ````typescript
 import { drizzle } from 'drizzle-orm/neon-serverless';
@@ -7086,7 +7162,7 @@ export const db = drizzle({
 
 ---
 
-/home/zweer/projects/kaze-no-manga/lib/db/model/helpers.ts
+/home/nic/projects/mine/kaze-no-manga/lib/db/model/helpers.ts
 
 ````typescript
 import { timestamp } from 'drizzle-orm/pg-core';
@@ -7100,7 +7176,7 @@ export const timestamps = {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/lib/db/model/index.ts
+/home/nic/projects/mine/kaze-no-manga/lib/db/model/index.ts
 
 ````typescript
 export * from '@/lib/db/model/manga';
@@ -7110,7 +7186,7 @@ export * from '@/lib/db/model/user';
 
 ---
 
-/home/zweer/projects/kaze-no-manga/lib/db/model/manga.ts
+/home/nic/projects/mine/kaze-no-manga/lib/db/model/manga.ts
 
 ````typescript
 import { relations } from 'drizzle-orm';
@@ -7146,7 +7222,7 @@ export const mangaTable = pgTable('manga', {
   {
     sourceUniqueIndex: uniqueIndex('source_unique_index').on(manga.sourceName, manga.sourceId),
     slugIndex: uniqueIndex('slug_index').on(manga.slug),
-    lastCheckedAtIndex: index('last_checked_at_index').on(manga.lastCheckedAt),
+    lastCheckedAtIndex: index('last_checked_at_index').on(manga.lastCheckedAt.nullsFirst()),
   },
 ]);
 export type MangaInsert = typeof mangaTable.$inferInsert;
@@ -7191,7 +7267,7 @@ export const chapterRelations = relations(chapterTable, ({ one }) => ({
 
 ---
 
-/home/zweer/projects/kaze-no-manga/lib/db/model/user.ts
+/home/nic/projects/mine/kaze-no-manga/lib/db/model/user.ts
 
 ````typescript
 import type { AdapterAccountType } from 'next-auth/adapters';
@@ -7295,7 +7371,96 @@ export type Authenticator = typeof authenticatorTable.$inferSelect;
 
 ---
 
-/home/zweer/projects/kaze-no-manga/lib/utils.ts
+/home/nic/projects/mine/kaze-no-manga/lib/service/manga.ts
+
+````typescript
+import type { ConnectorNames } from '@zweer/manga-scraper';
+
+import type { Chapter, ChapterInsert, Manga, MangaInsert } from '@/lib/db/model';
+
+import { connectors } from '@zweer/manga-scraper';
+
+import { db } from '@/lib/db';
+import { chapterTable, mangaTable } from '@/lib/db/model';
+
+export async function upsertManga(manga: MangaInsert): Promise<Manga> {
+  const [returnedManga] = await db
+    .insert(mangaTable)
+    .values(manga)
+    .onConflictDoUpdate({
+      target: mangaTable.id,
+      set: manga,
+    })
+    .returning();
+
+  return returnedManga;
+}
+
+export async function insertChapters(chapters: ChapterInsert[]): Promise<Chapter[]> {
+  return db.insert(chapterTable).values(chapters).returning();
+}
+
+export async function getLastCheckedMangas(limit: number = 10): Promise<Manga[]> {
+  return db.query.mangaTable.findMany({
+    orderBy: (mangaTable, { asc }) => asc(mangaTable.lastCheckedAt),
+    limit,
+  });
+}
+
+export async function getLastChapter(mangaId: string): Promise<Chapter | undefined> {
+  return db.query.chapterTable.findFirst({
+    where: (chapterTable, { eq }) => eq(chapterTable.mangaId, mangaId),
+    orderBy: (chapterTable, { desc }) => desc(chapterTable.index),
+  });
+}
+
+function retrieveConnector(sourceName: string): typeof connectors[ConnectorNames] {
+  const connector = connectors[sourceName as ConnectorNames];
+  if (!connector) {
+    throw new Error('Invalid connector name');
+  }
+
+  return connector;
+}
+
+export async function retrieveManga(sourceName: string, sourceId: string): Promise<MangaInsert> {
+  const connector = retrieveConnector(sourceName);
+  const manga = await connector.getManga(sourceId);
+
+  return {
+    sourceName,
+    sourceId,
+    title: manga.title,
+    excerpt: manga.excerpt,
+    author: manga.author,
+    slug: manga.slug,
+    image: manga.image,
+    status: manga.status,
+    chaptersCount: manga.chaptersCount,
+    lastCheckedAt: new Date(),
+  };
+}
+
+export async function retrieveChapters(sourceName: string, sourceId: string, mangaId: string): Promise<ChapterInsert[]> {
+  const connector = retrieveConnector(sourceName);
+  const chapters = await connector.getChapters(sourceId);
+
+  return chapters.map(chapter => ({
+    sourceName,
+    sourceId: chapter.id,
+    mangaId,
+    title: chapter.title,
+    index: chapter.index,
+    releasedAt: chapter.releasedAt,
+    images: chapter.images,
+  }));
+}
+
+````
+
+---
+
+/home/nic/projects/mine/kaze-no-manga/lib/utils.ts
 
 ````typescript
 import type { ClassValue } from 'clsx';
@@ -7311,7 +7476,7 @@ export function cn(...inputs: ClassValue[]) {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/next.config.ts
+/home/nic/projects/mine/kaze-no-manga/next.config.ts
 
 ````typescript
 import type { NextConfig } from 'next';
@@ -7339,7 +7504,7 @@ export default nextConfig;
 
 ---
 
-/home/zweer/projects/kaze-no-manga/package.json
+/home/nic/projects/mine/kaze-no-manga/package.json
 
 ````json
 {
@@ -7392,7 +7557,7 @@ export default nextConfig;
     "@radix-ui/react-toggle": "^1.1.9",
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
-    "@zweer/manga-scraper": "^2.1.2",
+    "@zweer/manga-scraper": "^2.2.0",
     "bufferutil": "^4.0.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -7450,7 +7615,7 @@ export default nextConfig;
 
 ---
 
-/home/zweer/projects/kaze-no-manga/postcss.config.mjs
+/home/nic/projects/mine/kaze-no-manga/postcss.config.mjs
 
 ````mjs
 const config = {
@@ -7463,7 +7628,7 @@ export default config;
 
 ---
 
-/home/zweer/projects/kaze-no-manga/public/site.webmanifest
+/home/nic/projects/mine/kaze-no-manga/public/site.webmanifest
 
 ````
 {"name":"","short_name":"","icons":[{"src":"/android-chrome-192x192.png","sizes":"192x192","type":"image/png"},{"src":"/android-chrome-512x512.png","sizes":"512x512","type":"image/png"}],"theme_color":"#ffffff","background_color":"#ffffff","display":"standalone"}
@@ -7471,7 +7636,7 @@ export default config;
 
 ---
 
-/home/zweer/projects/kaze-no-manga/test/example.test.ts
+/home/nic/projects/mine/kaze-no-manga/test/example.test.ts
 
 ````typescript
 import { describe, expect, it } from 'vitest';
@@ -7504,7 +7669,7 @@ describe('database Tests with PGlite', () => {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/test/setup.ts
+/home/nic/projects/mine/kaze-no-manga/test/setup.ts
 
 ````typescript
 import { resolve } from 'node:path';
@@ -7556,7 +7721,7 @@ afterAll(() => {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/tsconfig.json
+/home/nic/projects/mine/kaze-no-manga/tsconfig.json
 
 ````json
 {
@@ -7591,7 +7756,23 @@ afterAll(() => {
 
 ---
 
-/home/zweer/projects/kaze-no-manga/vitest.config.ts
+/home/nic/projects/mine/kaze-no-manga/vercel.json
+
+````json
+{
+  "crons": [
+    {
+      "path": "/api/cron/fetch-manga-updates",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
+
+````
+
+---
+
+/home/nic/projects/mine/kaze-no-manga/vitest.config.ts
 
 ````typescript
 import tsconfigPaths from 'vite-tsconfig-paths';
