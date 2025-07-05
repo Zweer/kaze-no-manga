@@ -61,8 +61,73 @@ export function mockUpsertMangaError(message = 'Invalid connector name'): void {
   mockedUpsertManga.mockRejectedValueOnce(new Error(message));
 }
 
-// insertChapters(chapters: ChapterInsert[]): Promise<Chapter[]>
-// getLastCheckedMangas(limit: number = 10): Promise<Manga[]>
-// getLastChapter(mangaId: string): Promise<Chapter | undefined>
-// retrieveManga(sourceName: string, sourceId: string): Promise<MangaInsert>
-// retrieveChapters(sourceName: string, sourceId: string, mangaId: string): Promise<ChapterInsert[]>
+export function mockInsertChaptersSuccess(
+  chaptersToInsert: Partial<Chapter>[],
+): Chapter[] {
+  const chapters = chaptersToInsert.map((c) => ({ ...defaultChapter, ...c }));
+  mockedInsertChapters.mockResolvedValueOnce(chapters);
+
+  return chapters;
+}
+export function mockInsertChaptersError(message = 'Error inserting chapters'): void {
+  mockedInsertChapters.mockRejectedValueOnce(new Error(message));
+}
+
+export function mockGetLastCheckedMangasSuccess(
+  partialMangas: Partial<Manga>[],
+): Manga[] {
+  const mangas = partialMangas.map((m) => ({ ...defaultManga, ...m }));
+  mockedGetLastCheckedMangas.mockResolvedValueOnce(mangas);
+
+  return mangas;
+}
+export function mockGetLastCheckedMangasError(
+  message = 'Error fetching last checked mangas',
+): void {
+  mockedGetLastCheckedMangas.mockRejectedValueOnce(new Error(message));
+}
+
+export function mockGetLastChapterFound(
+  partialChapter: Partial<Chapter>,
+): Chapter {
+  const chapter = { ...defaultChapter, ...partialChapter };
+  mockedGetLastChapter.mockResolvedValueOnce(chapter);
+
+  return chapter;
+}
+export function mockGetLastChapterNotFound(): void {
+  mockedGetLastChapter.mockResolvedValueOnce(undefined);
+}
+export function mockGetLastChapterError(message = 'Error fetching last chapter'): void {
+  mockedGetLastChapter.mockRejectedValueOnce(new Error(message));
+}
+
+export function mockRetrieveMangaFound(partialManga: Partial<Manga>): Manga {
+  const manga = { ...defaultManga, ...partialManga };
+  mockedRetrieveManga.mockResolvedValueOnce(manga);
+
+  return manga;
+}
+export function mockRetrieveMangaNotFound(): void {
+  mockedRetrieveManga.mockResolvedValueOnce(null);
+}
+export function mockRetrieveMangaError(message = 'Error retrieving manga'): void {
+  mockedRetrieveManga.mockRejectedValueOnce(new Error(message));
+}
+
+export function mockRetrieveChaptersFound(
+  partialChapters: Partial<Chapter>[],
+): Chapter[] {
+  const chapters = partialChapters.map((c) => ({ ...defaultChapter, ...c }));
+  mockedRetrieveChapters.mockResolvedValueOnce(chapters);
+
+  return chapters;
+}
+export function mockRetrieveChaptersNotFound(): void {
+  mockedRetrieveChapters.mockResolvedValueOnce([]);
+}
+export function mockRetrieveChaptersError(
+  message = 'Error retrieving chapters',
+): void {
+  mockedRetrieveChapters.mockRejectedValueOnce(new Error(message));
+}
