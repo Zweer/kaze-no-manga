@@ -62,9 +62,9 @@ export function mockUpsertMangaError(message = 'Invalid connector name'): void {
 }
 
 export function mockInsertChaptersSuccess(
-  chaptersToInsert: Partial<Chapter>[],
+  partialChapters: Partial<Chapter>[],
 ): Chapter[] {
-  const chapters = chaptersToInsert.map((c) => ({ ...defaultChapter, ...c }));
+  const chapters = partialChapters.map(partialChapter => ({ ...defaultChapter, ...partialChapter }));
   mockedInsertChapters.mockResolvedValueOnce(chapters);
 
   return chapters;
@@ -76,7 +76,7 @@ export function mockInsertChaptersError(message = 'Error inserting chapters'): v
 export function mockGetLastCheckedMangasSuccess(
   partialMangas: Partial<Manga>[],
 ): Manga[] {
-  const mangas = partialMangas.map((m) => ({ ...defaultManga, ...m }));
+  const mangas = partialMangas.map(partialManga => ({ ...defaultManga, ...partialManga }));
   mockedGetLastCheckedMangas.mockResolvedValueOnce(mangas);
 
   return mangas;
@@ -102,29 +102,23 @@ export function mockGetLastChapterError(message = 'Error fetching last chapter')
   mockedGetLastChapter.mockRejectedValueOnce(new Error(message));
 }
 
-export function mockRetrieveMangaFound(partialManga: Partial<Manga>): Manga {
+export function mockRetrieveMangaSuccess(partialManga: Partial<Manga>): Manga {
   const manga = { ...defaultManga, ...partialManga };
   mockedRetrieveManga.mockResolvedValueOnce(manga);
 
   return manga;
 }
-export function mockRetrieveMangaNotFound(): void {
-  mockedRetrieveManga.mockResolvedValueOnce(null);
-}
 export function mockRetrieveMangaError(message = 'Error retrieving manga'): void {
   mockedRetrieveManga.mockRejectedValueOnce(new Error(message));
 }
 
-export function mockRetrieveChaptersFound(
+export function mockRetrieveChaptersSuccess(
   partialChapters: Partial<Chapter>[],
 ): Chapter[] {
-  const chapters = partialChapters.map((c) => ({ ...defaultChapter, ...c }));
+  const chapters = partialChapters.map(partialChapter => ({ ...defaultChapter, ...partialChapter }));
   mockedRetrieveChapters.mockResolvedValueOnce(chapters);
 
   return chapters;
-}
-export function mockRetrieveChaptersNotFound(): void {
-  mockedRetrieveChapters.mockResolvedValueOnce([]);
 }
 export function mockRetrieveChaptersError(
   message = 'Error retrieving chapters',
