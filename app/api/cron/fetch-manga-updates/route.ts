@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import logger from '@/lib/logger';
 
 import {
   getLastChapter,
@@ -26,15 +27,15 @@ export async function GET(request: Request): Promise<NextResponse<ResponseSucces
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
-  console.log('Starting manga update cron job...');
+  logger.info('Starting manga update cron job...');
 
   const mangas = await getLastCheckedMangas();
   if (mangas.length === 0) {
-    console.log('No mangas found');
+    logger.info('No mangas found');
     return NextResponse.json({ success: true, message: 'No mangas to update' });
   }
 
-  console.log(`Found ${mangas.length} mangas to check for updates...`);
+  logger.info(`Found ${mangas.length} mangas to check for updates...`);
 
   let mangasUpdated = 0;
   let newChaptersAdded = 0;

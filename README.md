@@ -34,6 +34,10 @@ This project will be built using a modern, type-safe, and scalable technology st
 *   **Authentication:** [**Auth.js**](https://authjs.dev/) (formerly NextAuth.js) as the go-to solution for handling user authentication. We will use the official Drizzle adapter.
 *   **Database:** [**PostgreSQL**](https://www.postgresql.org/) for its reliability and robust feature set.
 *   **ORM:** [**Drizzle ORM**](https://orm.drizzle.team/) for its lightweight, TypeScript-first approach. It provides a SQL-like query builder and superior type safety inferred directly from the database schema.
+*   **Logging:** [**Pino**](https://getpino.io/) for structured and performant logging, with [**pino-pretty**](https://github.com/pinojs/pino-pretty) for human-readable logs in development.
+    *   The logger is configured in `lib/logger.ts`.
+    *   Import it and use it in your server-side code: `import logger from '@/lib/logger'; logger.info('Hello world');`
+    *   In development, logs are prettified. In production, they are JSON formatted. The `dev` script in `package.json` is already set up to use `pino-pretty`.
 
 ## ☁️ Cloud Infrastructure
 
