@@ -1,4 +1,3 @@
-import { relations } from 'drizzle-orm';
 import {
   index,
   integer,
@@ -60,14 +59,3 @@ export const chapterTable = pgTable('chapter', {
 ]);
 export type ChapterInsert = typeof chapterTable.$inferInsert;
 export type Chapter = typeof chapterTable.$inferSelect;
-
-export const mangaRelations = relations(mangaTable, ({ many }) => ({
-  chapters: many(chapterTable),
-}));
-
-export const chapterRelations = relations(chapterTable, ({ one }) => ({
-  manga: one(mangaTable, {
-    fields: [chapterTable.mangaId],
-    references: [mangaTable.id],
-  }),
-}));

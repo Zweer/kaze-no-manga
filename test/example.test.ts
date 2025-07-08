@@ -12,7 +12,7 @@ describe('database Tests with PGlite', () => {
     const result = await db.execute('SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = \'public\';');
 
     expect(result).toHaveProperty('rows');
-    expect(result.rows).toHaveLength(7);
+    expect(result.rows).toHaveLength(9);
   });
 
   it('should be able to query a specific table (e.g., users) after adding a record', async () => {

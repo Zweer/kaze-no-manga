@@ -103,7 +103,8 @@ kaze-no-manga
 │   ├── 0005_mighty_supernaut.sql
 │   ├── 0006_dizzy_jasper_sitwell.sql
 │   ├── 0007_dry_onslaught.sql
-│   └── 0008_famous_sprite.sql
+│   ├── 0008_famous_sprite.sql
+│   └── 0009_dark_pete_wisdom.sql
 ├── drizzle.config.ts
 ├── eslint.config.mjs
 ├── hooks
@@ -118,10 +119,15 @@ kaze-no-manga
 │   │   └── model
 │   │       ├── helpers.ts
 │   │       ├── index.ts
+│   │       ├── library.relations.ts
+│   │       ├── library.ts
+│   │       ├── manga.relations.ts
 │   │       ├── manga.ts
+│   │       ├── user.relations.ts
 │   │       └── user.ts
 │   ├── service
-│   │   └── manga.ts
+│   │   ├── manga.ts
+│   │   └── reading.ts
 │   └── utils.ts
 ├── next.config.ts
 ├── package.json
@@ -255,7 +261,7 @@ git update-index --again
 ````markdown
 # KazeNoManga - A Modern Manga Reading Platform
 
-![Coverage Badge](https://img.shields.io/badge/coverage-18%25-red?style=flat)
+![Coverage Badge](https://img.shields.io/badge/coverage-22%25-red?style=flat)
 
 ## 📚 Table of Contents
 
@@ -7138,6 +7144,34 @@ ALTER TABLE "manga" ALTER COLUMN "status" SET NOT NULL;
 
 ---
 
+/home/nic/projects/mine/kaze-no-manga/db/0009_dark_pete_wisdom.sql
+
+````sql
+CREATE TABLE "library" (
+	"userId" text NOT NULL,
+	"mangaId" text NOT NULL,
+	"createdAt" timestamp DEFAULT now() NOT NULL,
+	"updatedAt" timestamp
+);
+--> statement-breakpoint
+CREATE TABLE "reading" (
+	"userId" text NOT NULL,
+	"chapterId" text NOT NULL,
+	"percentage" real DEFAULT 0 NOT NULL,
+	"isCompleted" boolean DEFAULT false NOT NULL,
+	"lastReadAt" timestamp DEFAULT now() NOT NULL,
+	"createdAt" timestamp DEFAULT now() NOT NULL,
+	"updatedAt" timestamp
+);
+--> statement-breakpoint
+ALTER TABLE "library" ADD CONSTRAINT "library_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "library" ADD CONSTRAINT "library_mangaId_manga_id_fk" FOREIGN KEY ("mangaId") REFERENCES "public"."manga"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "reading" ADD CONSTRAINT "reading_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "reading" ADD CONSTRAINT "reading_chapterId_chapter_id_fk" FOREIGN KEY ("chapterId") REFERENCES "public"."chapter"("id") ON DELETE cascade ON UPDATE no action;
+````
+
+---
+
 /home/nic/projects/mine/kaze-no-manga/drizzle.config.ts
 
 ````typescript
@@ -7394,8 +7428,106 @@ export const timestamps = {
 /home/nic/projects/mine/kaze-no-manga/lib/db/model/index.ts
 
 ````typescript
+export * from '@/lib/db/model/library';
+export * from '@/lib/db/model/library.relations';
+
 export * from '@/lib/db/model/manga';
+export * from '@/lib/db/model/manga.relations';
+
 export * from '@/lib/db/model/user';
+export * from '@/lib/db/model/user.relations';
+
+````
+
+---
+
+/home/nic/projects/mine/kaze-no-manga/lib/db/model/library.relations.ts
+
+````typescript
+import { relations } from 'drizzle-orm';
+
+import { libraryTable } from '@/lib/db/model/library';
+import { mangaTable } from '@/lib/db/model/manga';
+import { userTable } from '@/lib/db/model/user';
+
+export const libraryRelations = relations(libraryTable, ({ one }) => ({
+  user: one(userTable, {
+    fields: [libraryTable.userId],
+    references: [userTable.id],
+  }),
+  manga: one(mangaTable, {
+    fields: [libraryTable.mangaId],
+    references: [mangaTable.id],
+  }),
+}));
+
+````
+
+---
+
+/home/nic/projects/mine/kaze-no-manga/lib/db/model/library.ts
+
+````typescript
+import { boolean, pgTable, primaryKey, real, text, timestamp } from 'drizzle-orm/pg-core';
+
+import { timestamps } from '@/lib/db/model/helpers';
+import { chapterTable, mangaTable } from '@/lib/db/model/manga';
+import { userTable } from '@/lib/db/model/user';
+
+export const libraryTable = pgTable('library', {
+  userId: text()
+    .references(() => userTable.id, { onDelete: 'cascade' })
+    .notNull(),
+  mangaId: text()
+    .references(() => mangaTable.id, { onDelete: 'cascade' })
+    .notNull(),
+  ...timestamps,
+}, library => [
+  {
+    compositeKey: primaryKey({ columns: [library.userId, library.mangaId] }),
+  },
+]);
+export type LibraryInsert = typeof libraryTable.$inferInsert;
+export type Library = typeof libraryTable.$inferSelect;
+
+export const readingTable = pgTable('reading', {
+  userId: text()
+    .references(() => userTable.id, { onDelete: 'cascade' })
+    .notNull(),
+  chapterId: text()
+    .references(() => chapterTable.id, { onDelete: 'cascade' })
+    .notNull(),
+  percentage: real().default(0).notNull(),
+  isCompleted: boolean().default(false).notNull(),
+  lastReadAt: timestamp().defaultNow().notNull(),
+  ...timestamps,
+}, reading => [
+  {
+    compositeKey: primaryKey({ columns: [reading.userId, reading.chapterId] }),
+  },
+]);
+
+````
+
+---
+
+/home/nic/projects/mine/kaze-no-manga/lib/db/model/manga.relations.ts
+
+````typescript
+import { relations } from 'drizzle-orm';
+
+import { chapterTable, mangaTable } from '@/lib/db/model/manga';
+
+export const mangaRelations = relations(mangaTable, ({ many }) => ({
+  chapters: many(chapterTable),
+}));
+
+export const chapterRelations = relations(chapterTable, ({ one }) => ({
+  manga: one(mangaTable, {
+    fields: [chapterTable.mangaId],
+    references: [mangaTable.id],
+  }),
+}));
 
 ````
 
@@ -7404,7 +7536,6 @@ export * from '@/lib/db/model/user';
 /home/nic/projects/mine/kaze-no-manga/lib/db/model/manga.ts
 
 ````typescript
-import { relations } from 'drizzle-orm';
 import {
   index,
   integer,
@@ -7467,15 +7598,20 @@ export const chapterTable = pgTable('chapter', {
 export type ChapterInsert = typeof chapterTable.$inferInsert;
 export type Chapter = typeof chapterTable.$inferSelect;
 
-export const mangaRelations = relations(mangaTable, ({ many }) => ({
-  chapters: many(chapterTable),
-}));
+````
 
-export const chapterRelations = relations(chapterTable, ({ one }) => ({
-  manga: one(mangaTable, {
-    fields: [chapterTable.mangaId],
-    references: [mangaTable.id],
-  }),
+---
+
+/home/nic/projects/mine/kaze-no-manga/lib/db/model/user.relations.ts
+
+````typescript
+import { relations } from 'drizzle-orm';
+
+import { libraryTable } from '@/lib/db/model/library';
+import { userTable } from '@/lib/db/model/user';
+
+export const userRelations = relations(userTable, ({ many }) => ({
+  libraries: many(libraryTable),
 }));
 
 ````
@@ -7675,6 +7811,50 @@ export async function retrieveChapters(sourceName: string, sourceId: string, man
 
 ---
 
+/home/nic/projects/mine/kaze-no-manga/lib/service/reading.ts
+
+````typescript
+'use server';
+
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { readingTable } from '@/lib/db/model';
+
+export async function upsertReading(
+  chapterId: string,
+  percentage: number,
+): Promise<void> {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    throw new Error('User not authenticated');
+  }
+
+  const userId = session.user.id;
+
+  await db
+    .insert(readingTable)
+    .values({
+      userId,
+      chapterId,
+      percentage,
+      lastReadAt: new Date(),
+      isCompleted: percentage >= 98,
+    })
+    .onConflictDoUpdate({
+      target: [readingTable.userId, readingTable.chapterId],
+      set: {
+        percentage,
+        lastReadAt: new Date(),
+        isCompleted: percentage >= 98,
+      },
+    });
+}
+
+````
+
+---
+
 /home/nic/projects/mine/kaze-no-manga/lib/utils.ts
 
 ````typescript
@@ -7868,7 +8048,7 @@ describe('database Tests with PGlite', () => {
     const result = await db.execute('SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = \'public\';');
 
     expect(result).toHaveProperty('rows');
-    expect(result.rows).toHaveLength(7);
+    expect(result.rows).toHaveLength(9);
   });
 
   it('should be able to query a specific table (e.g., users) after adding a record', async () => {

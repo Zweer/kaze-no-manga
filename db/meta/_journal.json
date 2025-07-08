@@ -64,6 +64,13 @@
       "when": 1751294018382,
       "tag": "0008_famous_sprite",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1751982159201,
+      "tag": "0009_dark_pete_wisdom",
+      "breakpoints": true
     }
   ]
 }
