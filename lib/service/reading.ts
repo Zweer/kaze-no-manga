@@ -1,6 +1,7 @@
 'use server';
 
 import { auth } from '@/lib/auth';
+import logger from '@/lib/logger';
 import { db } from '@/lib/db';
 import { readingTable } from '@/lib/db/model';
 
@@ -11,26 +12,35 @@ export async function upsertReading(
   const session = await auth();
 
   if (!session?.user?.id) {
+    logger.warn({ chapterId, percentage }, 'Attempt to upsert reading progress without authentication.');
     throw new Error('User not authenticated');
   }
 
   const userId = session.user.id;
+  const isCompleted = percentage >= 98;
+  logger.debug({ userId, chapterId, percentage, isCompleted }, 'Upserting reading progress.');
 
-  await db
-    .insert(readingTable)
-    .values({
-      userId,
-      chapterId,
-      percentage,
-      lastReadAt: new Date(),
-      isCompleted: percentage >= 98,
-    })
-    .onConflictDoUpdate({
-      target: [readingTable.userId, readingTable.chapterId],
-      set: {
+  try {
+    await db
+      .insert(readingTable)
+      .values({
+        userId,
+        chapterId,
         percentage,
         lastReadAt: new Date(),
-        isCompleted: percentage >= 98,
-      },
-    });
+        isCompleted,
+      })
+      .onConflictDoUpdate({
+        target: [readingTable.userId, readingTable.chapterId],
+        set: {
+          percentage,
+          lastReadAt: new Date(),
+          isCompleted,
+        },
+      });
+    logger.info({ userId, chapterId, percentage, isCompleted }, 'Reading progress upserted successfully.');
+  } catch (error) {
+    logger.error({ userId, chapterId, percentage, error }, 'Error upserting reading progress.');
+    throw error;
+  }
 }
