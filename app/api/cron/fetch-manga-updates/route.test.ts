@@ -1,8 +1,8 @@
-import { GET } from './route';
-import { GET } from './route';
+import type { ResponseError, ResponseSuccess } from './route';
+
 import { NextRequest } from 'next/server';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-// Import the actual service functions that will be mocked
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import {
   getLastChapter,
   getLastCheckedMangas,
@@ -11,12 +11,21 @@ import {
   retrieveManga,
   upsertManga,
 } from '@/lib/service/manga';
-// Import data helpers from the test lib
-import { defaultManga, defaultChapter } from '@/test/lib/service/manga';
+import {
+  defaultChapter,
+  defaultManga,
+  mockGetLastChapterFound,
+  mockGetLastChapterNotFound,
+  mockGetLastCheckedMangasError,
+  mockGetLastCheckedMangasSuccess,
+  mockInsertChaptersSuccess,
+  mockRetrieveChaptersSuccess,
+  mockRetrieveMangaSuccess,
+  mockUpsertMangaSuccess,
+} from '@/test/lib/service/manga';
 
-// Mock the service functions
-// This replaces the actual functions in '@/lib/service/manga' with vi.fn() instances
-// for the duration of this test file.
+import { GET } from './route';
+
 vi.mock('@/lib/service/manga', () => ({
   getLastChapter: vi.fn(),
   getLastCheckedMangas: vi.fn(),
@@ -26,21 +35,25 @@ vi.mock('@/lib/service/manga', () => ({
   upsertManga: vi.fn(),
 }));
 
-describe('Cron Fetch Manga Updates API Route GET /api/cron/fetch-manga-updates', () => {
+describe('cron Fetch Manga Updates API Route GET /api/cron/fetch-manga-updates', () => {
+  const url = 'http://localhost/api/cron/fetch-manga-updates';
+
   beforeEach(() => {
     vi.resetAllMocks();
-    // Reset environment variables
+
+    // @ts-expect-error NODE_ENV is read only
     process.env.NODE_ENV = 'test';
     process.env.CRON_SECRET = 'test-secret';
   });
 
-  describe('Authorization', () => {
+  describe('authorization', () => {
     it('should return 401 if NODE_ENV is production and CRON_SECRET is missing', async () => {
+      // @ts-expect-error NODE_ENV is read only
       process.env.NODE_ENV = 'production';
       delete process.env.CRON_SECRET;
-      const request = new NextRequest('http://localhost/api/cron/fetch-manga-updates');
+      const request = new NextRequest(url);
       const response = await GET(request);
-      const body = await response.json();
+      const body = await response.json() as ResponseError;
 
       expect(response.status).toBe(401);
       expect(body.success).toBe(false);
@@ -48,13 +61,14 @@ describe('Cron Fetch Manga Updates API Route GET /api/cron/fetch-manga-updates',
     });
 
     it('should return 401 if NODE_ENV is production and Authorization header is incorrect', async () => {
+      // @ts-expect-error NODE_ENV is read only
       process.env.NODE_ENV = 'production';
       process.env.CRON_SECRET = 'correct-secret';
-      const request = new NextRequest('http://localhost/api/cron/fetch-manga-updates', {
+      const request = new NextRequest(url, {
         headers: { Authorization: 'Bearer incorrect-secret' },
       });
       const response = await GET(request);
-      const body = await response.json();
+      const body = await response.json() as ResponseError;
 
       expect(response.status).toBe(401);
       expect(body.success).toBe(false);
@@ -62,34 +76,34 @@ describe('Cron Fetch Manga Updates API Route GET /api/cron/fetch-manga-updates',
     });
 
     it('should proceed if NODE_ENV is production and Authorization header is correct', async () => {
+      // @ts-expect-error NODE_ENV is read only
       process.env.NODE_ENV = 'production';
       process.env.CRON_SECRET = 'correct-secret';
-      // Mock getLastCheckedMangas to prevent further execution for this specific test
-      (getLastCheckedMangas as vi.Mock).mockResolvedValue([]);
-      const request = new NextRequest('http://localhost/api/cron/fetch-manga-updates', {
+      mockGetLastCheckedMangasSuccess([]);
+      const request = new NextRequest(url, {
         headers: { Authorization: 'Bearer correct-secret' },
       });
       const response = await GET(request);
-      expect(response.status).toBe(200); // Or whatever status is expected for successful empty update
+      expect(response.status).toBe(200);
     });
 
     it('should proceed if NODE_ENV is not production (e.g., test), regardless of CRON_SECRET', async () => {
+      // @ts-expect-error NODE_ENV is read only
       process.env.NODE_ENV = 'test';
-      delete process.env.CRON_SECRET; // Ensure it's not relying on the beforeEach one
-      // Mock getLastCheckedMangas to prevent further execution for this specific test
-      (getLastCheckedMangas as vi.Mock).mockResolvedValue([]);
-      const request = new NextRequest('http://localhost/api/cron/fetch-manga-updates');
+      delete process.env.CRON_SECRET;
+      mockGetLastCheckedMangasSuccess([]);
+      const request = new NextRequest(url);
       const response = await GET(request);
-      expect(response.status).toBe(200); // Or whatever status is expected for successful empty update
+      expect(response.status).toBe(200);
     });
   });
 
-  describe('Manga Update Logic', () => {
+  describe('manga Update Logic', () => {
     it('should return success with "No mangas to update" if no mangas are found', async () => {
-      (getLastCheckedMangas as vi.Mock).mockResolvedValue([]);
-      const request = new NextRequest('http://localhost/api/cron/fetch-manga-updates');
+      mockGetLastCheckedMangasSuccess([]);
+      const request = new NextRequest(url);
       const response = await GET(request);
-      const body = await response.json();
+      const body = await response.json() as ResponseSuccess;
 
       expect(response.status).toBe(200);
       expect(body.success).toBe(true);
@@ -100,10 +114,10 @@ describe('Cron Fetch Manga Updates API Route GET /api/cron/fetch-manga-updates',
 
     it('should not update if fetched manga has the same chapter count', async () => {
       const mangaToUpdate = { ...defaultManga, id: 'manga1', chaptersCount: 5 };
-      (getLastCheckedMangas as vi.Mock).mockResolvedValue([mangaToUpdate]);
-      (retrieveManga as vi.Mock).mockResolvedValue({ ...mangaToUpdate, chaptersCount: 5 }); // Same chapter count
+      mockGetLastCheckedMangasSuccess([mangaToUpdate]);
+      mockRetrieveMangaSuccess({ ...mangaToUpdate, chaptersCount: 5 });
 
-      const request = new NextRequest('http://localhost/api/cron/fetch-manga-updates');
+      const request = new NextRequest(url);
       await GET(request);
 
       expect(getLastCheckedMangas).toHaveBeenCalledTimes(1);
@@ -117,63 +131,56 @@ describe('Cron Fetch Manga Updates API Route GET /api/cron/fetch-manga-updates',
 
     it('should update manga and add new chapters if new chapters are found', async () => {
       const manga1 = { ...defaultManga, id: 'manga-1', sourceId: 's-manga-1', chaptersCount: 2 };
-      const fetchedManga1 = { ...manga1, chaptersCount: 3 }; // New chapter
-      const lastChapterManga1 = { ...defaultChapter, mangaId: manga1.id, index: 1 }; // Last chapter index is 1
+      const fetchedManga1 = { ...manga1, chaptersCount: 3 };
+      const lastChapterManga1 = { ...defaultChapter, mangaId: manga1.id, index: 1 };
       const fetchedChaptersManga1 = [
         { ...defaultChapter, mangaId: manga1.id, index: 0, sourceId: 's-ch-0' },
         { ...defaultChapter, mangaId: manga1.id, index: 1, sourceId: 's-ch-1' },
-        { ...defaultChapter, mangaId: manga1.id, index: 2, sourceId: 's-ch-2' }, // New chapter
+        { ...defaultChapter, mangaId: manga1.id, index: 2, sourceId: 's-ch-2' },
       ];
       const newChapterForManga1 = fetchedChaptersManga1[2];
 
       const manga2 = { ...defaultManga, id: 'manga-2', sourceId: 's-manga-2', chaptersCount: 1 };
-      const fetchedManga2 = { ...manga2, chaptersCount: 3 }; // 2 New chapters
-      // No last chapter for manga2, meaning all fetched chapters are new
+      const fetchedManga2 = { ...manga2, chaptersCount: 3 };
       const fetchedChaptersManga2 = [
         { ...defaultChapter, mangaId: manga2.id, index: 0, sourceId: 's-ch-m2-0' },
         { ...defaultChapter, mangaId: manga2.id, index: 1, sourceId: 's-ch-m2-1' },
         { ...defaultChapter, mangaId: manga2.id, index: 2, sourceId: 's-ch-m2-2' },
       ];
 
-      (getLastCheckedMangas as vi.Mock).mockResolvedValue([manga1, manga2]);
+      mockGetLastCheckedMangasSuccess([manga1, manga2]);
 
-      // Setup mocks for manga1
-      (retrieveManga as vi.Mock).mockResolvedValueOnce(fetchedManga1);
-      (getLastChapter as vi.Mock).mockResolvedValueOnce(lastChapterManga1);
-      (retrieveChapters as vi.Mock).mockResolvedValueOnce(fetchedChaptersManga1);
-      (upsertManga as vi.Mock).mockResolvedValueOnce(fetchedManga1);
-      (insertChapters as vi.Mock).mockResolvedValueOnce([newChapterForManga1]);
+      mockRetrieveMangaSuccess(fetchedManga1);
+      mockGetLastChapterFound(lastChapterManga1);
+      mockRetrieveChaptersSuccess(fetchedChaptersManga1);
+      mockUpsertMangaSuccess(fetchedManga1);
+      mockInsertChaptersSuccess([newChapterForManga1]);
 
-      // Setup mocks for manga2
-      (retrieveManga as vi.Mock).mockResolvedValueOnce(fetchedManga2);
-      (getLastChapter as vi.Mock).mockResolvedValueOnce(undefined); // No last chapter
-      (retrieveChapters as vi.Mock).mockResolvedValueOnce(fetchedChaptersManga2);
-      (upsertManga as vi.Mock).mockResolvedValueOnce(fetchedManga2);
-      (insertChapters as vi.Mock).mockResolvedValueOnce(fetchedChaptersManga2);
+      mockRetrieveMangaSuccess(fetchedManga2);
+      mockGetLastChapterNotFound();
+      mockRetrieveChaptersSuccess(fetchedChaptersManga2);
+      mockUpsertMangaSuccess(fetchedManga2);
+      mockInsertChaptersSuccess(fetchedChaptersManga2);
 
-
-      const request = new NextRequest('http://localhost/api/cron/fetch-manga-updates');
+      const request = new NextRequest(url);
       const response = await GET(request);
-      const body = await response.json();
+      const body = await response.json() as ResponseSuccess;
 
       expect(response.status).toBe(200);
       expect(body.success).toBe(true);
-      expect(body.message).toBe(`added 4 chapters in 2 mangas`); // 1 new for manga1, 3 new for manga2
+      expect(body.message).toBe(`added 4 chapters in 2 mangas`);
 
-      // Check calls for manga1
       expect(retrieveManga).toHaveBeenCalledWith(manga1.sourceName, manga1.sourceId);
       expect(getLastChapter).toHaveBeenCalledWith(manga1.id);
       expect(retrieveChapters).toHaveBeenCalledWith(manga1.sourceName, manga1.sourceId, manga1.id);
       expect(upsertManga).toHaveBeenCalledWith(fetchedManga1);
       expect(insertChapters).toHaveBeenCalledWith([newChapterForManga1]);
 
-      // Check calls for manga2
       expect(retrieveManga).toHaveBeenCalledWith(manga2.sourceName, manga2.sourceId);
       expect(getLastChapter).toHaveBeenCalledWith(manga2.id);
       expect(retrieveChapters).toHaveBeenCalledWith(manga2.sourceName, manga2.sourceId, manga2.id);
       expect(upsertManga).toHaveBeenCalledWith(fetchedManga2);
       expect(insertChapters).toHaveBeenCalledWith(fetchedChaptersManga2);
-
 
       expect(getLastCheckedMangas).toHaveBeenCalledTimes(1);
       expect(retrieveManga).toHaveBeenCalledTimes(2);
@@ -185,20 +192,13 @@ describe('Cron Fetch Manga Updates API Route GET /api/cron/fetch-manga-updates',
 
     it('should handle errors when getLastCheckedMangas fails', async () => {
       const errorMessage = 'Database connection error';
-      (getLastCheckedMangas as vi.Mock).mockRejectedValueOnce(new Error(errorMessage));
+      mockGetLastCheckedMangasError(errorMessage);
 
-      const request = new NextRequest('http://localhost/api/cron/fetch-manga-updates');
-      // We expect the GET handler to catch the error and return a 500 response,
-      // or for the test framework to catch the unhandled rejection if the route doesn't handle it.
-      // For this example, let's assume the route doesn't have global error handling for this specific case
-      // and the error would propagate. Vitest would catch this.
-      // If the route *did* handle it and return a JSON error, we'd check for that.
+      const request = new NextRequest(url);
       await expect(GET(request)).rejects.toThrow(errorMessage);
 
       expect(getLastCheckedMangas).toHaveBeenCalledTimes(1);
       expect(retrieveManga).not.toHaveBeenCalled();
     });
-
-    // Additional error tests can be added here for other service function failures
   });
 });

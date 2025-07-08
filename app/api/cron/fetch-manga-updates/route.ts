@@ -9,21 +9,19 @@ import {
   upsertManga,
 } from '@/lib/service/manga';
 
-// const CRON_SECRET = process.env.CRON_SECRET; // Moved inside GET
-
-interface ResponseSuccess {
+export interface ResponseSuccess {
   success: true;
   message: string;
 }
 
-interface ResponseError {
+export interface ResponseError {
   success: false;
   error: string;
 }
 
 export async function GET(request: Request): Promise<NextResponse<ResponseSuccess | ResponseError>> {
   const authHeader = request.headers.get('authorization');
-  const currentCronSecret = process.env.CRON_SECRET; // Read at time of execution
+  const currentCronSecret = process.env.CRON_SECRET;
   if (process.env.NODE_ENV === 'production' && (!currentCronSecret || authHeader !== `Bearer ${currentCronSecret}`)) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
