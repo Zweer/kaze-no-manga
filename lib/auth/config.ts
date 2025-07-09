@@ -1,5 +1,7 @@
 import type { AuthConfig } from '@auth/core/types';
+
 import Google from '@auth/core/providers/google';
+
 import logger from '@/lib/logger';
 
 export const authConfig = {
@@ -10,7 +12,8 @@ export const authConfig = {
      * Called after successful sign in, before JWT is created.
      * Use this to add custom data to the JWT payload.
      */
-    async jwt({ token, user, account, profile, isNewUser }) {
+    async jwt({ token, user, account, trigger }) {
+      const isNewUser = trigger === 'signUp';
       logger.debug({ tokenId: token?.jti, userId: user?.id, accountProvider: account?.provider }, 'JWT callback invoked.');
       if (user) {
         token.id = user.id;
@@ -44,8 +47,10 @@ export const authConfig = {
         // session.user.role = token.role;
         // logger.debug({ userId: session.user.id, role: session.user.role }, 'User role mapped to session object.');
       } else {
-        if (!token?.id) logger.warn('Token ID not found in session callback.');
-        if (!session.user) logger.warn('Session user object not found in session callback.');
+        if (!token?.id)
+          logger.warn('Token ID not found in session callback.');
+        if (!session.user)
+          logger.warn('Session user object not found in session callback.');
       }
 
       return session;

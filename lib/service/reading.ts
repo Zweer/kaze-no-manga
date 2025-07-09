@@ -1,9 +1,9 @@
 'use server';
 
 import { auth } from '@/lib/auth';
-import logger from '@/lib/logger';
 import { db } from '@/lib/db';
 import { readingTable } from '@/lib/db/model';
+import logger from '@/lib/logger';
 
 export async function upsertReading(
   chapterId: string,

@@ -1,8 +1,9 @@
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import NextAuth from 'next-auth';
-import logger from '@/lib/logger';
+
 import { authConfig } from '@/lib/auth/config';
 import { db } from '@/lib/db';
+import logger from '@/lib/logger';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db),
@@ -11,8 +12,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async signIn(message) {
       logger.info({ user: message.user, account: message.account, isNewUser: message.isNewUser }, 'User signIn event');
     },
-    async signOut(message) {
-      logger.info({ session: message.session, token: message.token }, 'User signOut event');
+    async signOut() {
+      logger.info('User signOut event');
     },
     async createUser(message) {
       logger.info({ user: message.user }, 'User createUser event');

@@ -1,11 +1,12 @@
 import type { ConnectorNames } from '@zweer/manga-scraper';
-import logger from '@/lib/logger';
+
 import type { Chapter, ChapterInsert, Manga, MangaInsert } from '@/lib/db/model';
 
 import { connectors } from '@zweer/manga-scraper';
 
 import { db } from '@/lib/db';
 import { chapterTable, mangaTable } from '@/lib/db/model';
+import logger from '@/lib/logger';
 
 export async function upsertManga(manga: MangaInsert): Promise<Manga> {
   logger.debug({ mangaTitle: manga.title, sourceId: manga.sourceId }, 'Upserting manga');
@@ -14,7 +15,7 @@ export async function upsertManga(manga: MangaInsert): Promise<Manga> {
       .insert(mangaTable)
       .values(manga)
       .onConflictDoUpdate({
-        target: mangaTable.id, // Correcting back to id as the general PK for conflict
+        target: mangaTable.id,
         set: manga,
       })
       .returning();
@@ -22,7 +23,7 @@ export async function upsertManga(manga: MangaInsert): Promise<Manga> {
     return returnedManga;
   } catch (error) {
     logger.error({ mangaTitle: manga.title, sourceId: manga.sourceId, error }, 'Error upserting manga');
-    throw error; // Re-throw the error to be handled by the caller
+    throw error;
   }
 }
 
@@ -90,18 +91,18 @@ export async function retrieveManga(sourceName: string, sourceId: string): Promi
   logger.debug({ sourceName, sourceId }, 'Retrieving manga data from source.');
   try {
     const connector = retrieveConnector(sourceName);
-    const mangaData = await connector.getManga(sourceId); // mangaData was correct
+    const mangaData = await connector.getManga(sourceId);
     logger.info({ sourceName, sourceId, title: mangaData.title }, 'Manga data retrieved from source successfully.');
     return {
       sourceName,
       sourceId,
-      title: mangaData.title, // Corrected to mangaData
-      excerpt: mangaData.excerpt, // Corrected to mangaData
-      author: mangaData.author, // Corrected to mangaData
-      slug: mangaData.slug, // Corrected to mangaData
-      image: mangaData.image, // Corrected to mangaData
-      status: mangaData.status, // Corrected to mangaData
-      chaptersCount: mangaData.chaptersCount, // Corrected to mangaData
+      title: mangaData.title,
+      excerpt: mangaData.excerpt,
+      author: mangaData.author,
+      slug: mangaData.slug,
+      image: mangaData.image,
+      status: mangaData.status,
+      chaptersCount: mangaData.chaptersCount,
       lastCheckedAt: new Date(),
     };
   } catch (error) {
@@ -117,14 +118,14 @@ export async function retrieveChapters(sourceName: string, sourceId: string, man
     const chaptersData = await connector.getChapters(sourceId);
     logger.info({ sourceName, sourceId, mangaId, count: chaptersData.length }, 'Chapters data retrieved from source successfully.');
     return chaptersData.map(chapter => ({
-    sourceName,
-    sourceId: chapter.id,
-    mangaId,
-    title: chapter.title,
-    index: chapter.index,
-    releasedAt: chapter.releasedAt,
-    images: chapter.images,
-  }));
+      sourceName,
+      sourceId: chapter.id,
+      mangaId,
+      title: chapter.title,
+      index: chapter.index,
+      releasedAt: chapter.releasedAt,
+      images: chapter.images,
+    }));
   } catch (error) {
     logger.error({ sourceName, sourceId, mangaId, error }, 'Error retrieving chapters data from source.');
     throw error;

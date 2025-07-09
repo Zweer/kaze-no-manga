@@ -125,6 +125,7 @@ kaze-no-manga
 │   │       ├── manga.ts
 │   │       ├── user.relations.ts
 │   │       └── user.ts
+│   ├── logger.ts
 │   ├── service
 │   │   ├── manga.ts
 │   │   └── reading.ts
@@ -261,7 +262,7 @@ git update-index --again
 ````markdown
 # KazeNoManga - A Modern Manga Reading Platform
 
-![Coverage Badge](https://img.shields.io/badge/coverage-22%25-red?style=flat)
+![Coverage Badge](https://img.shields.io/badge/coverage-21%25-red?style=flat)
 
 ## 📚 Table of Contents
 
@@ -295,6 +296,10 @@ This project will be built using a modern, type-safe, and scalable technology st
 *   **Authentication:** [**Auth.js**](https://authjs.dev/) (formerly NextAuth.js) as the go-to solution for handling user authentication. We will use the official Drizzle adapter.
 *   **Database:** [**PostgreSQL**](https://www.postgresql.org/) for its reliability and robust feature set.
 *   **ORM:** [**Drizzle ORM**](https://orm.drizzle.team/) for its lightweight, TypeScript-first approach. It provides a SQL-like query builder and superior type safety inferred directly from the database schema.
+*   **Logging:** [**Pino**](https://getpino.io/) for structured and performant logging, with [**pino-pretty**](https://github.com/pinojs/pino-pretty) for human-readable logs in development.
+    *   The logger is configured in `lib/logger.ts`.
+    *   Import it and use it in your server-side code: `import logger from '@/lib/logger'; logger.info('Hello world');`
+    *   In development, logs are prettified. In production, they are JSON formatted. The `dev` script in `package.json` is already set up to use `pino-pretty`.
 
 ## ☁️ Cloud Infrastructure
 
@@ -593,7 +598,12 @@ describe('cron Fetch Manga Updates API Route GET /api/cron/fetch-manga-updates',
       mockGetLastCheckedMangasError(errorMessage);
 
       const request = new NextRequest(url);
-      await expect(GET(request)).rejects.toThrow(errorMessage);
+      const response = await GET(request);
+      const body = await response.json() as ResponseError;
+
+      expect(response.status).toBe(500);
+      expect(body.success).toBe(false);
+      expect(body.error).toBe('Cron job failed. Check server logs.');
 
       expect(getLastCheckedMangas).toHaveBeenCalledTimes(1);
       expect(retrieveManga).not.toHaveBeenCalled();
@@ -610,6 +620,7 @@ describe('cron Fetch Manga Updates API Route GET /api/cron/fetch-manga-updates',
 ````typescript
 import { NextResponse } from 'next/server';
 
+import logger from '@/lib/logger';
 import {
   getLastChapter,
   getLastCheckedMangas,
@@ -633,40 +644,63 @@ export async function GET(request: Request): Promise<NextResponse<ResponseSucces
   const authHeader = request.headers.get('authorization');
   const currentCronSecret = process.env.CRON_SECRET;
   if (process.env.NODE_ENV === 'production' && (!currentCronSecret || authHeader !== `Bearer ${currentCronSecret}`)) {
+    logger.warn('Unauthorized attempt to run cron job');
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
-  console.log('Starting manga update cron job...');
+  logger.info('Starting manga update cron job...');
 
-  const mangas = await getLastCheckedMangas();
-  if (mangas.length === 0) {
-    console.log('No mangas found');
-    return NextResponse.json({ success: true, message: 'No mangas to update' });
-  }
-
-  console.log(`Found ${mangas.length} mangas to check for updates...`);
-
-  let mangasUpdated = 0;
-  let newChaptersAdded = 0;
-
-  for (const manga of mangas) {
-    const fetchedManga = await retrieveManga(manga.sourceName, manga.sourceId);
-    if (manga.chaptersCount === fetchedManga.chaptersCount) {
-      continue;
+  try {
+    const mangas = await getLastCheckedMangas();
+    if (mangas.length === 0) {
+      logger.info('No mangas found in the database to check for updates.');
+      return NextResponse.json({ success: true, message: 'No mangas to update' });
     }
 
-    const lastChapter = await getLastChapter(manga.id);
-    const fetchedChapters = await retrieveChapters(manga.sourceName, manga.sourceId, manga.id);
-    const newChapters = fetchedChapters.filter(chapter => chapter.index > (lastChapter?.index ?? -1));
+    logger.info({ mangaCount: mangas.length }, `Found ${mangas.length} mangas to check for updates.`);
 
-    mangasUpdated++;
-    newChaptersAdded += newChapters.length;
+    let mangasUpdated = 0;
+    let newChaptersAdded = 0;
 
-    await upsertManga(fetchedManga);
-    await insertChapters(newChapters);
+    for (const currentManga of mangas) {
+      logger.debug({ mangaId: currentManga.id, sourceName: currentManga.sourceName, sourceId: currentManga.sourceId }, 'Processing manga for update check.');
+      try {
+        const fetchedManga = await retrieveManga(currentManga.sourceName, currentManga.sourceId);
+        if (currentManga.chaptersCount === fetchedManga.chaptersCount) {
+          logger.trace({ mangaId: currentManga.id }, 'Manga chapter count matches fetched count, skipping.');
+          continue;
+        }
+
+        logger.info({ mangaId: currentManga.id, dbChapters: currentManga.chaptersCount, fetchedChapters: fetchedManga.chaptersCount }, 'Chapter count mismatch, proceeding to fetch chapters.');
+
+        const lastChapter = await getLastChapter(currentManga.id);
+        logger.debug({ mangaId: currentManga.id, lastChapterIndex: lastChapter?.index }, 'Retrieved last known chapter from DB.');
+
+        const fetchedChapters = await retrieveChapters(currentManga.sourceName, currentManga.sourceId, currentManga.id);
+        const newChapters = fetchedChapters.filter(chapter => chapter.index > (lastChapter?.index ?? -1));
+
+        if (newChapters.length > 0) {
+          logger.info({ mangaId: currentManga.id, newChapterCount: newChapters.length }, `Found ${newChapters.length} new chapters.`);
+          newChaptersAdded += newChapters.length;
+
+          await upsertManga(fetchedManga);
+          await insertChapters(newChapters);
+          mangasUpdated++;
+        } else {
+          logger.info({ mangaId: currentManga.id }, 'No new chapters found despite count mismatch. Might be a source data issue or already synced.');
+          await upsertManga(fetchedManga);
+        }
+      } catch (error) {
+        logger.error({ mangaId: currentManga.id, error }, 'Error processing a single manga during cron update.');
+      }
+    }
+
+    logger.info({ newChaptersAdded, mangasUpdated }, `Cron job finished. Added ${newChaptersAdded} chapters in ${mangasUpdated} mangas.`);
+    return NextResponse.json({ success: true, message: `added ${newChaptersAdded} chapters in ${mangasUpdated} mangas` });
+  } catch (error) {
+    logger.error({ error }, 'Critical error during manga update cron job execution.');
+    return NextResponse.json({ success: false, error: 'Cron job failed. Check server logs.' }, { status: 500 });
   }
-
-  return NextResponse.json({ success: true, message: `added ${newChaptersAdded} chapters in ${mangasUpdated} mangas` });
 }
 
 ````
@@ -678,38 +712,51 @@ export async function GET(request: Request): Promise<NextResponse<ResponseSucces
 ````typescript
 import { connectors } from '@zweer/manga-scraper';
 
+import logger from '@/lib/logger';
+
 export async function GET() {
   const sourceName = 'mangapark';
   const sourceId = '341963';
-  const _manga = await connectors[sourceName].getManga(sourceId);
-  const _chapters = await connectors[sourceName].getChapters(sourceId);
+  logger.info({ sourceName, sourceId }, 'Attempting to seed data for manga');
 
-  // await db.update(mangaTable).set({
-  //   image: manga.image,
-  //   author: manga.author,
-  //   status: manga.status,
-  //   excerpt: manga.excerpt,
-  // }).where(eq(mangaTable.sourceId, sourceId));
+  try {
+    const _manga = await connectors[sourceName].getManga(sourceId);
+    const _chapters = await connectors[sourceName].getChapters(sourceId);
 
-  // const [newManga] = await db.insert(mangaTable).values({
-  //   sourceName,
-  //   sourceId,
-  //   title: manga.title,
-  //   slug: manga.slug,
-  //   chaptersCount: manga.chaptersCount,
-  // }).returning();
+    // TODO: Add actual seeding logic here if needed for demonstration,
+    // or remove if this route is purely for testing the logger.
+    logger.info({ sourceName, sourceId, mangaTitle: _manga.title, chapterCount: _chapters.length }, 'Successfully fetched manga data for seeding');
 
-  // await db.insert(chapterTable).values(chapters.map(chapter => ({
-  //   sourceName,
-  //   sourceId: chapter.id,
-  //   mangaId: newManga.id,
-  //   title: chapter.title,
-  //   index: chapter.index,
-  //   releasedAt: chapter.releasedAt,
-  //   images: chapter.images,
-  // })));
+    // await db.update(mangaTable).set({
+    //   image: manga.image,
+    //   author: manga.author,
+    //   status: manga.status,
+    //   excerpt: manga.excerpt,
+    // }).where(eq(mangaTable.sourceId, sourceId));
 
-  return Response.json(0);
+    // const [newManga] = await db.insert(mangaTable).values({
+    //   sourceName,
+    //   sourceId,
+    //   title: manga.title,
+    //   slug: manga.slug,
+    //   chaptersCount: manga.chaptersCount,
+    // }).returning();
+
+    // await db.insert(chapterTable).values(chapters.map(chapter => ({
+    //   sourceName,
+    //   sourceId: chapter.id,
+    //   mangaId: newManga.id,
+    //   title: chapter.title,
+    //   index: chapter.index,
+    //   releasedAt: chapter.releasedAt,
+    //   images: chapter.images,
+    // })));
+
+    return Response.json({ success: true, mangaTitle: _manga.title, chaptersFetched: _chapters.length });
+  } catch (error) {
+    logger.error({ sourceName, sourceId, error }, 'Failed to seed data for manga');
+    return Response.json({ success: false, error: 'Failed to seed data. Check logs.' }, { status: 500 });
+  }
 }
 
 ````
@@ -7297,6 +7344,8 @@ import type { AuthConfig } from '@auth/core/types';
 
 import Google from '@auth/core/providers/google';
 
+import logger from '@/lib/logger';
+
 export const authConfig = {
   providers: [Google],
   session: { strategy: 'jwt' },
@@ -7305,11 +7354,21 @@ export const authConfig = {
      * Called after successful sign in, before JWT is created.
      * Use this to add custom data to the JWT payload.
      */
-    async jwt({ token, user }) {
+    async jwt({ token, user, account, trigger }) {
+      const isNewUser = trigger === 'signUp';
+      logger.debug({ tokenId: token?.jti, userId: user?.id, accountProvider: account?.provider }, 'JWT callback invoked.');
       if (user) {
         token.id = user.id;
+        logger.info({ userId: user.id, isNewUser }, 'User data present in JWT callback, mapping user ID to token.');
         // You could potentially add user roles or other static info here
         // token.role = user.role; // Assuming user object has a role property from adapter
+        // logger.debug({ userId: user.id, role: user.role }, 'User role added to token.');
+      }
+      if (account) {
+        logger.debug({ userId: token.id, provider: account.provider, accountId: account.providerAccountId }, 'Account details available in JWT callback.');
+      }
+      if (isNewUser) {
+        logger.info({ userId: user?.id, provider: account?.provider }, 'New user detected during JWT callback.');
       }
 
       return token;
@@ -7320,12 +7379,20 @@ export const authConfig = {
      * Use this to expose data from the JWT to the client-side session object.
      */
     async session({ session, token }) {
+      logger.debug({ userId: token?.id, sessionExpires: session.expires }, 'Session callback invoked.');
       // Add the user ID (from the JWT's `id` property) to the session's user object
       // This makes the user ID available in useSession() hook and server-side auth()
       if (token?.id && session.user) {
         session.user.id = token.id as string;
+        logger.info({ userId: session.user.id, sessionExpires: session.expires }, 'User ID mapped to session object.');
         // Add other properties from the token if needed
         // session.user.role = token.role;
+        // logger.debug({ userId: session.user.id, role: session.user.role }, 'User role mapped to session object.');
+      } else {
+        if (!token?.id)
+          logger.warn('Token ID not found in session callback.');
+        if (!session.user)
+          logger.warn('Session user object not found in session callback.');
       }
 
       return session;
@@ -7349,10 +7416,33 @@ import NextAuth from 'next-auth';
 
 import { authConfig } from '@/lib/auth/config';
 import { db } from '@/lib/db';
+import logger from '@/lib/logger';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db),
   ...authConfig,
+  events: {
+    async signIn(message) {
+      logger.info({ user: message.user, account: message.account, isNewUser: message.isNewUser }, 'User signIn event');
+    },
+    async signOut() {
+      logger.info('User signOut event');
+    },
+    async createUser(message) {
+      logger.info({ user: message.user }, 'User createUser event');
+    },
+    async updateUser(message) {
+      logger.info({ user: message.user }, 'User updateUser event');
+    },
+    async linkAccount(message) {
+      logger.info({ account: message.account, user: message.user }, 'User linkAccount event');
+    },
+    async session(message) {
+      // This event fires when a session is created or updated.
+      // The session callback above is probably more useful for session data.
+      logger.debug({ session: message.session, token: message.token }, 'Session event');
+    },
+  },
 });
 
 ````
@@ -7722,6 +7812,32 @@ export type Authenticator = typeof authenticatorTable.$inferSelect;
 
 ---
 
+/home/nic/projects/mine/kaze-no-manga/lib/logger.ts
+
+````typescript
+import pino from 'pino';
+
+const logger = pino(
+  process.env.NODE_ENV === 'development'
+    ? {
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+            translateTime: 'SYS:standard',
+            ignore: 'pid,hostname',
+          },
+        },
+      }
+    : {},
+);
+
+export default logger;
+
+````
+
+---
+
 /home/nic/projects/mine/kaze-no-manga/lib/service/manga.ts
 
 ````typescript
@@ -7733,78 +7849,130 @@ import { connectors } from '@zweer/manga-scraper';
 
 import { db } from '@/lib/db';
 import { chapterTable, mangaTable } from '@/lib/db/model';
+import logger from '@/lib/logger';
 
 export async function upsertManga(manga: MangaInsert): Promise<Manga> {
-  const [returnedManga] = await db
-    .insert(mangaTable)
-    .values(manga)
-    .onConflictDoUpdate({
-      target: mangaTable.id,
-      set: manga,
-    })
-    .returning();
-
-  return returnedManga;
+  logger.debug({ mangaTitle: manga.title, sourceId: manga.sourceId }, 'Upserting manga');
+  try {
+    const [returnedManga] = await db
+      .insert(mangaTable)
+      .values(manga)
+      .onConflictDoUpdate({
+        target: mangaTable.id,
+        set: manga,
+      })
+      .returning();
+    logger.info({ mangaId: returnedManga.id, title: returnedManga.title }, 'Manga upserted successfully');
+    return returnedManga;
+  } catch (error) {
+    logger.error({ mangaTitle: manga.title, sourceId: manga.sourceId, error }, 'Error upserting manga');
+    throw error;
+  }
 }
 
 export async function insertChapters(chapters: ChapterInsert[]): Promise<Chapter[]> {
-  return db.insert(chapterTable).values(chapters).returning();
+  if (chapters.length === 0) {
+    logger.info('No chapters provided to insert.');
+    return [];
+  }
+  logger.debug({ count: chapters.length, mangaId: chapters[0]?.mangaId }, `Inserting ${chapters.length} chapters.`);
+  try {
+    const insertedChapters = await db.insert(chapterTable).values(chapters).returning();
+    logger.info({ insertedCount: insertedChapters.length, mangaId: chapters[0]?.mangaId }, 'Chapters inserted successfully.');
+    return insertedChapters;
+  } catch (error) {
+    logger.error({ count: chapters.length, mangaId: chapters[0]?.mangaId, error }, 'Error inserting chapters');
+    throw error;
+  }
 }
 
 export async function getLastCheckedMangas(limit: number = 10): Promise<Manga[]> {
-  return db.query.mangaTable.findMany({
-    orderBy: (mangaTable, { asc }) => asc(mangaTable.lastCheckedAt),
-    limit,
-  });
+  logger.debug({ limit }, `Fetching last ${limit} checked mangas.`);
+  try {
+    const mangas = await db.query.mangaTable.findMany({
+      orderBy: (mangaTable, { asc }) => asc(mangaTable.lastCheckedAt),
+      limit,
+    });
+    logger.info({ count: mangas.length, limit }, `Retrieved ${mangas.length} mangas.`);
+    return mangas;
+  } catch (error) {
+    logger.error({ limit, error }, 'Error fetching last checked mangas.');
+    throw error;
+  }
 }
 
 export async function getLastChapter(mangaId: string): Promise<Chapter | undefined> {
-  return db.query.chapterTable.findFirst({
-    where: (chapterTable, { eq }) => eq(chapterTable.mangaId, mangaId),
-    orderBy: (chapterTable, { desc }) => desc(chapterTable.index),
-  });
+  logger.debug({ mangaId }, 'Fetching last chapter for manga.');
+  try {
+    const chapter = await db.query.chapterTable.findFirst({
+      where: (chapterTable, { eq }) => eq(chapterTable.mangaId, mangaId),
+      orderBy: (chapterTable, { desc }) => desc(chapterTable.index),
+    });
+    if (chapter) {
+      logger.info({ mangaId, chapterId: chapter.id, chapterIndex: chapter.index }, 'Last chapter retrieved.');
+    } else {
+      logger.info({ mangaId }, 'No chapters found for this manga yet.');
+    }
+    return chapter;
+  } catch (error) {
+    logger.error({ mangaId, error }, 'Error fetching last chapter.');
+    throw error;
+  }
 }
 
 function retrieveConnector(sourceName: string): typeof connectors[ConnectorNames] {
+  logger.trace({ sourceName }, 'Retrieving connector.');
   const connector = connectors[sourceName as ConnectorNames];
   if (!connector) {
-    throw new Error('Invalid connector name');
+    logger.error({ sourceName }, 'Invalid connector name requested.');
+    throw new Error(`Invalid connector name: ${sourceName}`);
   }
-
   return connector;
 }
 
 export async function retrieveManga(sourceName: string, sourceId: string): Promise<MangaInsert> {
-  const connector = retrieveConnector(sourceName);
-  const manga = await connector.getManga(sourceId);
-
-  return {
-    sourceName,
-    sourceId,
-    title: manga.title,
-    excerpt: manga.excerpt,
-    author: manga.author,
-    slug: manga.slug,
-    image: manga.image,
-    status: manga.status,
-    chaptersCount: manga.chaptersCount,
-    lastCheckedAt: new Date(),
-  };
+  logger.debug({ sourceName, sourceId }, 'Retrieving manga data from source.');
+  try {
+    const connector = retrieveConnector(sourceName);
+    const mangaData = await connector.getManga(sourceId);
+    logger.info({ sourceName, sourceId, title: mangaData.title }, 'Manga data retrieved from source successfully.');
+    return {
+      sourceName,
+      sourceId,
+      title: mangaData.title,
+      excerpt: mangaData.excerpt,
+      author: mangaData.author,
+      slug: mangaData.slug,
+      image: mangaData.image,
+      status: mangaData.status,
+      chaptersCount: mangaData.chaptersCount,
+      lastCheckedAt: new Date(),
+    };
+  } catch (error) {
+    logger.error({ sourceName, sourceId, error }, 'Error retrieving manga data from source.');
+    throw error;
+  }
 }
 
 export async function retrieveChapters(sourceName: string, sourceId: string, mangaId: string): Promise<ChapterInsert[]> {
-  const connector = retrieveConnector(sourceName);
-  const chapters = await connector.getChapters(sourceId);
-
-  return chapters.map(chapter => ({
-    sourceName,
-    sourceId: chapter.id,
-    mangaId,
-    title: chapter.title,
-    index: chapter.index,
-    releasedAt: chapter.releasedAt,
-    images: chapter.images,
-  }));
+  logger.debug({ sourceName, sourceId, mangaId }, 'Retrieving chapters data from source.');
+  try {
+    const connector = retrieveConnector(sourceName);
+    const chaptersData = await connector.getChapters(sourceId);
+    logger.info({ sourceName, sourceId, mangaId, count: chaptersData.length }, 'Chapters data retrieved from source successfully.');
+    return chaptersData.map(chapter => ({
+      sourceName,
+      sourceId: chapter.id,
+      mangaId,
+      title: chapter.title,
+      index: chapter.index,
+      releasedAt: chapter.releasedAt,
+      images: chapter.images,
+    }));
+  } catch (error) {
+    logger.error({ sourceName, sourceId, mangaId, error }, 'Error retrieving chapters data from source.');
+    throw error;
+  }
 }
 
 ````
@@ -7819,6 +7987,7 @@ export async function retrieveChapters(sourceName: string, sourceId: string, man
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { readingTable } from '@/lib/db/model';
+import logger from '@/lib/logger';
 
 export async function upsertReading(
   chapterId: string,
@@ -7827,28 +7996,37 @@ export async function upsertReading(
   const session = await auth();
 
   if (!session?.user?.id) {
+    logger.warn({ chapterId, percentage }, 'Attempt to upsert reading progress without authentication.');
     throw new Error('User not authenticated');
   }
 
   const userId = session.user.id;
+  const isCompleted = percentage >= 98;
+  logger.debug({ userId, chapterId, percentage, isCompleted }, 'Upserting reading progress.');
 
-  await db
-    .insert(readingTable)
-    .values({
-      userId,
-      chapterId,
-      percentage,
-      lastReadAt: new Date(),
-      isCompleted: percentage >= 98,
-    })
-    .onConflictDoUpdate({
-      target: [readingTable.userId, readingTable.chapterId],
-      set: {
+  try {
+    await db
+      .insert(readingTable)
+      .values({
+        userId,
+        chapterId,
         percentage,
         lastReadAt: new Date(),
-        isCompleted: percentage >= 98,
-      },
-    });
+        isCompleted,
+      })
+      .onConflictDoUpdate({
+        target: [readingTable.userId, readingTable.chapterId],
+        set: {
+          percentage,
+          lastReadAt: new Date(),
+          isCompleted,
+        },
+      });
+    logger.info({ userId, chapterId, percentage, isCompleted }, 'Reading progress upserted successfully.');
+  } catch (error) {
+    logger.error({ userId, chapterId, percentage, error }, 'Error upserting reading progress.');
+    throw error;
+  }
 }
 
 ````
@@ -7907,7 +8085,7 @@ export default nextConfig;
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev --turbopack | pino-pretty",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

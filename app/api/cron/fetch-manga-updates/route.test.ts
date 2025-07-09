@@ -195,7 +195,12 @@ describe('cron Fetch Manga Updates API Route GET /api/cron/fetch-manga-updates',
       mockGetLastCheckedMangasError(errorMessage);
 
       const request = new NextRequest(url);
-      await expect(GET(request)).rejects.toThrow(errorMessage);
+      const response = await GET(request);
+      const body = await response.json() as ResponseError;
+
+      expect(response.status).toBe(500);
+      expect(body.success).toBe(false);
+      expect(body.error).toBe('Cron job failed. Check server logs.');
 
       expect(getLastCheckedMangas).toHaveBeenCalledTimes(1);
       expect(retrieveManga).not.toHaveBeenCalled();
