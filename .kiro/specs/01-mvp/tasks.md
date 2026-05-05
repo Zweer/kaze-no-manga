@@ -18,11 +18,11 @@ Each task ends with a deploy to AWS. The app grows incrementally.
 
 **Scope:** CDK stack in `aws-infra` repo, deploy locale one-time
 
-- [ ] CDK stack in `aws-infra`: OIDC Identity Provider for GitHub Actions
-- [ ] CDK stack in `aws-infra`: IAM Role with trust policy scoped to this repo/main
-- [ ] CDK stack in `aws-infra`: Role permissions (CloudFormation, S3, Lambda, DynamoDB, AppSync, Cognito, CloudFront)
-- [ ] Script: `npm run aws:bootstrap` (in aws-infra)
-- [ ] GitHub secret: `AWS_ROLE_ARN`
+- [x] CDK stack in `aws-infra`: OIDC Identity Provider for GitHub Actions
+- [x] CDK stack in `aws-infra`: IAM Role with trust policy scoped to this repo/main
+- [x] CDK stack in `aws-infra`: Role permissions (CloudFormation, S3, Lambda, DynamoDB, AppSync, Cognito, CloudFront)
+- [x] Script: `npm run aws:bootstrap` (in aws-infra)
+- [x] GitHub secret: `AWS_ROLE_ARN`
 - [ ] Verify: CI workflow can assume role and run `cdk synth`
 
 **Acceptance:** `git push` to main triggers CI, which successfully assumes the role.
