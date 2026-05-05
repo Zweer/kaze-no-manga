@@ -3,12 +3,29 @@
 ## Dependency Order
 
 ```
-T1 (Auth) → T2 (Models) → T3 (Scraper) → T4 (API) → T5 (Search UI)
-                                              ↓
-                              T6 (Library) → T7 (Reader) → T8 (Progress)
-                                                              ↓
-                                                           T9 (CRON)
+T0 (Bootstrap) → T1 (Auth) → T2 (Models) → T3 (Scraper) → T4 (API) → T5 (Search UI)
+                                                                ↓
+                                                T6 (Library) → T7 (Reader) → T8 (Progress)
+                                                                                ↓
+                                                                             T9 (CRON)
+                                                                                ↓
+                                                                             T10 (Polish)
 ```
+
+Each task ends with a deploy to AWS. The app grows incrementally.
+
+## T0 — Bootstrap (OIDC + CI Role)
+
+**Scope:** CDK stack, deploy locale one-time
+
+- [ ] CDK stack: OIDC Identity Provider for GitHub Actions
+- [ ] CDK stack: IAM Role with trust policy scoped to this repo/main
+- [ ] CDK stack: Role permissions (CloudFormation, S3, Lambda, DynamoDB, AppSync, Cognito, CloudFront)
+- [ ] Script: `npm run aws:bootstrap`
+- [ ] GitHub secret: `AWS_ROLE_ARN`
+- [ ] Verify: CI workflow can assume role and run `cdk synth`
+
+**Acceptance:** `git push` to main triggers CI, which successfully assumes the role.
 
 ## T1 — Auth (Cognito + Google OAuth)
 
@@ -19,6 +36,7 @@ T1 (Auth) → T2 (Models) → T3 (Scraper) → T4 (API) → T5 (Search UI)
 - [ ] Web: login/logout flow (redirect to Cognito hosted UI)
 - [ ] Web: persist session, protect routes
 - [ ] AppSync: configure Cognito authorizer
+- [ ] Deploy
 
 **Acceptance:** User signs in with Google, session persists across page reloads.
 
@@ -30,8 +48,9 @@ T1 (Auth) → T2 (Models) → T3 (Scraper) → T4 (API) → T5 (Search UI)
 - [ ] GraphQL schema: queries and mutations
 - [ ] DynamoDB table design (single-table, pk/sk/gsi1)
 - [ ] Generated TypeScript types from schema
+- [ ] Deploy
 
-**Acceptance:** Schema compiles, types are importable from `@kaze-no-manga/models`.
+**Acceptance:** Schema compiles, types are importable from `@kaze-no-manga/models`. Table exists in AWS.
 
 ## T3 — Scraper (OmegaScans)
 
@@ -54,6 +73,7 @@ T1 (Auth) → T2 (Models) → T3 (Scraper) → T4 (API) → T5 (Search UI)
 - [ ] Resolver: getChapter (returns image URLs from S3 or triggers download)
 - [ ] Resolver: markChapterRead
 - [ ] Lambda: scraper worker (search + download images to S3)
+- [ ] Deploy
 
 **Acceptance:** All resolvers return expected data via AppSync console.
 
@@ -65,6 +85,7 @@ T1 (Auth) → T2 (Models) → T3 (Scraper) → T4 (API) → T5 (Search UI)
 - [ ] Results grid (cover, title, source)
 - [ ] Tap result → detail view with chapter list
 - [ ] "Add to Library" button (calls addManga + addToLibrary)
+- [ ] Deploy
 
 **Acceptance:** User searches, sees results from OmegaScans, adds manga to library.
 
@@ -76,6 +97,7 @@ T1 (Auth) → T2 (Models) → T3 (Scraper) → T4 (API) → T5 (Search UI)
 - [ ] Status filter/tabs (Reading, Completed, Plan to Read, Dropped, On Hold)
 - [ ] Change status action
 - [ ] Tap manga → chapter list
+- [ ] Deploy
 
 **Acceptance:** User sees their library, can filter by status, can navigate to chapters.
 
@@ -88,6 +110,7 @@ T1 (Auth) → T2 (Models) → T3 (Scraper) → T4 (API) → T5 (Search UI)
 - [ ] Image lazy loading (viewport-based)
 - [ ] Infinite chapter transition (scroll past last image → next chapter loads)
 - [ ] Lambda: download chapter images from source → S3
+- [ ] Deploy
 
 **Acceptance:** User opens chapter, waits for download if needed, reads with vertical scroll, next chapter loads automatically.
 
@@ -100,6 +123,7 @@ T1 (Auth) → T2 (Models) → T3 (Scraper) → T4 (API) → T5 (Search UI)
 - [ ] Show read/unread state in chapter list
 - [ ] Track "current chapter" per manga per user
 - [ ] Resume reading (open library → continue where left off)
+- [ ] Deploy
 
 **Acceptance:** Reading a chapter marks it read. Progress syncs across devices.
 
@@ -111,17 +135,17 @@ T1 (Auth) → T2 (Models) → T3 (Scraper) → T4 (API) → T5 (Search UI)
 - [ ] Lambda: query all manga in at least one library
 - [ ] Lambda: check source for new chapters
 - [ ] Lambda: add new chapters to DB (no image download)
+- [ ] Deploy
 
 **Acceptance:** New chapters appear in chapter list within 24h of source publication.
 
-## T10 — Deploy & Polish
+## T10 — Polish
 
-**Scope:** Infrastructure + final touches
+**Scope:** Final touches
 
-- [ ] CloudFront distribution for web app
-- [ ] Lambda@Edge for SSR
 - [ ] Custom domain (optional)
 - [ ] Error handling / loading states across all pages
 - [ ] Mobile responsive polish
+- [ ] Deploy
 
-**Acceptance:** App deployed, accessible via URL, works on mobile Chrome/Safari.
+**Acceptance:** App works smoothly on mobile Chrome/Safari, no unhandled errors.
