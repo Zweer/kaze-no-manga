@@ -16,12 +16,12 @@ Each task ends with a deploy to AWS. The app grows incrementally.
 
 ## T0 — Bootstrap (OIDC + CI Role)
 
-**Scope:** CDK stack, deploy locale one-time
+**Scope:** CDK stack in `aws-infra` repo, deploy locale one-time
 
-- [ ] CDK stack: OIDC Identity Provider for GitHub Actions
-- [ ] CDK stack: IAM Role with trust policy scoped to this repo/main
-- [ ] CDK stack: Role permissions (CloudFormation, S3, Lambda, DynamoDB, AppSync, Cognito, CloudFront)
-- [ ] Script: `npm run aws:bootstrap`
+- [ ] CDK stack in `aws-infra`: OIDC Identity Provider for GitHub Actions
+- [ ] CDK stack in `aws-infra`: IAM Role with trust policy scoped to this repo/main
+- [ ] CDK stack in `aws-infra`: Role permissions (CloudFormation, S3, Lambda, DynamoDB, AppSync, Cognito, CloudFront)
+- [ ] Script: `npm run aws:bootstrap` (in aws-infra)
 - [ ] GitHub secret: `AWS_ROLE_ARN`
 - [ ] Verify: CI workflow can assume role and run `cdk synth`
 

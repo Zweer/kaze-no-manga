@@ -15,7 +15,6 @@
     "aws"
   ],
   "scripts": {
-    "aws:bootstrap": "npm run bootstrap --workspace=aws",
     "aws:deploy": "npm run deploy --workspace=aws",
     "aws:synth": "npm run synth --workspace=aws",
     "build": "tsc --build",

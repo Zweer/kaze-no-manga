@@ -4,7 +4,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "bootstrap": "cdk deploy --app 'npx tsx bin/bootstrap.ts' --require-approval never",
     "deploy": "cdk deploy --all",
     "destroy": "cdk destroy --all",
     "diff": "cdk diff",
@@ -17,7 +16,6 @@
     "constructs": "10.6.0"
   },
   "devDependencies": {
-    "aws-cdk": "2.1120.0",
-    "tsx": "4.21.0"
+    "aws-cdk": "2.1120.0"
   }
 }

@@ -7,7 +7,10 @@ import { JobsStack } from '../stacks/jobs.js';
 import { StorageStack } from '../stacks/storage.js';
 
 const app = new App();
-const env = { account: process.env.CDK_DEFAULT_ACCOUNT, region: 'eu-west-1' };
+const env = {
+  account: process.env.CDK_DEFAULT_ACCOUNT,
+  region: process.env.CDK_DEFAULT_REGION ?? process.env.AWS_REGION,
+};
 
 const auth = new AuthStack(app, 'KazeAuth', { env });
 new StorageStack(app, 'KazeStorage', { env });
