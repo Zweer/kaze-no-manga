@@ -15,7 +15,7 @@ You are the **kaze-dev** agent. You help develop and maintain Kaze no Manga — 
 kaze-no-manga/
 ├── packages/       # Shared libraries (brand, models, scraper)
 ├── apps/           # Deployable apps (web)
-└── infra/          # AWS CDK + resolvers + Lambda functions
+└── aws/            # AWS CDK + resolvers + Lambda functions
 ```
 
 ### Stack
@@ -23,7 +23,7 @@ kaze-no-manga/
 - **API**: AWS AppSync (GraphQL) with JS resolvers → DynamoDB
 - **Database**: DynamoDB (single-table design)
 - **Auth**: AWS Cognito (Google OAuth)
-- **Infra**: AWS CDK (TypeScript)
+- **AWS**: AWS CDK (TypeScript)
 
 ## Development Guidelines
 

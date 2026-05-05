@@ -1,5 +1,5 @@
 {
-  "name": "@kaze-no-manga/infra",
+  "name": "@kaze-no-manga/aws",
   "version": "0.1.0",
   "private": true,
   "type": "module",

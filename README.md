@@ -12,7 +12,7 @@ Cross-device manga reading tracker — search, read, and track your progress acr
 - **Auth**: Cognito (Google OAuth)
 - **Storage**: S3 + CloudFront (manga images)
 - **Jobs**: EventBridge + SQS + Lambda (scraping, notifications)
-- **Infra**: AWS CDK (TypeScript)
+- **IaC**: AWS CDK (TypeScript)
 
 ## Monorepo Structure
 
@@ -23,7 +23,7 @@ Cross-device manga reading tracker — search, read, and track your progress acr
 │   └── scraper/      # Multi-source manga scrapers (common interface)
 ├── apps/
 │   └── web/          # React Router v7 — mobile-first PWA
-└── infra/
+└── aws/
     ├── stacks/       # CDK stacks (auth, api, storage, frontend, jobs)
     ├── resolvers/    # AppSync JS resolvers
     └── functions/    # Lambda handlers (scraper, notifications, telegram-bot)
@@ -34,8 +34,8 @@ Cross-device manga reading tracker — search, read, and track your progress acr
 ```bash
 npm install
 npm run web:dev        # Start web app dev server
-npm run infra:synth    # Synthesize CDK stacks
-npm run infra:deploy   # Deploy to AWS
+npm run aws:synth      # Synthesize CDK stacks
+npm run aws:deploy     # Deploy to AWS
 ```
 
 ## Features (MVP)

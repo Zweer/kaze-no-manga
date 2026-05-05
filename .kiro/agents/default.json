@@ -33,7 +33,7 @@
         ".github/**",
         "packages/**",
         "apps/**",
-        "infra/**",
+        "aws/**",
         "README.md",
         "CHANGELOG.md",
         "package.json",

@@ -9,7 +9,7 @@ Kaze no Manga is a monorepo with npm workspaces. All code lives in a single repo
 ```
 packages/   → Shared libraries (brand, models, scraper)
 apps/       → Deployable apps with UI (web)
-infra/      → AWS CDK infrastructure + resolvers + Lambda functions
+aws/        → AWS CDK infrastructure + resolvers + Lambda functions
 ```
 
 ## Stack
@@ -43,7 +43,7 @@ models (GraphQL schema, types)
   ↓
 scraper (manga sources)
   ↓
-infra (CDK stacks, resolvers, Lambda functions)
+aws (CDK stacks, resolvers, Lambda functions)
   ↓
 web (React Router v7 PWA)
 ```

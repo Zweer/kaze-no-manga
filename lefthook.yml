@@ -12,7 +12,7 @@ pre-commit:
       priority: 1
     package-sort:
       glob: "package.json"
-      run: npx sort-package-json "package.json" "packages/*/package.json" "apps/*/package.json" "infra/package.json"
+      run: npx sort-package-json "package.json" "packages/*/package.json" "apps/*/package.json" "aws/package.json"
       stage_fixed: true
       priority: 1
     build:

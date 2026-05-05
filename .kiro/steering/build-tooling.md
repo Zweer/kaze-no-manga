@@ -26,4 +26,4 @@ npm run format           # biome format --write .
 
 - **npm** with workspaces
 - Lock file: `package-lock.json`
-- Workspaces: `packages/*`, `apps/*`, `infra`
+- Workspaces: `packages/*`, `apps/*`, `aws`

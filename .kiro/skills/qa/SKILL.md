@@ -33,7 +33,7 @@ git diff $DEFAULT...HEAD --name-only
 Classify changed files:
 - **Source**: `packages/**/*.ts`, `apps/**/*.ts`
 - **Config**: `biome.json`, `tsconfig.json`, `vitest.config.ts`
-- **Infra**: `infra/**/*.ts`, `infra/resolvers/**/*.js`
+- **AWS**: `aws/**/*.ts`, `aws/resolvers/**/*.js`
 - **Tests**: `**/*.test.ts`
 
 ### 2. Verify Test Coverage

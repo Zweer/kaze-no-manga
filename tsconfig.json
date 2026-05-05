@@ -4,6 +4,6 @@
     { "path": "packages/brand" },
     { "path": "packages/models" },
     { "path": "packages/scraper" },
-    { "path": "infra" }
+    { "path": "aws" }
   ]
 }

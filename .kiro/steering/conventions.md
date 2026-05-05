@@ -8,13 +8,13 @@
 
 ## AppSync Resolvers
 
-- JS resolvers in `infra/resolvers/<domain>/<operation>.js`
+- JS resolvers in `aws/resolvers/<domain>/<operation>.js`
 - Use `@aws-appsync/utils` for DynamoDB operations
 - One file per resolver (request + response handlers)
 
 ## Lambda Functions
 
-- Handlers in `infra/functions/<name>/index.js`
+- Handlers in `aws/functions/<name>/index.js`
 - Minimal dependencies (bundle with esbuild via CDK NodejsFunction)
 - Structured JSON logging
 
