@@ -1,27 +1,27 @@
-import * as cdk from 'aws-cdk-lib';
-import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
-import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
-import * as s3 from 'aws-cdk-lib/aws-s3';
+import { RemovalPolicy, Stack, type StackProps } from 'aws-cdk-lib';
+import { CachePolicy, Distribution, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import { S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import type { Construct } from 'constructs';
 
-export class StorageStack extends cdk.Stack {
-  public readonly imagesBucket: s3.Bucket;
-  public readonly cdn: cloudfront.Distribution;
+export class StorageStack extends Stack {
+  public readonly imagesBucket: Bucket;
+  public readonly cdn: Distribution;
 
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    this.imagesBucket = new s3.Bucket(this, 'ImagesBucket', {
-      removalPolicy: cdk.RemovalPolicy.RETAIN,
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      encryption: s3.BucketEncryption.S3_MANAGED,
+    this.imagesBucket = new Bucket(this, 'ImagesBucket', {
+      removalPolicy: RemovalPolicy.RETAIN,
+      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+      encryption: BucketEncryption.S3_MANAGED,
     });
 
-    this.cdn = new cloudfront.Distribution(this, 'CDN', {
+    this.cdn = new Distribution(this, 'CDN', {
       defaultBehavior: {
-        origin: origins.S3BucketOrigin.withOriginAccessControl(this.imagesBucket),
-        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+        origin: S3BucketOrigin.withOriginAccessControl(this.imagesBucket),
+        viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        cachePolicy: CachePolicy.CACHING_OPTIMIZED,
       },
     });
   }

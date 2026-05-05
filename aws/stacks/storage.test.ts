@@ -1,4 +1,4 @@
-import * as cdk from 'aws-cdk-lib';
+import { App } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { describe, it } from 'vitest';
 
@@ -6,7 +6,7 @@ import { StorageStack } from './storage.js';
 
 describe('StorageStack', () => {
   it('should create an S3 bucket and CloudFront distribution', () => {
-    const app = new cdk.App();
+    const app = new App();
     const stack = new StorageStack(app, 'TestStorage');
     const template = Template.fromStack(stack);
 

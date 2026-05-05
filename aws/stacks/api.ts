@@ -1,42 +1,42 @@
-import * as cdk from 'aws-cdk-lib';
-import * as appsync from 'aws-cdk-lib/aws-appsync';
-import type * as cognito from 'aws-cdk-lib/aws-cognito';
-import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import { RemovalPolicy, Stack, type StackProps } from 'aws-cdk-lib';
+import { AuthorizationType, Definition, GraphqlApi } from 'aws-cdk-lib/aws-appsync';
+import type { UserPool } from 'aws-cdk-lib/aws-cognito';
+import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
 import type { Construct } from 'constructs';
 
-interface ApiStackProps extends cdk.StackProps {
-  userPool: cognito.UserPool;
+interface ApiStackProps extends StackProps {
+  userPool: UserPool;
 }
 
-export class ApiStack extends cdk.Stack {
+export class ApiStack extends Stack {
   constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
 
     // DynamoDB table (single-table design)
-    const table = new dynamodb.Table(this, 'MainTable', {
-      partitionKey: { name: 'pk', type: dynamodb.AttributeType.STRING },
-      sortKey: { name: 'sk', type: dynamodb.AttributeType.STRING },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    const table = new Table(this, 'MainTable', {
+      partitionKey: { name: 'pk', type: AttributeType.STRING },
+      sortKey: { name: 'sk', type: AttributeType.STRING },
+      billingMode: BillingMode.PAY_PER_REQUEST,
+      removalPolicy: RemovalPolicy.RETAIN,
     });
 
     table.addGlobalSecondaryIndex({
       indexName: 'gsi1',
-      partitionKey: { name: 'gsi1pk', type: dynamodb.AttributeType.STRING },
-      sortKey: { name: 'gsi1sk', type: dynamodb.AttributeType.STRING },
+      partitionKey: { name: 'gsi1pk', type: AttributeType.STRING },
+      sortKey: { name: 'gsi1sk', type: AttributeType.STRING },
     });
 
     // AppSync API
-    const api = new appsync.GraphqlApi(this, 'Api', {
+    const api = new GraphqlApi(this, 'Api', {
       name: 'kaze-api',
-      definition: appsync.Definition.fromFile('../packages/models/graphql/schema.graphql'),
+      definition: Definition.fromFile('../packages/models/graphql/schema.graphql'),
       authorizationConfig: {
         defaultAuthorization: {
-          authorizationType: appsync.AuthorizationType.API_KEY,
+          authorizationType: AuthorizationType.API_KEY,
         },
         additionalAuthorizationModes: [
           {
-            authorizationType: appsync.AuthorizationType.USER_POOL,
+            authorizationType: AuthorizationType.USER_POOL,
             userPoolConfig: { userPool: props.userPool },
           },
         ],
@@ -44,7 +44,7 @@ export class ApiStack extends cdk.Stack {
     });
 
     // DynamoDB data source
-    const dataSource = api.addDynamoDbDataSource('MainTableDS', table);
+    api.addDynamoDbDataSource('MainTableDS', table);
 
     // TODO: Add JS resolvers
   }
