@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "outDir": "./dist",
+    "rootDir": ".",
+    "paths": {
+      "~/*": ["./app/*"]
+    }
+  },
+  "include": ["app/**/*.ts", "app/**/*.tsx", "vite.config.ts"],
+  "exclude": ["node_modules", "dist", "build"]
+}

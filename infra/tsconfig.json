@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "."
+  },
+  "include": ["bin/**/*.ts", "stacks/**/*.ts", "resolvers/**/*.ts", "functions/**/*.ts"],
+  "exclude": ["node_modules", "dist", "cdk.out"]
+}

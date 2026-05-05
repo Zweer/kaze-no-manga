@@ -1,0 +1,47 @@
+type LibraryEntry @aws_cognito_user_pools {
+  userId: ID!
+  mangaId: ID!
+  manga: Manga
+  status: ReadingStatus!
+  rating: Int
+  notes: String
+  currentChapterNumber: Float
+  lastReadAt: AWSDateTime
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type ReadingHistory @aws_cognito_user_pools {
+  id: ID!
+  mangaId: ID!
+  chapterId: ID!
+  chapterNumber: Float!
+  completed: Boolean!
+  readAt: AWSDateTime!
+}
+
+enum ReadingStatus {
+  READING
+  COMPLETED
+  PLAN_TO_READ
+  DROPPED
+  ON_HOLD
+}
+
+input UpdateLibraryEntryInput {
+  status: ReadingStatus
+  rating: Int
+  notes: String
+}
+
+extend type Query {
+  getLibrary(status: ReadingStatus): [LibraryEntry!]! @aws_cognito_user_pools
+  getReadingHistory(mangaId: ID!, limit: Int): [ReadingHistory!]! @aws_cognito_user_pools
+}
+
+extend type Mutation {
+  addToLibrary(mangaId: ID!): LibraryEntry! @aws_cognito_user_pools
+  updateLibraryEntry(mangaId: ID!, input: UpdateLibraryEntryInput!): LibraryEntry! @aws_cognito_user_pools
+  removeFromLibrary(mangaId: ID!): Boolean! @aws_cognito_user_pools
+  markChapterAsRead(mangaId: ID!, chapterId: ID!, chapterNumber: Float!): ReadingHistory! @aws_cognito_user_pools
+}
