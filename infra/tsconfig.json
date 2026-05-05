@@ -2,8 +2,11 @@
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "."
+    "rootDir": ".",
+    "types": ["node"],
+    "noUnusedLocals": false
   },
-  "include": ["bin/**/*.ts", "stacks/**/*.ts", "resolvers/**/*.ts", "functions/**/*.ts"],
-  "exclude": ["node_modules", "dist", "cdk.out"]
+  "include": ["bin/**/*.ts", "stacks/**/*.ts"],
+  "exclude": ["node_modules", "dist", "cdk.out"],
+  "references": [{ "path": "../packages/models" }, { "path": "../packages/scraper" }]
 }

@@ -16,18 +16,18 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Cache-first for static assets and manga images
-  if (
-    event.request.destination === 'image' ||
-    event.request.url.includes('/assets/')
-  ) {
+  if (event.request.destination === 'image' || event.request.url.includes('/assets/')) {
     event.respondWith(
       caches.match(event.request).then((cached) => {
-        return cached || fetch(event.request).then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          return response;
-        });
-      })
+        return (
+          cached ||
+          fetch(event.request).then((response) => {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+            return response;
+          })
+        );
+      }),
     );
   }
 });

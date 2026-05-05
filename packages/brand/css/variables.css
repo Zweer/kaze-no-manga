@@ -29,9 +29,9 @@
   --color-text-muted: #737373;
   --color-border: #e5e5e5;
 
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-heading: 'Poppins', 'Inter', sans-serif;
-  --font-mono: 'Fira Code', monospace;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-heading: "Poppins", "Inter", sans-serif;
+  --font-mono: "Fira Code", monospace;
 }
 
 @media (prefers-color-scheme: dark) {

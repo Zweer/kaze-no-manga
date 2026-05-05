@@ -2,11 +2,7 @@
   "name": "kaze-dev",
   "description": "Development agent for Kaze no Manga monorepo",
   "prompt": "file://../prompts/kaze-dev.md",
-  "resources": [
-    "file://README.md",
-    "file://.kiro/specs/**/*.md",
-    "file://.kiro/steering/**/*.md"
-  ],
+  "resources": ["file://README.md", "file://.kiro/specs/**/*.md", "file://.kiro/steering/**/*.md"],
   "tools": [
     "read",
     "write",
@@ -51,12 +47,7 @@
     },
     "shell": {
       "autoAllowReadonly": true,
-      "deniedCommands": [
-        ".*git commit.*",
-        ".*git push.*",
-        ".*git tag .*",
-        ".*npm publish.*"
-      ]
+      "deniedCommands": [".*git commit.*", ".*git push.*", ".*git tag .*", ".*npm publish.*"]
     }
   }
 }

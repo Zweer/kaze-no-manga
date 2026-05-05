@@ -1,7 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import * as appsync from 'aws-cdk-lib/aws-appsync';
+import type * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
-import * as cognito from 'aws-cdk-lib/aws-cognito';
 import type { Construct } from 'constructs';
 
 interface ApiStackProps extends cdk.StackProps {
@@ -29,9 +29,7 @@ export class ApiStack extends cdk.Stack {
     // AppSync API
     const api = new appsync.GraphqlApi(this, 'Api', {
       name: 'kaze-api',
-      definition: appsync.Definition.fromFile(
-        '../packages/models/graphql/schema.graphql',
-      ),
+      definition: appsync.Definition.fromFile('../packages/models/graphql/schema.graphql'),
       authorizationConfig: {
         defaultAuthorization: {
           authorizationType: appsync.AuthorizationType.API_KEY,

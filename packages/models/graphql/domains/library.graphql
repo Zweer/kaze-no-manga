@@ -41,7 +41,9 @@ extend type Query {
 
 extend type Mutation {
   addToLibrary(mangaId: ID!): LibraryEntry! @aws_cognito_user_pools
-  updateLibraryEntry(mangaId: ID!, input: UpdateLibraryEntryInput!): LibraryEntry! @aws_cognito_user_pools
+  updateLibraryEntry(mangaId: ID!, input: UpdateLibraryEntryInput!): LibraryEntry!
+    @aws_cognito_user_pools
   removeFromLibrary(mangaId: ID!): Boolean! @aws_cognito_user_pools
-  markChapterAsRead(mangaId: ID!, chapterId: ID!, chapterNumber: Float!): ReadingHistory! @aws_cognito_user_pools
+  markChapterAsRead(mangaId: ID!, chapterId: ID!, chapterNumber: Float!): ReadingHistory!
+    @aws_cognito_user_pools
 }

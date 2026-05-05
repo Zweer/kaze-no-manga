@@ -7,12 +7,5 @@
     ".": "./index.ts",
     "./graphql": "./graphql/index.ts",
     "./graphql/*.graphql": "./graphql/*.graphql"
-  },
-  "scripts": {
-    "codegen": "graphql-codegen",
-    "test": "vitest run"
-  },
-  "devDependencies": {
-    "vitest": "^3.0.0"
   }
 }

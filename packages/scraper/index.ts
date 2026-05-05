@@ -1,7 +1,7 @@
 export type {
-  MangaSource,
-  MangaSearchResult,
-  MangaDetail,
   ChapterInfo,
   ChapterPage,
+  MangaDetail,
+  MangaSearchResult,
+  MangaSource,
 } from './types.js';

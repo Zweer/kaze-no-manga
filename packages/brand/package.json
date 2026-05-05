@@ -8,11 +8,5 @@
     "./tokens": "./tokens/index.ts",
     "./tailwind": "./tailwind/index.ts",
     "./css": "./css/variables.css"
-  },
-  "scripts": {
-    "test": "vitest run"
-  },
-  "devDependencies": {
-    "vitest": "^3.0.0"
   }
 }

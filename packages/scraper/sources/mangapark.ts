@@ -1,4 +1,10 @@
-import type { ChapterInfo, ChapterPage, MangaDetail, MangaSearchResult, MangaSource } from '../types.js';
+import type {
+  ChapterInfo,
+  ChapterPage,
+  MangaDetail,
+  MangaSearchResult,
+  MangaSource,
+} from '../types.js';
 
 export class MangaParkSource implements MangaSource {
   readonly name = 'MangaPark';

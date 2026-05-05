@@ -1,4 +1,10 @@
-import type { ChapterInfo, ChapterPage, MangaDetail, MangaSearchResult, MangaSource } from '../types.js';
+import type {
+  ChapterInfo,
+  ChapterPage,
+  MangaDetail,
+  MangaSearchResult,
+  MangaSource,
+} from '../types.js';
 
 export class OmegaScansSource implements MangaSource {
   readonly name = 'OmegaScans';
