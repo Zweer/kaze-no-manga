@@ -1,8 +1,9 @@
 {
   "name": "kaze-no-manga",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
   "description": "Cross-device manga reading tracker — monorepo",
+  "license": "MIT",
   "type": "module",
   "workspaces": [
     "packages/*",
@@ -12,27 +13,37 @@
   "scripts": {
     "build": "tsc --build",
     "clean": "tsc --build --clean",
+    "fix": "biome check --write .",
+    "format": "biome format --write .",
+    "infra:deploy": "npm run deploy --workspace=infra",
+    "infra:synth": "npm run synth --workspace=infra",
+    "lint": "concurrently npm:lint:* --prefixColors auto",
+    "lint:format": "biome check .",
+    "lint:lockfile": "lockfile-lint",
+    "lint:sort_package": "sort-package-json --check \"package.json\" \"packages/*/package.json\" \"apps/*/package.json\" \"infra/package.json\"",
+    "lint:typecheck": "tsc --noEmit",
+    "prepare": "lefthook install",
     "pretest": "npm run build",
     "test": "vitest run",
     "posttest": "npm run clean",
     "pretest:coverage": "npm run build",
     "test:coverage": "vitest run --coverage",
     "posttest:coverage": "npm run clean",
-    "lint": "biome check .",
-    "lint:fix": "biome check --write .",
-    "format": "biome format --write .",
-    "infra:deploy": "npm run deploy --workspace=infra",
-    "infra:synth": "npm run synth --workspace=infra",
     "web:dev": "npm run dev --workspace=apps/web"
-  },
-  "engines": {
-    "node": ">=20.0.0"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.14",
+    "@commitlint/cli": "20.5.3",
+    "@commitlint/config-conventional": "20.5.3",
     "@types/node": "25.6.0",
+    "concurrently": "9.2.1",
+    "lefthook": "2.1.6",
+    "lockfile-lint": "5.0.0",
+    "sort-package-json": "3.6.1",
     "typescript": "6.0.3",
     "vitest": "4.1.5"
   },
-  "license": "MIT"
+  "engines": {
+    "node": ">=20.0.0"
+  }
 }

@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "synth": "cdk synth",
     "deploy": "cdk deploy --all",
+    "destroy": "cdk destroy --all",
     "diff": "cdk diff",
-    "destroy": "cdk destroy --all"
+    "synth": "cdk synth"
   },
   "dependencies": {
     "@kaze-no-manga/models": "*",
