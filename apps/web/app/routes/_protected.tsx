@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router';
 
+import '../lib/amplify';
 import { getUser, login, logout } from '../lib/auth';
 
 export default function ProtectedLayout() {

@@ -62,11 +62,8 @@ export class AuthStack extends Stack {
       oAuth: {
         flows: { authorizationCodeGrant: true },
         scopes: [OAuthScope.OPENID, OAuthScope.EMAIL, OAuthScope.PROFILE],
-        callbackUrls: [
-          'http://localhost:3000/auth/callback',
-          'https://placeholder.cloudfront.net/auth/callback',
-        ],
-        logoutUrls: ['http://localhost:3000/', 'https://placeholder.cloudfront.net/'],
+        callbackUrls: ['http://localhost:5173/auth/callback'],
+        logoutUrls: ['http://localhost:5173/'],
       },
       generateSecret: false,
     });

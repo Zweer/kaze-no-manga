@@ -5,6 +5,7 @@ node_modules/
 dist/
 cdk.out/
 .build/
+.react-router/
 
 # Environment
 .env

@@ -12,10 +12,12 @@
     "@aws-amplify/auth": "6.20.0",
     "@kaze-no-manga/brand": "*",
     "@kaze-no-manga/models": "*",
+    "@react-router/node": "7.15.0",
     "aws-amplify": "6.17.0",
     "react": "19.2.5",
     "react-dom": "19.2.5",
-    "react-router": "7.15.0"
+    "react-router": "7.15.0",
+    "isbot": "^5"
   },
   "devDependencies": {
     "@react-router/dev": "7.15.0",
