@@ -1,7 +1,7 @@
 import { RemovalPolicy, Stack, type StackProps } from 'aws-cdk-lib';
 import { AuthorizationType, Definition, GraphqlApi } from 'aws-cdk-lib/aws-appsync';
 import type { UserPool } from 'aws-cdk-lib/aws-cognito';
-import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
+import { AttributeType, Billing, TableV2 } from 'aws-cdk-lib/aws-dynamodb';
 import type { Construct } from 'constructs';
 
 interface ApiStackProps extends StackProps {
@@ -13,17 +13,18 @@ export class ApiStack extends Stack {
     super(scope, id, props);
 
     // DynamoDB table (single-table design)
-    const table = new Table(this, 'MainTable', {
+    const table = new TableV2(this, 'MainTable', {
       partitionKey: { name: 'pk', type: AttributeType.STRING },
       sortKey: { name: 'sk', type: AttributeType.STRING },
-      billingMode: BillingMode.PAY_PER_REQUEST,
+      billing: Billing.onDemand(),
       removalPolicy: RemovalPolicy.RETAIN,
-    });
-
-    table.addGlobalSecondaryIndex({
-      indexName: 'gsi1',
-      partitionKey: { name: 'gsi1pk', type: AttributeType.STRING },
-      sortKey: { name: 'gsi1sk', type: AttributeType.STRING },
+      globalSecondaryIndexes: [
+        {
+          indexName: 'gsi1',
+          partitionKey: { name: 'gsi1pk', type: AttributeType.STRING },
+          sortKey: { name: 'gsi1sk', type: AttributeType.STRING },
+        },
+      ],
     });
 
     // AppSync API

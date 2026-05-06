@@ -23,7 +23,7 @@ Each task ends with a deploy to AWS. The app grows incrementally.
 - [x] CDK stack in `aws-infra`: Role permissions (CloudFormation, S3, Lambda, DynamoDB, AppSync, Cognito, CloudFront)
 - [x] Script: `npm run aws:bootstrap` (in aws-infra)
 - [x] GitHub secret: `AWS_ROLE_ARN`
-- [ ] Verify: CI workflow can assume role and run `cdk synth`
+- [x] Verify: CI workflow can assume role and run `cdk synth`
 
 **Acceptance:** `git push` to main triggers CI, which successfully assumes the role.
 
