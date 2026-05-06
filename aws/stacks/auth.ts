@@ -1,4 +1,4 @@
-import { CfnOutput, Stack, type StackProps } from 'aws-cdk-lib';
+import { CfnOutput, SecretValue, Stack, type StackProps } from 'aws-cdk-lib';
 import {
   OAuthScope,
   ProviderAttribute,
@@ -8,7 +8,6 @@ import {
   UserPoolDomain,
   UserPoolIdentityProviderGoogle,
 } from 'aws-cdk-lib/aws-cognito';
-import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import type { Construct } from 'constructs';
 
@@ -26,11 +25,7 @@ export class AuthStack extends Stack {
       `${SSM_PREFIX}/google-client-id`,
     );
 
-    const googleClientSecret = Secret.fromSecretNameV2(
-      this,
-      'GoogleClientSecret',
-      `${SSM_PREFIX}/google-client-secret`,
-    );
+    const googleClientSecret = SecretValue.secretsManager(`${SSM_PREFIX}/google-client-secret`);
 
     this.userPool = new UserPool(this, 'UserPool', {
       selfSignUpEnabled: false,
@@ -44,7 +39,7 @@ export class AuthStack extends Stack {
     const googleProvider = new UserPoolIdentityProviderGoogle(this, 'Google', {
       userPool: this.userPool,
       clientId: googleClientId,
-      clientSecretValue: googleClientSecret.secretValue,
+      clientSecretValue: googleClientSecret,
       scopes: ['openid', 'email', 'profile'],
       attributeMapping: {
         email: ProviderAttribute.GOOGLE_EMAIL,
