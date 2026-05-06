@@ -1,13 +1,14 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
+import '../lib/amplify';
+
 export default function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
     // Amplify handles the OAuth callback automatically
-    // Just redirect to home after processing
-    navigate('/', { replace: true });
+    navigate('/app', { replace: true });
   }, [navigate]);
 
   return (

@@ -34,7 +34,7 @@ export class AuthStack extends Stack {
       signInAliases: { email: true },
       autoVerify: { email: true },
       standardAttributes: {
-        email: { required: true, mutable: false },
+        email: { required: true, mutable: true },
       },
     });
 
