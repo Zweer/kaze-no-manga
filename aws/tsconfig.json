@@ -6,7 +6,7 @@
     "types": ["node"],
     "noUnusedLocals": false
   },
-  "include": ["bin/**/*.ts", "stacks/**/*.ts"],
+  "include": ["bin/**/*.ts", "stacks/**/*.ts", "constants.ts"],
   "exclude": ["node_modules", "dist", "cdk.out"],
   "references": [{ "path": "../packages/models" }, { "path": "../packages/scraper" }]
 }

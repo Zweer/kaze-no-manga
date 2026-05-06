@@ -11,7 +11,9 @@ import {
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import type { Construct } from 'constructs';
 
-const SSM_PREFIX = '/kaze-no-manga/auth';
+import { PROJECT_NAME } from '../constants.js';
+
+const SSM_PREFIX = `/${PROJECT_NAME}/auth`;
 
 export class AuthStack extends Stack {
   public readonly userPool: UserPool;
@@ -51,7 +53,7 @@ export class AuthStack extends Stack {
 
     const domain = new UserPoolDomain(this, 'Domain', {
       userPool: this.userPool,
-      cognitoDomain: { domainPrefix: 'kaze-no-manga' },
+      cognitoDomain: { domainPrefix: PROJECT_NAME },
     });
 
     this.userPoolClient = new UserPoolClient(this, 'WebClient', {

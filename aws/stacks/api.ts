@@ -4,6 +4,8 @@ import type { UserPool } from 'aws-cdk-lib/aws-cognito';
 import { AttributeType, Billing, TableV2 } from 'aws-cdk-lib/aws-dynamodb';
 import type { Construct } from 'constructs';
 
+import { PROJECT_NAME } from '../constants.js';
+
 interface ApiStackProps extends StackProps {
   userPool: UserPool;
 }
@@ -14,10 +16,11 @@ export class ApiStack extends Stack {
 
     // DynamoDB table (single-table design)
     const table = new TableV2(this, 'MainTable', {
+      tableName: `${PROJECT_NAME}-main`,
       partitionKey: { name: 'pk', type: AttributeType.STRING },
       sortKey: { name: 'sk', type: AttributeType.STRING },
       billing: Billing.onDemand(),
-      removalPolicy: RemovalPolicy.RETAIN,
+      removalPolicy: RemovalPolicy.DESTROY,
       globalSecondaryIndexes: [
         {
           indexName: 'gsi1',

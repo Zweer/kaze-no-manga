@@ -4,6 +4,8 @@ import { S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import type { Construct } from 'constructs';
 
+import { PROJECT_NAME } from '../constants.js';
+
 export class StorageStack extends Stack {
   public readonly imagesBucket: Bucket;
   public readonly cdn: Distribution;
@@ -12,7 +14,9 @@ export class StorageStack extends Stack {
     super(scope, id, props);
 
     this.imagesBucket = new Bucket(this, 'ImagesBucket', {
-      removalPolicy: RemovalPolicy.RETAIN,
+      bucketName: `${this.account}-${PROJECT_NAME}-images`,
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       encryption: BucketEncryption.S3_MANAGED,
     });
