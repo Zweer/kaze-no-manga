@@ -9,8 +9,10 @@
     "start": "react-router-serve ./build/server/index.js"
   },
   "dependencies": {
+    "@aws-amplify/auth": "6.20.0",
     "@kaze-no-manga/brand": "*",
     "@kaze-no-manga/models": "*",
+    "aws-amplify": "6.17.0",
     "react": "19.2.5",
     "react-dom": "19.2.5",
     "react-router": "7.15.0"

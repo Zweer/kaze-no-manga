@@ -1,6 +1,8 @@
 import type { LinksFunction } from 'react-router';
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router';
 
+import './lib/amplify';
+
 export const links: LinksFunction = () => [
   { rel: 'manifest', href: '/manifest.json' },
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
