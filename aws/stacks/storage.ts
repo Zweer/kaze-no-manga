@@ -22,6 +22,7 @@ export class StorageStack extends Stack {
     });
 
     this.cdn = new Distribution(this, 'CDN', {
+      comment: `${PROJECT_NAME}-images-cdn`,
       defaultBehavior: {
         origin: S3BucketOrigin.withOriginAccessControl(this.imagesBucket),
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,

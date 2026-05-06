@@ -32,7 +32,7 @@ export class ApiStack extends Stack {
 
     // AppSync API
     const api = new GraphqlApi(this, 'Api', {
-      name: 'kaze-api',
+      name: `${PROJECT_NAME}-api`,
       definition: Definition.fromFile('../packages/models/graphql/schema.graphql'),
       authorizationConfig: {
         defaultAuthorization: {

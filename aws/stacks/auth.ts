@@ -1,4 +1,4 @@
-import { CfnOutput, SecretValue, Stack, type StackProps } from 'aws-cdk-lib';
+import { CfnOutput, RemovalPolicy, SecretValue, Stack, type StackProps } from 'aws-cdk-lib';
 import {
   OAuthScope,
   ProviderAttribute,
@@ -30,12 +30,14 @@ export class AuthStack extends Stack {
     const googleClientSecret = SecretValue.secretsManager(`${SSM_PREFIX}/google-client-secret`);
 
     this.userPool = new UserPool(this, 'UserPool', {
+      userPoolName: PROJECT_NAME,
       selfSignUpEnabled: false,
       signInAliases: { email: true },
       autoVerify: { email: true },
       standardAttributes: {
         email: { required: true, mutable: true },
       },
+      removalPolicy: RemovalPolicy.DESTROY,
     });
 
     const googleProvider = new UserPoolIdentityProviderGoogle(this, 'Google', {
@@ -57,6 +59,7 @@ export class AuthStack extends Stack {
     });
 
     this.userPoolClient = new UserPoolClient(this, 'WebClient', {
+      userPoolClientName: `${PROJECT_NAME}-web`,
       userPool: this.userPool,
       supportedIdentityProviders: [UserPoolClientIdentityProvider.GOOGLE],
       oAuth: {
