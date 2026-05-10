@@ -12,7 +12,7 @@ function Library() {
     <AppShell>
       <div className="watermark">まだ何もない</div>
 
-      <header className="mb-8 relative inline-block pt-12 md:pt-0">
+      <header className="mb-8 relative inline-block pt-8 md:pt-0">
         <h1 className="font-heading text-5xl md:text-6xl font-black text-on-surface">Library</h1>
         <div className="h-1 w-12 bg-primary mt-2 rounded-full" />
       </header>
