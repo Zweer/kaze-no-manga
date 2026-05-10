@@ -3,7 +3,7 @@ import { LogOut, Moon, User } from 'lucide-react';
 
 import { AppShell } from '~/components/app-shell';
 
-export const Route = createFileRoute('/settings')({
+export const Route = createFileRoute('/_authed/settings')({
   component: Settings,
 });
 

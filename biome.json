@@ -19,7 +19,8 @@
     "enabled": true,
     "rules": {
       "recommended": true,
-      "suspicious": { "noUnknownAtRules": "off" }
+      "suspicious": { "noUnknownAtRules": "off" },
+      "style": { "noNonNullAssertion": "off" }
     },
     "domains": { "test": "recommended" }
   },

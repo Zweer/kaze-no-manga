@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { AppShell } from '~/components/app-shell';
 
-export const Route = createFileRoute('/library')({
+export const Route = createFileRoute('/_authed/library')({
   component: Library,
 });
 
