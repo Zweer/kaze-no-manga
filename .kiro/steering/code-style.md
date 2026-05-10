@@ -13,7 +13,7 @@ TypeScript is the only language. Never introduce other languages unless explicit
 
 ### Naming
 - **camelCase** for variables, functions, methods
-- **PascalCase** for classes, interfaces, types, CDK construct IDs
+- **PascalCase** for classes, interfaces, types
 - **UPPER_SNAKE_CASE** only for env vars
 - **kebab-case** for file names
 

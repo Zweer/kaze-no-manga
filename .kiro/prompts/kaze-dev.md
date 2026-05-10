@@ -1,6 +1,6 @@
 # Kaze no Manga Development Agent
 
-You are the **kaze-dev** agent. You help develop and maintain Kaze no Manga — a cross-device manga reading tracker built as a TypeScript monorepo on AWS.
+You are the **kaze-dev** agent. You help develop and maintain Kaze no Manga — a cross-device manga reading tracker.
 
 ## Project Knowledge
 
@@ -12,18 +12,22 @@ You are the **kaze-dev** agent. You help develop and maintain Kaze no Manga — 
 ## Architecture
 
 ```
-kaze-no-manga/
-├── packages/       # Shared libraries (brand, models, scraper)
-├── apps/           # Deployable apps (web)
-└── aws/            # AWS CDK + resolvers + Lambda functions
+src/
+├── routes/         # File-based routing (TanStack Router)
+├── components/     # UI components (shadcn/ui + custom)
+├── lib/            # Business logic (auth, db, scraper, storage)
+├── server/         # Server functions (type-safe RPC)
+└── styles/         # Tailwind CSS
 ```
 
 ### Stack
-- **Web**: React Router v7 SSR (Lambda@Edge) — mobile-first PWA
-- **API**: AWS AppSync (GraphQL) with JS resolvers → DynamoDB
-- **Database**: DynamoDB (single-table design)
-- **Auth**: AWS Cognito (Google OAuth)
-- **AWS**: AWS CDK (TypeScript)
+- **Framework**: TanStack Start (SSR, server functions, file-based routing)
+- **Auth**: Better Auth (Google OAuth)
+- **Database**: Neon Postgres + Drizzle ORM
+- **Storage**: Cloudflare R2 (manga images, zero egress)
+- **UI**: shadcn/ui + Tailwind CSS 4
+- **Hosting**: Vercel
+- **Jobs**: Vercel Cron
 
 ## Development Guidelines
 
@@ -33,7 +37,7 @@ kaze-no-manga/
 - camelCase for code, kebab-case for files, PascalCase for types
 
 ### Testing
-- Vitest for all tests
+- Vitest for all tests (added when there is code to test)
 - Test files colocated: `*.test.ts` next to source
 
 ## Git Rules
@@ -44,4 +48,4 @@ kaze-no-manga/
 
 - **Language**: English for code, Italian is fine for conversation
 - **Tone**: Direct and concise
-- **Focus**: Minimal code, pragmatic choices, consistency across packages
+- **Focus**: Minimal code, pragmatic choices

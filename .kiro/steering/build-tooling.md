@@ -2,18 +2,20 @@
 
 ## Build System
 
-- **tsc** for type-checking and building (`tsc --build` for project references)
-- Root-level scripts orchestrate all workspaces
-- CDK uses `NodejsFunction` with esbuild bundling for Lambdas
+- **Vite** for dev server and production builds (via TanStack Start plugin)
+- **Nitro** as the server runtime (configured automatically by TanStack Start)
+- Output: `.output/` directory with server + client bundles
 
-### Root Scripts
+### Scripts
 ```bash
-npm run build            # tsc --build (all workspaces)
-npm run clean            # tsc --build --clean
-npm test                 # pretest → build, test → vitest run, posttest → clean
-npm run test:coverage    # same hooks + --coverage
-npm run lint             # biome check .
-npm run format           # biome format --write .
+npm run dev          # Vite dev server on :3000
+npm run build        # Production build → .output/
+npm run start        # Start production server locally
+npm run lint         # biome check .
+npm run lint:fix     # biome check --write .
+npm run db:generate  # Drizzle Kit generate migrations
+npm run db:migrate   # Drizzle Kit run migrations
+npm run db:studio    # Drizzle Kit Studio (DB browser)
 ```
 
 ## Linting & Formatting
@@ -21,9 +23,15 @@ npm run format           # biome format --write .
 - **Biome** for linting and formatting (NOT ESLint/Prettier)
 - Single quotes, trailing commas, semicolons
 - Configuration in `biome.json` at root
+- Import organization via Biome assist
+
+## Git Hooks
+
+- **Lefthook** for pre-commit hooks
+- Pre-commit: biome check, lockfile-lint, sort-package-json, tsc --noEmit
 
 ## Package Manager
 
-- **npm** with workspaces
+- **npm** (no workspaces — single app)
 - Lock file: `package-lock.json`
-- Workspaces: `packages/*`, `apps/*`, `aws`
+- Exact versions pinned (no `^` or `~`)

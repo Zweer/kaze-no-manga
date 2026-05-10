@@ -1,27 +1,39 @@
 # Project Conventions
 
-## Packages
+## Routes
 
-- Workspace packages use `@kaze-no-manga/` scope
-- All packages are `private: true` (no NPM publishing)
-- Exports via `exports` field in package.json (no build step for internal packages)
+- TanStack Router file-based routing in `src/routes/`
+- Layout routes use underscore prefix: `_authed.tsx`
+- Dynamic params use dollar sign: `manga.$id.tsx`
+- API/server routes in `src/routes/api/`
 
-## AppSync Resolvers
+## Server Functions
 
-- JS resolvers in `aws/resolvers/<domain>/<operation>.js`
-- Use `@aws-appsync/utils` for DynamoDB operations
-- One file per resolver (request + response handlers)
+- Defined in `src/server/functions/` grouped by domain
+- Use `createServerFn` from `@tanstack/react-start`
+- Always validate input with `.inputValidator()`
+- Auth middleware applied via `.middleware()`
 
-## Lambda Functions
+## Components
 
-- Handlers in `aws/functions/<name>/index.js`
-- Minimal dependencies (bundle with esbuild via CDK NodejsFunction)
-- Structured JSON logging
+- shadcn/ui components in `src/components/ui/`
+- Custom components in `src/components/`
+- One component per file, named export
 
-## React (Web)
+## Database
 
-- React Router v7 file-based routing
-- Tailwind CSS v4 with brand preset
-- Mobile-first responsive design
-- Components in `app/components/`
-- Routes in `app/routes/`
+- Drizzle ORM schema in `src/lib/db/schema.ts`
+- Migrations in `drizzle/migrations/`
+- Use Neon serverless driver for edge compatibility
+
+## Storage
+
+- Cloudflare R2 via `@aws-sdk/client-s3` (S3-compatible API)
+- Helpers in `src/lib/storage.ts`
+- Public bucket for serving manga images directly
+
+## Auth
+
+- Better Auth config in `src/lib/auth.ts`
+- Client-side auth in `src/lib/auth-client.ts`
+- API route handler in `src/routes/api/auth.$.ts`

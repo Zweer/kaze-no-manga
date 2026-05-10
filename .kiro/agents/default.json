@@ -1,6 +1,6 @@
 {
   "name": "kaze-dev",
-  "description": "Development agent for Kaze no Manga monorepo",
+  "description": "Development agent for Kaze no Manga",
   "prompt": "file://../prompts/kaze-dev.md",
   "resources": ["file://README.md", "file://.kiro/specs/**/*.md", "file://.kiro/steering/**/*.md"],
   "tools": [
@@ -31,18 +31,22 @@
       "allowedPaths": [
         ".kiro/**",
         ".github/**",
-        "packages/**",
-        "apps/**",
-        "aws/**",
+        "src/**",
+        "drizzle/**",
+        "public/**",
         "README.md",
         "CHANGELOG.md",
         "package.json",
         "package-lock.json",
         "tsconfig.json",
-        "vitest.config.ts",
+        "vite.config.ts",
+        "drizzle.config.ts",
         "biome.json",
+        "vercel.json",
+        "components.json",
         ".editorconfig",
-        ".gitignore"
+        ".gitignore",
+        ".env.example"
       ]
     },
     "shell": {

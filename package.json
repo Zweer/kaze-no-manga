@@ -2,48 +2,41 @@
   "name": "kaze-no-manga",
   "version": "0.0.0",
   "private": true,
-  "description": "Cross-device manga reading tracker — monorepo",
+  "description": "Cross-device manga reading tracker",
   "license": "MIT",
   "author": {
     "name": "Zweer",
     "email": "n.olivieriachille@gmail.com"
   },
   "type": "module",
-  "workspaces": [
-    "packages/*",
-    "apps/*",
-    "aws"
-  ],
   "scripts": {
-    "aws:deploy": "npm run deploy --workspace=aws",
-    "aws:synth": "npm run synth --workspace=aws",
-    "build": "tsc --build",
-    "clean": "tsc --build --clean",
-    "lint": "concurrently npm:lint:* --prefixColors auto",
-    "lint:format": "biome check --write .",
-    "lint:lockfile": "lockfile-lint",
-    "lint:sort_package": "sort-package-json --check \"package.json\" \"packages/*/package.json\" \"apps/*/package.json\" \"aws/package.json\"",
-    "lint:typecheck": "tsc --noEmit",
+    "build": "vite build",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "dev": "vite dev",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
     "prepare": "lefthook install",
-    "pretest": "npm run build",
-    "test": "vitest run",
-    "posttest": "npm run clean",
-    "pretest:coverage": "npm run build",
-    "test:coverage": "vitest run --coverage",
-    "posttest:coverage": "npm run clean",
-    "web:dev": "npm run dev --workspace=apps/web"
+    "start": "node .output/server/index.mjs"
+  },
+  "dependencies": {
+    "@tanstack/react-router": "1.169.2",
+    "@tanstack/react-start": "1.167.65",
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.14",
-    "@commitlint/cli": "20.5.3",
-    "@commitlint/config-conventional": "20.5.3",
-    "@types/node": "25.6.0",
-    "concurrently": "9.2.1",
+    "@biomejs/biome": "2.4.15",
+    "@types/node": "25.6.2",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "5.2.0",
     "lefthook": "2.1.6",
     "lockfile-lint": "5.0.0",
     "sort-package-json": "3.6.1",
     "typescript": "6.0.3",
-    "vitest": "4.1.5"
+    "vite": "7.3.3"
   },
   "engines": {
     "node": ">=20.0.0"

@@ -2,56 +2,44 @@
 
 ## Overview
 
-Kaze no Manga is a monorepo with npm workspaces. All code lives in a single repository.
+Kaze no Manga is a single TanStack Start application deployed on Vercel.
 
 ## Structure
 
 ```
-packages/   → Shared libraries (brand, models, scraper)
-apps/       → Deployable apps with UI (web)
-aws/        → AWS CDK infrastructure + resolvers + Lambda functions
+src/
+├── routes/         # File-based routing (TanStack Router)
+├── components/     # UI components (shadcn/ui + custom)
+├── lib/            # Business logic (auth, db, scraper, storage)
+├── server/         # Server functions (type-safe RPC)
+└── styles/         # Tailwind CSS
 ```
 
 ## Stack
 
-- **Web**: React Router v7 SSR on Lambda@Edge — mobile-first PWA
-- **API**: AWS AppSync with JavaScript resolvers → DynamoDB
-- **Database**: DynamoDB (single-table design)
-- **Auth**: AWS Cognito (Google OAuth)
-- **Storage**: S3 + CloudFront (manga images)
-- **Jobs**: EventBridge + SQS + Lambda (scraping, notifications)
-- **IaC**: AWS CDK (TypeScript)
+- **Framework**: TanStack Start (SSR, server functions, file-based routing)
+- **Auth**: Better Auth (Google OAuth)
+- **Database**: Neon Postgres + Drizzle ORM
+- **Storage**: Cloudflare R2 (manga images, zero egress, S3-compatible)
+- **UI**: shadcn/ui + Tailwind CSS 4
+- **Hosting**: Vercel
+- **Jobs**: Vercel Cron
 
-## DynamoDB Access Patterns
+## Database Schema (Postgres)
 
-Single-table design with pk/sk + GSI:
-
-| Entity | pk | sk | gsi1pk | gsi1sk |
-|--------|----|----|--------|--------|
-| Manga | `MANGA#<id>` | `MANGA#<id>` | `MANGA#STATUS#<status>` | `<title>` |
-| Chapter | `MANGA#<mangaId>` | `CHAPTER#<number>` | — | — |
-| User | `USER#<userId>` | `PROFILE` | `USER#EMAIL` | `<email>` |
-| Library | `USER#<userId>` | `LIBRARY#<mangaId>` | `MANGA#<mangaId>` | `USER#<userId>` |
-| History | `USER#<userId>` | `HISTORY#<timestamp>` | — | — |
-
-## Dependency Flow
-
-```
-brand (tokens, tailwind)
-  ↓
-models (GraphQL schema, types)
-  ↓
-scraper (manga sources)
-  ↓
-aws (CDK stacks, resolvers, Lambda functions)
-  ↓
-web (React Router v7 PWA)
-```
+| Table | Purpose |
+|-------|---------|
+| `manga` | Global manga metadata (title, cover, source, source_id) |
+| `chapter` | Chapters per manga (number, title, source_url, images_on_r2) |
+| `user` | User profiles (from Better Auth) |
+| `library` | User ↔ Manga relationship (status, added_at) |
+| `reading_progress` | Current chapter per manga per user, chapters read |
 
 ## Key Decisions
 
-- **Monorepo** over multi-repo: atomic changes, shared tooling, single CI
-- **DynamoDB** over RDS: free tier, serverless, no cold starts for AppSync direct resolvers
-- **AppSync JS resolvers** over Lambda resolvers: lower latency for CRUD, no cold starts
-- **PWA** over native mobile: single codebase, installable, push notifications
-- **React Router v7** over Next.js: no Vercel lock-in, Lambda@Edge SSR, full AWS control
+- **TanStack Start** over Next.js: type-safe routing, explicit caching, no vendor lock-in
+- **Postgres** over DynamoDB: full-text search, relational queries, portable
+- **Cloudflare R2** over S3/Vercel Blob: zero egress fees (critical for serving manga images)
+- **Better Auth** over Auth.js: better DX, plugin system, native TanStack Start support
+- **Vercel** over AWS: zero infra management, git-push deploys, native framework support
+- **Single app** over monorepo: simpler for a single deployable, no workspace overhead

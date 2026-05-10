@@ -28,7 +28,7 @@ git status --porcelain
 ```bash
 npm run build
 npm run lint
-npm test
+npx tsc --noEmit
 ```
 
 ### 3. Summarize Changes

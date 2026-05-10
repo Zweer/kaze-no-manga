@@ -31,9 +31,8 @@ git diff $DEFAULT...HEAD --name-only
 ```
 
 Classify changed files:
-- **Source**: `packages/**/*.ts`, `apps/**/*.ts`
-- **Config**: `biome.json`, `tsconfig.json`, `vitest.config.ts`
-- **AWS**: `aws/**/*.ts`, `aws/resolvers/**/*.js`
+- **Source**: `src/**/*.ts`, `src/**/*.tsx`
+- **Config**: `biome.json`, `tsconfig.json`, `vite.config.ts`
 - **Tests**: `**/*.test.ts`
 
 ### 2. Verify Test Coverage
@@ -46,15 +45,15 @@ For each changed source file:
 ### 3. Run Checks
 
 ```bash
-npm test
 npm run lint
+npx tsc --noEmit
 ```
 
 ### 4. Check for Regressions
 
 - Files that import from changed modules
-- Shared utilities used across multiple packages
-- AppSync resolvers that reference changed types
+- Shared utilities used across multiple routes
+- Server functions that reference changed types
 
 ## Output Format
 

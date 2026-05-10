@@ -2,73 +2,48 @@
 
 > **Never lose your place in manga again**
 
-Cross-device manga reading tracker — search, read, and track your progress across multiple sources.
+Cross-device manga reading tracker — search, read, and track your progress.
 
 ## Stack
 
-- **Web**: React Router v7 SSR (Lambda@Edge) — mobile-first PWA
-- **API**: AWS AppSync (GraphQL) with JS resolvers
-- **Database**: DynamoDB
-- **Auth**: Cognito (Google OAuth)
-- **Storage**: S3 + CloudFront (manga images)
-- **Jobs**: EventBridge + SQS + Lambda (scraping, notifications)
-- **IaC**: AWS CDK (TypeScript)
+- **Framework**: TanStack Start (SSR, file-based routing, server functions)
+- **Auth**: Better Auth (Google OAuth)
+- **Database**: Neon Postgres + Drizzle ORM
+- **Storage**: Cloudflare R2 (manga images, zero egress)
+- **UI**: shadcn/ui + Tailwind CSS 4
+- **Hosting**: Vercel
+- **Jobs**: Vercel Cron
 
-## Monorepo Structure
+## Project Structure
 
 ```
-├── packages/
-│   ├── brand/        # Design tokens, Tailwind preset, CSS variables, assets
-│   ├── models/       # GraphQL schema + generated types
-│   └── scraper/      # Multi-source manga scrapers (common interface)
-├── apps/
-│   └── web/          # React Router v7 — mobile-first PWA
-└── aws/
-    ├── stacks/       # CDK stacks (auth, api, storage, frontend, jobs)
-    ├── resolvers/    # AppSync JS resolvers
-    └── functions/    # Lambda handlers (scraper, notifications, telegram-bot)
+src/
+├── routes/         # File-based routing (TanStack Router)
+├── components/     # UI components (shadcn/ui + custom)
+├── lib/            # Business logic (auth, db, scraper, storage)
+├── server/         # Server functions (type-safe RPC)
+└── styles/         # Tailwind CSS
 ```
 
 ## Getting Started
 
 ```bash
 npm install
-npm run web:dev        # Start web app dev server
-npm run aws:synth      # Synthesize CDK stacks
-npm run aws:deploy     # Deploy to AWS
+npm run dev          # Start dev server on http://localhost:3000
 ```
 
-## Features (MVP)
-
-- 🔍 Search manga across multiple sources (MangaPark, OmegaScans)
-- 📖 Vertical scroll reader with infinite chapter loading
-- 📚 Personal library with reading status tracking
-- ✅ Manual progress tracking (mark chapters as read)
-- 🔐 Google OAuth authentication
-- 📱 PWA — installable, works offline, push notifications
-- 🖼️ Images stored on S3 (not dependent on source availability)
-
-## Architecture
-
-```
-CloudFront CDN
-├── Lambda@Edge (React Router v7 SSR)
-└── S3 (manga images)
-
-AppSync GraphQL API (JS resolvers → DynamoDB)
-
-EventBridge (cron) → SQS → Lambda (scraper)
-                                 ↓
-                              S3 (images)
-```
-
-## Development
+## Scripts
 
 ```bash
-npm run lint           # Check with Biome
-npm run lint:fix       # Auto-fix
-npm run test           # Run all tests
-npm run build          # Build all packages
+npm run dev          # Development server
+npm run build        # Production build
+npm run start        # Start production server
+npm run lint         # Biome check
+npm run lint:fix     # Biome auto-fix
+npm run test         # Vitest
+npm run db:generate  # Generate Drizzle migrations
+npm run db:migrate   # Run migrations
+npm run db:studio    # Open Drizzle Studio
 ```
 
 ## License

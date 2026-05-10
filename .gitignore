@@ -2,10 +2,12 @@
 node_modules/
 
 # Build
+.output/
+.vinxi/
 dist/
-cdk.out/
-.build/
-.react-router/
+
+# Generated
+src/routeTree.gen.ts
 
 # Environment
 .env

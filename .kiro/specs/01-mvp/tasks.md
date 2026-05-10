@@ -3,58 +3,45 @@
 ## Dependency Order
 
 ```
-T0 (Bootstrap) → T1 (Auth) → T2 (Models) → T3 (Scraper) → T4 (API) → T5 (Search UI)
-                                                                ↓
-                                                T6 (Library) → T7 (Reader) → T8 (Progress)
-                                                                                ↓
-                                                                             T9 (CRON)
-                                                                                ↓
-                                                                             T10 (Polish)
+T1 (Auth) → T2 (Models) → T3 (Scraper) → T4 (API) → T5 (Search UI)
+                                                         ↓
+                                         T6 (Library) → T7 (Reader) → T8 (Progress)
+                                                                         ↓
+                                                                      T9 (CRON)
+                                                                         ↓
+                                                                      T10 (Polish)
 ```
 
-Each task ends with a deploy to AWS. The app grows incrementally.
+Each task ends with a deploy to Vercel. The app grows incrementally.
 
-## T0 — Bootstrap (OIDC + CI Role)
+## T1 — Auth (Better Auth + Google OAuth)
 
-**Scope:** CDK stack in `aws-infra` repo, deploy locale one-time
+**Scope:** Better Auth setup + web integration
 
-- [x] CDK stack in `aws-infra`: OIDC Identity Provider for GitHub Actions
-- [x] CDK stack in `aws-infra`: IAM Role with trust policy scoped to this repo/main
-- [x] CDK stack in `aws-infra`: Role permissions (CloudFormation, S3, Lambda, DynamoDB, AppSync, Cognito, CloudFront)
-- [x] Script: `npm run aws:bootstrap` (in aws-infra)
-- [x] GitHub secret: `AWS_ROLE_ARN`
-- [x] Verify: CI workflow can assume role and run `cdk synth`
-
-**Acceptance:** `git push` to main triggers CI, which successfully assumes the role.
-
-## T1 — Auth (Cognito + Google OAuth)
-
-**Scope:** CDK stack + web integration
-
-- [ ] Cognito User Pool with Google as identity provider
-- [ ] Cognito App Client (SPA flow)
-- [ ] Web: login/logout flow (redirect to Cognito hosted UI)
-- [ ] Web: persist session, protect routes
-- [ ] AppSync: configure Cognito authorizer
+- [ ] Better Auth config with Google provider
+- [ ] Drizzle adapter for Better Auth tables
+- [ ] API route handler (`src/routes/api/auth.$.ts`)
+- [ ] Web: login/logout flow
+- [ ] Web: persist session, protect routes via `_authed` layout
 - [ ] Deploy
 
 **Acceptance:** User signs in with Google, session persists across page reloads.
 
-## T2 — Data Models (GraphQL + DynamoDB)
+## T2 — Data Models (Drizzle + Neon)
 
-**Scope:** Schema definition, types, table design
+**Scope:** Schema definition, migrations, types
 
-- [ ] GraphQL schema: Manga, Chapter, User, Library, History types
-- [ ] GraphQL schema: queries and mutations
-- [ ] DynamoDB table design (single-table, pk/sk/gsi1)
-- [ ] Generated TypeScript types from schema
+- [ ] Drizzle schema: manga, chapter, user, library, reading_progress tables
+- [ ] Neon database provisioned (free tier)
+- [ ] Migrations generated and applied
+- [ ] TypeScript types exported from schema
 - [ ] Deploy
 
-**Acceptance:** Schema compiles, types are importable from `@kaze-no-manga/models`. Table exists in AWS.
+**Acceptance:** Schema compiles, tables exist in Neon, types are importable.
 
 ## T3 — Scraper (OmegaScans)
 
-**Scope:** `@kaze-no-manga/scraper` package
+**Scope:** `src/lib/scraper/`
 
 - [ ] Common scraper interface (search, getManga, getChapters, getChapterImages)
 - [ ] OmegaScans implementation
@@ -62,20 +49,20 @@ Each task ends with a deploy to AWS. The app grows incrementally.
 
 **Acceptance:** `search("solo leveling")` returns results, `getChapterImages(url)` returns image URLs.
 
-## T4 — API (AppSync Resolvers)
+## T4 — API (Server Functions)
 
-**Scope:** CDK + JS resolvers
+**Scope:** Server functions + R2 integration
 
-- [ ] Resolver: searchManga (calls scraper Lambda)
-- [ ] Resolver: addManga (upsert manga + chapters to DynamoDB)
-- [ ] Resolver: getLibrary (user's manga list)
-- [ ] Resolver: addToLibrary / removeFromLibrary
-- [ ] Resolver: getChapter (returns image URLs from S3 or triggers download)
-- [ ] Resolver: markChapterRead
-- [ ] Lambda: scraper worker (search + download images to S3)
+- [ ] Server function: searchManga (calls scraper)
+- [ ] Server function: addManga (upsert manga + chapters to Postgres)
+- [ ] Server function: getLibrary (user's manga list)
+- [ ] Server function: addToLibrary / removeFromLibrary
+- [ ] Server function: getChapter (returns image URLs from R2 or triggers download)
+- [ ] Server function: markChapterRead
+- [ ] R2 integration: upload/download chapter images
 - [ ] Deploy
 
-**Acceptance:** All resolvers return expected data via AppSync console.
+**Acceptance:** All server functions return expected data.
 
 ## T5 — Search UI
 
@@ -103,13 +90,13 @@ Each task ends with a deploy to AWS. The app grows incrementally.
 
 ## T7 — Reader
 
-**Scope:** Web app reader + S3 download Lambda
+**Scope:** Web app reader + R2 download
 
 - [ ] Vertical scroll reader component
-- [ ] Loading state while chapter downloads to S3
+- [ ] Loading state while chapter downloads to R2
 - [ ] Image lazy loading (viewport-based)
 - [ ] Infinite chapter transition (scroll past last image → next chapter loads)
-- [ ] Lambda: download chapter images from source → S3
+- [ ] Server function: download chapter images from source → R2
 - [ ] Deploy
 
 **Acceptance:** User opens chapter, waits for download if needed, reads with vertical scroll, next chapter loads automatically.
@@ -129,12 +116,12 @@ Each task ends with a deploy to AWS. The app grows incrementally.
 
 ## T9 — CRON (Daily Chapter Check)
 
-**Scope:** EventBridge + Lambda
+**Scope:** Vercel Cron + API route
 
-- [ ] EventBridge rule (daily trigger)
-- [ ] Lambda: query all manga in at least one library
-- [ ] Lambda: check source for new chapters
-- [ ] Lambda: add new chapters to DB (no image download)
+- [ ] Vercel Cron config in `vercel.json`
+- [ ] API route: query all manga in at least one library
+- [ ] API route: check source for new chapters
+- [ ] API route: add new chapters to DB (no image download)
 - [ ] Deploy
 
 **Acceptance:** New chapters appear in chapter list within 24h of source publication.

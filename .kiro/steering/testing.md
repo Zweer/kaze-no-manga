@@ -3,7 +3,7 @@
 ## Framework
 
 - **Vitest** for all tests (NOT Jest, Mocha, or others)
-- Configuration in `vitest.config.ts` at root
+- Added when there is code to test (scraper, server functions)
 - v8 coverage provider
 
 ## Structure

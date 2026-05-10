@@ -31,6 +31,6 @@
 ## Notes
 
 - Mihon inspiration: their extension system is a good model for multi-source
-  scraping. We differ in having a backend (S3 storage, shared DB, cross-device sync).
+  scraping. We differ in having a backend (R2 storage, shared DB, cross-device sync).
 - Architecture decisions in MVP should not block future phases (e.g., manga model
   should support multiple sources even if MVP only uses one).
