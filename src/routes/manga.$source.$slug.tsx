@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { BookPlus, Loader2 } from 'lucide-react';
+import { BookPlus, Check, Loader2, Play } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
 import { AppShell } from '~/components/app-shell';
 import { getSource } from '~/lib/scraper';
 import type { Chapter, MangaDetail } from '~/lib/scraper/types';
+import { getReadChapters } from '~/server/functions/chapters';
 import { addMangaToLibrary } from '~/server/functions/library';
 
 export const Route = createFileRoute('/manga/$source/$slug')({
@@ -15,21 +16,29 @@ function MangaDetailPage() {
   const { source: sourceName, slug } = Route.useParams();
   const [manga, setManga] = useState<MangaDetail | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [readIds, setReadIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
+
+  const mangaId = `${sourceName}:${slug}`;
 
   useEffect(() => {
     const source = getSource(sourceName);
     if (!source) return;
 
-    Promise.all([source.getManga(slug), source.getChapters(slug)])
-      .then(([m, c]) => {
+    Promise.all([
+      source.getManga(slug),
+      source.getChapters(slug),
+      getReadChapters({ data: { mangaId } }).catch(() => []),
+    ])
+      .then(([m, c, read]) => {
         setManga(m);
         setChapters(c.sort((a, b) => a.number - b.number));
+        setReadIds(read);
       })
       .finally(() => setLoading(false));
-  }, [sourceName, slug]);
+  }, [sourceName, slug, mangaId]);
 
   const handleAdd = useCallback(async () => {
     setAdding(true);
@@ -119,27 +128,53 @@ function MangaDetailPage() {
         </div>
       </section>
 
+      {/* Continue Reading */}
+      {readIds.length > 0 &&
+        chapters.length > 0 &&
+        (() => {
+          const readNumbers = chapters
+            .filter((ch) => readIds.includes(`${mangaId}:${ch.sourceId}`))
+            .map((ch) => ch.number);
+          const maxRead = Math.max(...readNumbers);
+          const nextChapter = chapters.find((ch) => ch.number > maxRead);
+          const target = nextChapter || chapters[chapters.length - 1];
+          return (
+            <Link
+              to="/manga/$source/$slug/chapter/$chapterNum"
+              params={{ source: sourceName, slug, chapterNum: String(target.number) }}
+              className="mb-8 flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-on-primary font-medium shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all w-fit"
+            >
+              <Play size={18} />
+              Continue: Chapter {target.number}
+            </Link>
+          );
+        })()}
+
       {/* Chapter List */}
       <section>
         <h2 className="font-heading text-xl font-bold text-on-surface mb-4">
           Chapters ({chapters.length})
         </h2>
         <div className="flex flex-col gap-1">
-          {chapters.map((ch) => (
-            <Link
-              key={ch.sourceId}
-              to="/manga/$source/$slug/chapter/$chapterNum"
-              params={{ source: sourceName, slug, chapterNum: String(ch.number) }}
-              className="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-white/5 transition-colors"
-            >
-              <div>
-                <span className="text-sm font-medium text-on-surface">Chapter {ch.number}</span>
-                {ch.title && (
-                  <span className="text-sm text-on-surface-variant ml-2">— {ch.title}</span>
-                )}
-              </div>
-            </Link>
-          ))}
+          {chapters.map((ch) => {
+            const isRead = readIds.includes(`${mangaId}:${ch.sourceId}`);
+            return (
+              <Link
+                key={ch.sourceId}
+                to="/manga/$source/$slug/chapter/$chapterNum"
+                params={{ source: sourceName, slug, chapterNum: String(ch.number) }}
+                className={`flex items-center justify-between px-4 py-3 rounded-lg hover:bg-white/5 transition-colors ${isRead ? 'opacity-60' : ''}`}
+              >
+                <div className="flex items-center gap-3">
+                  {isRead && <Check size={14} className="text-primary" />}
+                  <span className="text-sm font-medium text-on-surface">Chapter {ch.number}</span>
+                  {ch.title && (
+                    <span className="text-sm text-on-surface-variant">— {ch.title}</span>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </section>
     </AppShell>

@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start';
 import { getRequestHeaders } from '@tanstack/react-start/server';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 import { auth } from '~/lib/auth';
 import { db } from '~/lib/db';
@@ -68,4 +68,21 @@ export const markChapterRead = createServerFn({ method: 'POST' })
       .onConflictDoNothing();
 
     return { success: true };
+  });
+
+export const getReadChapters = createServerFn({ method: 'GET' })
+  .inputValidator((input: { mangaId: string }) => input)
+  .handler(async ({ data }) => {
+    const headers = getRequestHeaders();
+    const session = await auth.api.getSession({ headers });
+    if (!session) return [];
+
+    const rows = await db
+      .select({ chapterId: readingProgress.chapterId })
+      .from(readingProgress)
+      .where(
+        and(eq(readingProgress.userId, session.user.id), eq(readingProgress.mangaId, data.mangaId)),
+      );
+
+    return rows.map((r) => r.chapterId);
   });
