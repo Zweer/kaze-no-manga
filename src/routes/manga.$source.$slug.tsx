@@ -4,13 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { AppShell } from '~/components/app-shell';
-import { getSource } from '~/lib/scraper';
 import type { Chapter, MangaDetail } from '~/lib/scraper/types';
-import {
-  getChapters as getChaptersFromDb,
-  getMangaFromDb,
-  getReadChapters,
-} from '~/server/functions/chapters';
+import { getMangaDetail, getReadChapters } from '~/server/functions/chapters';
 import { addMangaToLibrary } from '~/server/functions/library';
 
 export const Route = createFileRoute('/manga/$source/$slug')({
@@ -22,74 +17,29 @@ function MangaDetailPage() {
   const [manga, setManga] = useState<MangaDetail | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [readIds, setReadIds] = useState<string[]>([]);
+  const [mangaId, setMangaId] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
 
-  const mangaId = `${sourceName}:${slug}`;
-
   useEffect(() => {
-    const source = getSource(sourceName);
-    if (!source) return;
+    setLoading(true);
+    setError(null);
 
-    // Try loading from DB first (faster if already saved)
-    getMangaFromDb({ data: { mangaId } })
-      .then(async (dbManga) => {
-        if (dbManga) {
-          // Load from DB
-          const [dbChapters, read] = await Promise.all([
-            getChaptersFromDb({ data: { mangaId } }),
-            getReadChapters({ data: { mangaId } }).catch(() => []),
-          ]);
-          setManga({
-            sourceId: dbManga.sourceId,
-            sourceName: dbManga.source,
-            slug: dbManga.sourceUrl.split('/series/')[1] || slug,
-            title: dbManga.title,
-            cover: dbManga.cover,
-            author: null,
-            description: null,
-            status: 'unknown',
-            genres: [],
-          });
-          setChapters(
-            dbChapters.map((ch) => ({
-              sourceId: ch.id,
-              slug: ch.sourceUrl.split('/').pop() || '',
-              number: ch.number,
-              title: ch.title,
-              sourceUrl: ch.sourceUrl,
-              publishedAt: ch.createdAt,
-            })),
-          );
-          setReadIds(read);
-          setAdded(true);
-          setLoading(false);
-        } else {
-          // Load from source
-          Promise.all([
-            source.getManga(slug),
-            source.getChapters(slug),
-            getReadChapters({ data: { mangaId } }).catch(() => []),
-          ])
-            .then(([m, c, read]) => {
-              setManga(m);
-              setChapters(c.sort((a, b) => a.number - b.number));
-              setReadIds(read);
-            })
-            .finally(() => setLoading(false));
-        }
+    getMangaDetail({ data: { sourceName, slug } })
+      .then(async (result) => {
+        setManga(result.manga);
+        setChapters(result.chapters);
+        setMangaId(result.mangaId);
+        setAdded(result.inLibrary);
+
+        const read = await getReadChapters({ data: { mangaId: result.mangaId } }).catch(() => []);
+        setReadIds(read);
       })
-      .catch(() => {
-        // Fallback to source on any DB error
-        Promise.all([source!.getManga(slug), source!.getChapters(slug)])
-          .then(([m, c]) => {
-            setManga(m);
-            setChapters(c.sort((a, b) => a.number - b.number));
-          })
-          .finally(() => setLoading(false));
-      });
-  }, [sourceName, slug, mangaId]);
+      .catch(() => setError('Failed to load manga details.'))
+      .finally(() => setLoading(false));
+  }, [sourceName, slug]);
 
   const handleAdd = useCallback(async () => {
     setAdding(true);
@@ -114,10 +64,19 @@ function MangaDetailPage() {
     );
   }
 
-  if (!manga) {
+  if (error || !manga) {
     return (
       <AppShell>
-        <p className="text-center text-on-surface-variant py-20">Manga not found</p>
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <p className="text-on-surface-variant mb-4">{error || 'Manga not found'}</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-primary text-on-primary rounded-xl font-medium"
+          >
+            Retry
+          </button>
+        </div>
       </AppShell>
     );
   }
@@ -137,14 +96,12 @@ function MangaDetailPage() {
       )}
 
       <section className="pt-8 md:pt-4 flex flex-col md:flex-row gap-8 mb-12">
-        {/* Cover */}
         {manga.cover && (
           <div className="w-48 shrink-0 mx-auto md:mx-0">
             <img src={manga.cover} alt={manga.title} className="w-full rounded-xl shadow-2xl" />
           </div>
         )}
 
-        {/* Info */}
         <div className="flex-1 min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-wider text-primary mb-2">
             {manga.sourceName}
@@ -169,7 +126,6 @@ function MangaDetailPage() {
             <p className="text-sm text-on-surface-variant/80 line-clamp-4">{manga.description}</p>
           )}
 
-          {/* Add to Library */}
           <button
             type="button"
             onClick={handleAdd}

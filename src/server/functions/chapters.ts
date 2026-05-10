@@ -26,6 +26,27 @@ export const getMangaFromDb = createServerFn({ method: 'GET' })
     return row || null;
   });
 
+export const getMangaDetail = createServerFn({ method: 'GET' })
+  .inputValidator((input: { sourceName: string; slug: string }) => input)
+  .handler(async ({ data }) => {
+    const source = getSource(data.sourceName);
+    if (!source) throw new Error(`Source not found: ${data.sourceName}`);
+
+    const mangaDetail = await source.getManga(data.slug);
+    const chapters = await source.getChapters(data.slug);
+
+    // Check if already in DB
+    const mangaId = `${mangaDetail.sourceName}:${mangaDetail.sourceId}`;
+    const [existing] = await db.select().from(manga).where(eq(manga.id, mangaId)).limit(1);
+
+    return {
+      manga: mangaDetail,
+      chapters: chapters.sort((a, b) => a.number - b.number),
+      inLibrary: !!existing,
+      mangaId,
+    };
+  });
+
 export const getPages = createServerFn({ method: 'GET' })
   .inputValidator((input: { mangaId: string; chapterId: string }) => input)
   .handler(async ({ data }) => {
