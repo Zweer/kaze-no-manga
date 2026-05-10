@@ -1,4 +1,4 @@
-import { boolean, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgEnum, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
 
 // ─── Better Auth Core Tables ───
 
@@ -68,3 +68,78 @@ export const passkey = pgTable('passkey', {
   transports: text('transports'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
+
+// ─── Application Tables ───
+
+export const manga = pgTable(
+  'manga',
+  {
+    id: text('id').primaryKey(),
+    title: text('title').notNull(),
+    cover: text('cover'),
+    source: text('source').notNull(),
+    sourceId: text('source_id').notNull(),
+    sourceUrl: text('source_url').notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (t) => [unique('manga_source_source_id_unique').on(t.source, t.sourceId)],
+);
+
+export const chapter = pgTable(
+  'chapter',
+  {
+    id: text('id').primaryKey(),
+    mangaId: text('manga_id')
+      .notNull()
+      .references(() => manga.id, { onDelete: 'cascade' }),
+    number: integer('number').notNull(),
+    title: text('title'),
+    sourceUrl: text('source_url').notNull(),
+    imagesOnR2: boolean('images_on_r2').notNull().default(false),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (t) => [unique('chapter_manga_id_number_unique').on(t.mangaId, t.number)],
+);
+
+export const libraryStatusEnum = pgEnum('library_status', [
+  'reading',
+  'completed',
+  'plan_to_read',
+  'dropped',
+  'on_hold',
+]);
+
+export const library = pgTable(
+  'library',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    mangaId: text('manga_id')
+      .notNull()
+      .references(() => manga.id, { onDelete: 'cascade' }),
+    status: libraryStatusEnum('status').notNull().default('reading'),
+    addedAt: timestamp('added_at').notNull().defaultNow(),
+  },
+  (t) => [unique('library_user_id_manga_id_unique').on(t.userId, t.mangaId)],
+);
+
+export const readingProgress = pgTable(
+  'reading_progress',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    mangaId: text('manga_id')
+      .notNull()
+      .references(() => manga.id, { onDelete: 'cascade' }),
+    chapterId: text('chapter_id')
+      .notNull()
+      .references(() => chapter.id, { onDelete: 'cascade' }),
+    readAt: timestamp('read_at').notNull().defaultNow(),
+  },
+  (t) => [unique('reading_progress_user_chapter_unique').on(t.userId, t.chapterId)],
+);

@@ -14,18 +14,18 @@ T1 (Auth) → T2 (Models) → T3 (Scraper) → T4 (API) → T5 (Search UI)
 
 Each task ends with a deploy to Vercel. The app grows incrementally.
 
-## T1 — Auth (Better Auth + Google OAuth)
+## T1 — Auth (Better Auth + Google OAuth) ✅
 
 **Scope:** Better Auth setup + web integration
 
-- [ ] Better Auth config with Google provider
-- [ ] Drizzle adapter for Better Auth tables
-- [ ] API route handler (`src/routes/api/auth.$.ts`)
-- [ ] Web: login/logout flow
-- [ ] Web: persist session, protect routes via `_authed` layout
-- [ ] Deploy
+- [x] Better Auth config with Google provider
+- [x] Drizzle adapter for Better Auth tables
+- [x] API route handler (`src/routes/api/auth.$.ts`)
+- [x] Web: login/logout flow
+- [x] Web: persist session, protect routes via `_authed` layout
+- [x] Deploy
 
-**Acceptance:** User signs in with Google, session persists across page reloads.
+**Acceptance:** ✅ User signs in with Google, session persists across page reloads.
 
 ## T2 — Data Models (Drizzle + Neon)
 
