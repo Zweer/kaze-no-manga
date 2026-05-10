@@ -9,6 +9,7 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: 'pg',
   }),
+  trustedOrigins: ['http://localhost:3000'],
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
