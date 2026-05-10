@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { Page } from '~/lib/scraper/types';
 import { getChapters, getPages, markChapterRead } from '~/server/functions/chapters';
 
-export const Route = createFileRoute('/manga/$source/$slug/chapter/$chapterNum')({
+export const Route = createFileRoute('/read/$source/$slug/$chapterNum')({
   component: Reader,
 });
 
@@ -53,7 +53,7 @@ function Reader() {
   const goToChapter = useCallback(
     (chNum: number) => {
       navigate({
-        to: '/manga/$source/$slug/chapter/$chapterNum',
+        to: '/read/$source/$slug/$chapterNum',
         params: { source, slug, chapterNum: String(chNum) },
       });
     },

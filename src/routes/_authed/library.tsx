@@ -99,9 +99,16 @@ function Library() {
                 <h3 className="text-sm font-semibold text-on-surface line-clamp-2 leading-tight">
                   {item.title}
                 </h3>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-primary/70 mt-1">
-                  {item.source}
-                </p>
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-primary/70">
+                    {item.source}
+                  </p>
+                  {item.totalChapters - item.readChapters > 0 && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-on-primary">
+                      {item.totalChapters - item.readChapters}
+                    </span>
+                  )}
+                </div>
               </div>
             </Link>
           ))}

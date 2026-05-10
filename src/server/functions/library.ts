@@ -1,10 +1,10 @@
 import { createServerFn } from '@tanstack/react-start';
 import { getRequestHeaders } from '@tanstack/react-start/server';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 
 import { auth } from '~/lib/auth';
 import { db } from '~/lib/db';
-import { chapter, library, manga } from '~/lib/db/schema';
+import { chapter, library, manga, readingProgress } from '~/lib/db/schema';
 import { getSource } from '~/lib/scraper';
 
 export const addMangaToLibrary = createServerFn({ method: 'POST' })
@@ -107,8 +107,29 @@ export const getLibrary = createServerFn({ method: 'GET' }).handler(async () => 
     .innerJoin(manga, eq(library.mangaId, manga.id))
     .where(eq(library.userId, session.user.id));
 
-  return results.map((r) => ({
-    ...r,
-    slug: r.sourceUrl.split('/series/')[1] || r.mangaId,
-  }));
+  // Get chapter counts and read counts for each manga
+  const enriched = await Promise.all(
+    results.map(async (r) => {
+      const [chapterCount] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(chapter)
+        .where(eq(chapter.mangaId, r.mangaId));
+
+      const [readCount] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(readingProgress)
+        .where(
+          and(eq(readingProgress.mangaId, r.mangaId), eq(readingProgress.userId, session.user.id)),
+        );
+
+      return {
+        ...r,
+        slug: r.sourceUrl.split('/series/')[1] || r.mangaId,
+        totalChapters: chapterCount?.count ?? 0,
+        readChapters: readCount?.count ?? 0,
+      };
+    }),
+  );
+
+  return enriched;
 });

@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { AppShell } from '~/components/app-shell';
 import type { Chapter, MangaDetail } from '~/lib/scraper/types';
 import { getMangaDetail, getReadChapters } from '~/server/functions/chapters';
-import { addMangaToLibrary } from '~/server/functions/library';
+import { addMangaToLibrary, removeFromLibrary } from '~/server/functions/library';
 
 export const Route = createFileRoute('/manga/$source/$slug')({
   component: MangaDetailPage,
@@ -17,7 +17,7 @@ function MangaDetailPage() {
   const [manga, setManga] = useState<MangaDetail | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [readIds, setReadIds] = useState<string[]>([]);
-  const [mangaId, setMangaId] = useState<string>('');
+  const [mangaId, setMangaId] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
@@ -58,6 +58,16 @@ function MangaDetailPage() {
     }
   }, [sourceName, slug]);
 
+  const handleRemove = useCallback(async () => {
+    try {
+      await removeFromLibrary({ data: { mangaId } });
+      setAdded(false);
+      toast.success('Removed from library.');
+    } catch {
+      toast.error('Failed to remove.');
+    }
+  }, [mangaId]);
+
   if (loading) {
     return (
       <AppShell>
@@ -84,6 +94,17 @@ function MangaDetailPage() {
       </AppShell>
     );
   }
+
+  // Find next unread chapter for "Continue Reading"
+  const nextUnread = (() => {
+    if (readIds.length === 0 || chapters.length === 0) return null;
+    const readNumbers = chapters
+      .filter((ch) => readIds.includes(`${mangaId}:${ch.sourceId}`))
+      .map((ch) => ch.number);
+    if (readNumbers.length === 0) return null;
+    const maxRead = Math.max(...readNumbers);
+    return chapters.find((ch) => ch.number > maxRead) || null;
+  })();
 
   return (
     <AppShell>
@@ -130,39 +151,41 @@ function MangaDetailPage() {
             <p className="text-sm text-on-surface-variant/80 line-clamp-4">{manga.description}</p>
           )}
 
-          <button
-            type="button"
-            onClick={handleAdd}
-            disabled={adding || added}
-            className="mt-6 flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-on-primary font-medium shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all disabled:opacity-60 cursor-pointer disabled:cursor-default"
-          >
-            {adding ? <Loader2 size={18} className="animate-spin" /> : <BookPlus size={18} />}
-            {added ? 'Added to Library' : 'Add to Library'}
-          </button>
+          <div className="mt-6 flex gap-3">
+            {!added ? (
+              <button
+                type="button"
+                onClick={handleAdd}
+                disabled={adding}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-on-primary font-medium shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all disabled:opacity-60 cursor-pointer"
+              >
+                {adding ? <Loader2 size={18} className="animate-spin" /> : <BookPlus size={18} />}
+                Add to Library
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleRemove}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-error/10 text-error font-medium hover:bg-error/20 transition-all cursor-pointer"
+              >
+                Remove from Library
+              </button>
+            )}
+          </div>
         </div>
       </section>
 
       {/* Continue Reading */}
-      {readIds.length > 0 &&
-        chapters.length > 0 &&
-        (() => {
-          const readNumbers = chapters
-            .filter((ch) => readIds.includes(`${mangaId}:${ch.sourceId}`))
-            .map((ch) => ch.number);
-          const maxRead = Math.max(...readNumbers);
-          const nextChapter = chapters.find((ch) => ch.number > maxRead);
-          const target = nextChapter || chapters[chapters.length - 1];
-          return (
-            <Link
-              to="/manga/$source/$slug/chapter/$chapterNum"
-              params={{ source: sourceName, slug, chapterNum: String(target.number) }}
-              className="mb-8 flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-on-primary font-medium shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all w-fit"
-            >
-              <Play size={18} />
-              Continue: Chapter {target.number}
-            </Link>
-          );
-        })()}
+      {nextUnread && (
+        <Link
+          to="/read/$source/$slug/$chapterNum"
+          params={{ source: sourceName, slug, chapterNum: String(nextUnread.number) }}
+          className="mb-8 flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-on-primary font-medium shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all w-fit"
+        >
+          <Play size={18} />
+          Continue: Chapter {nextUnread.number}
+        </Link>
+      )}
 
       {/* Chapter List */}
       <section>
@@ -175,9 +198,9 @@ function MangaDetailPage() {
             return (
               <Link
                 key={ch.sourceId}
-                to="/manga/$source/$slug/chapter/$chapterNum"
+                to="/read/$source/$slug/$chapterNum"
                 params={{ source: sourceName, slug, chapterNum: String(ch.number) }}
-                className={`flex items-center justify-between px-4 py-3 rounded-lg hover:bg-white/5 transition-colors ${isRead ? 'opacity-60' : ''}`}
+                className={`flex items-center px-4 py-3 rounded-lg hover:bg-white/5 transition-colors ${isRead ? 'opacity-60' : ''}`}
               >
                 <div className="flex items-center gap-3">
                   {isRead && <Check size={14} className="text-primary" />}
