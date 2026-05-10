@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { BookPlus, Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -126,8 +126,10 @@ function MangaDetailPage() {
         </h2>
         <div className="flex flex-col gap-1">
           {chapters.map((ch) => (
-            <div
+            <Link
               key={ch.sourceId}
+              to="/manga/$source/$slug/chapter/$chapterNum"
+              params={{ source: sourceName, slug, chapterNum: String(ch.number) }}
               className="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-white/5 transition-colors"
             >
               <div>
@@ -136,7 +138,7 @@ function MangaDetailPage() {
                   <span className="text-sm text-on-surface-variant ml-2">— {ch.title}</span>
                 )}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>

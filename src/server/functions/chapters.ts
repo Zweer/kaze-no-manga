@@ -20,7 +20,7 @@ export const getChapters = createServerFn({ method: 'GET' })
   });
 
 export const getPages = createServerFn({ method: 'GET' })
-  .inputValidator((input: { mangaId: string; chapterSlug: string }) => input)
+  .inputValidator((input: { mangaId: string; chapterId: string }) => input)
   .handler(async ({ data }) => {
     // Get manga to find source
     const [mangaRow] = await db.select().from(manga).where(eq(manga.id, data.mangaId)).limit(1);
@@ -29,12 +29,23 @@ export const getPages = createServerFn({ method: 'GET' })
     const source = getSource(mangaRow.source);
     if (!source) throw new Error(`Source not found: ${mangaRow.source}`);
 
-    // Extract manga slug from sourceUrl
+    // Get chapter to find slug
+    const [chapterRow] = await db
+      .select()
+      .from(chapter)
+      .where(eq(chapter.id, data.chapterId))
+      .limit(1);
+    if (!chapterRow) throw new Error('Chapter not found');
+
+    // Extract slugs from URLs
     const mangaSlug = mangaRow.sourceUrl.split('/series/')[1];
     if (!mangaSlug) throw new Error('Invalid manga source URL');
 
+    const chapterSlug = chapterRow.sourceUrl.split('/').pop();
+    if (!chapterSlug) throw new Error('Invalid chapter source URL');
+
     // Fetch pages directly from source (R2 integration later)
-    const pages = await source.getPages(mangaSlug, data.chapterSlug);
+    const pages = await source.getPages(mangaSlug, chapterSlug);
     return pages;
   });
 
