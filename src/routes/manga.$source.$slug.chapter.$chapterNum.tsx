@@ -16,6 +16,7 @@ function Reader() {
   const navigate = useNavigate();
   const [pages, setPages] = useState<Page[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [chapters, setChapters] = useState<ChapterInfo[]>([]);
   const [currentChapter, setCurrentChapter] = useState<ChapterInfo | null>(null);
   const [showUI, setShowUI] = useState(true);
@@ -25,6 +26,7 @@ function Reader() {
 
   useEffect(() => {
     setLoading(true);
+    setError(null);
     getChapters({ data: { mangaId } }).then((chs) => {
       const sorted = chs.sort((a, b) => a.number - b.number);
       setChapters(sorted);
@@ -34,6 +36,7 @@ function Reader() {
       if (ch) {
         getPages({ data: { mangaId, chapterId: ch.id } })
           .then(setPages)
+          .catch(() => setError('Failed to load chapter images.'))
           .finally(() => setLoading(false));
 
         // Mark as read
@@ -73,6 +76,21 @@ function Reader() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
+        <p className="text-white/60">{error}</p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="px-6 py-3 bg-primary text-on-primary rounded-xl font-medium"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: tap to toggle UI
     // biome-ignore lint/a11y/noStaticElementInteractions: tap to toggle UI
@@ -102,7 +120,7 @@ function Reader() {
         {pages.map((page) => (
           <img
             key={page.index}
-            src={page.imageUrl}
+            src={`/api/image-proxy?url=${encodeURIComponent(page.imageUrl)}`}
             alt={`Page ${page.index + 1}`}
             className="w-full max-w-3xl"
             loading="lazy"

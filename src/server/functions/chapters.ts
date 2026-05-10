@@ -19,6 +19,13 @@ export const getChapters = createServerFn({ method: 'GET' })
     return chapters;
   });
 
+export const getMangaFromDb = createServerFn({ method: 'GET' })
+  .inputValidator((input: { mangaId: string }) => input)
+  .handler(async ({ data }) => {
+    const [row] = await db.select().from(manga).where(eq(manga.id, data.mangaId)).limit(1);
+    return row || null;
+  });
+
 export const getPages = createServerFn({ method: 'GET' })
   .inputValidator((input: { mangaId: string; chapterId: string }) => input)
   .handler(async ({ data }) => {

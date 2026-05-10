@@ -8,6 +8,7 @@ import {
   Scripts,
 } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
+import { Toaster } from 'sonner';
 
 import appCss from '~/styles/app.css?url';
 
@@ -95,6 +96,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       <body>
         <div className="noise-overlay" />
         {children}
+        <Toaster theme="dark" position="bottom-center" richColors />
         <Scripts />
       </body>
     </html>

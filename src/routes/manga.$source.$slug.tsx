@@ -1,11 +1,16 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { BookPlus, Check, Loader2, Play } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 import { AppShell } from '~/components/app-shell';
 import { getSource } from '~/lib/scraper';
 import type { Chapter, MangaDetail } from '~/lib/scraper/types';
-import { getReadChapters } from '~/server/functions/chapters';
+import {
+  getChapters as getChaptersFromDb,
+  getMangaFromDb,
+  getReadChapters,
+} from '~/server/functions/chapters';
 import { addMangaToLibrary } from '~/server/functions/library';
 
 export const Route = createFileRoute('/manga/$source/$slug')({
@@ -27,17 +32,63 @@ function MangaDetailPage() {
     const source = getSource(sourceName);
     if (!source) return;
 
-    Promise.all([
-      source.getManga(slug),
-      source.getChapters(slug),
-      getReadChapters({ data: { mangaId } }).catch(() => []),
-    ])
-      .then(([m, c, read]) => {
-        setManga(m);
-        setChapters(c.sort((a, b) => a.number - b.number));
-        setReadIds(read);
+    // Try loading from DB first (faster if already saved)
+    getMangaFromDb({ data: { mangaId } })
+      .then(async (dbManga) => {
+        if (dbManga) {
+          // Load from DB
+          const [dbChapters, read] = await Promise.all([
+            getChaptersFromDb({ data: { mangaId } }),
+            getReadChapters({ data: { mangaId } }).catch(() => []),
+          ]);
+          setManga({
+            sourceId: dbManga.sourceId,
+            sourceName: dbManga.source,
+            slug: dbManga.sourceUrl.split('/series/')[1] || slug,
+            title: dbManga.title,
+            cover: dbManga.cover,
+            author: null,
+            description: null,
+            status: 'unknown',
+            genres: [],
+          });
+          setChapters(
+            dbChapters.map((ch) => ({
+              sourceId: ch.id,
+              slug: ch.sourceUrl.split('/').pop() || '',
+              number: ch.number,
+              title: ch.title,
+              sourceUrl: ch.sourceUrl,
+              publishedAt: ch.createdAt,
+            })),
+          );
+          setReadIds(read);
+          setAdded(true);
+          setLoading(false);
+        } else {
+          // Load from source
+          Promise.all([
+            source.getManga(slug),
+            source.getChapters(slug),
+            getReadChapters({ data: { mangaId } }).catch(() => []),
+          ])
+            .then(([m, c, read]) => {
+              setManga(m);
+              setChapters(c.sort((a, b) => a.number - b.number));
+              setReadIds(read);
+            })
+            .finally(() => setLoading(false));
+        }
       })
-      .finally(() => setLoading(false));
+      .catch(() => {
+        // Fallback to source on any DB error
+        Promise.all([source!.getManga(slug), source!.getChapters(slug)])
+          .then(([m, c]) => {
+            setManga(m);
+            setChapters(c.sort((a, b) => a.number - b.number));
+          })
+          .finally(() => setLoading(false));
+      });
   }, [sourceName, slug, mangaId]);
 
   const handleAdd = useCallback(async () => {
@@ -45,6 +96,9 @@ function MangaDetailPage() {
     try {
       await addMangaToLibrary({ data: { sourceName, slug } });
       setAdded(true);
+      toast.success('Added to library!');
+    } catch {
+      toast.error('Failed to add to library.');
     } finally {
       setAdding(false);
     }

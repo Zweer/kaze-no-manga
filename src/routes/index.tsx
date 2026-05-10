@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Search, Wind } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 import { AppShell } from '~/components/app-shell';
 import { MangaCard } from '~/components/manga-card';
@@ -28,6 +29,7 @@ function Home() {
       setResults(data.mangas);
     } catch {
       setResults([]);
+      toast.error('Search failed. Please try again.');
     } finally {
       setLoading(false);
     }
