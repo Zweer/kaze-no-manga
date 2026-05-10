@@ -20,6 +20,9 @@
     "prepare": "lefthook install",
     "start": "node .output/server/index.mjs"
   },
+  "overrides": {
+    "@noble/ciphers": "2.2.0"
+  },
   "dependencies": {
     "@base-ui/react": "1.4.1",
     "@better-auth/drizzle-adapter": "1.6.10",
