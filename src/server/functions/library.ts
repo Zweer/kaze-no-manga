@@ -17,40 +17,46 @@ export const addMangaToLibrary = createServerFn({ method: 'POST' })
     const source = getSource(data.sourceName);
     if (!source) throw new Error(`Source not found: ${data.sourceName}`);
 
-    // Fetch manga details + chapters from source
-    const [mangaDetail, chapters] = await Promise.all([
-      source.getManga(data.slug),
-      source.getChapters(data.slug),
-    ]);
-
-    // Upsert manga (global entity)
+    // Check if manga already exists in DB
+    const mangaDetail = await source.getManga(data.slug);
     const mangaId = `${mangaDetail.sourceName}:${mangaDetail.sourceId}`;
-    await db
-      .insert(manga)
-      .values({
-        id: mangaId,
-        title: mangaDetail.title,
-        cover: mangaDetail.cover,
-        source: mangaDetail.sourceName,
-        sourceId: mangaDetail.sourceId,
-        sourceUrl: `${source.baseUrl}/series/${mangaDetail.slug}`,
-      })
-      .onConflictDoNothing();
 
-    // Upsert chapters
-    if (chapters.length > 0) {
+    const [existing] = await db.select().from(manga).where(eq(manga.id, mangaId)).limit(1);
+
+    if (!existing) {
+      // Save manga to DB
       await db
-        .insert(chapter)
-        .values(
-          chapters.map((ch) => ({
-            id: `${mangaId}:${ch.sourceId}`,
-            mangaId,
-            number: ch.number,
-            title: ch.title,
-            sourceUrl: ch.sourceUrl,
-          })),
-        )
+        .insert(manga)
+        .values({
+          id: mangaId,
+          title: mangaDetail.title,
+          cover: mangaDetail.cover,
+          source: mangaDetail.sourceName,
+          sourceId: mangaDetail.sourceId,
+          sourceUrl: `${source.baseUrl}/series/${mangaDetail.slug}`,
+        })
         .onConflictDoNothing();
+
+      // Fetch and save chapters
+      const chapters = await source.getChapters(data.slug);
+      if (chapters.length > 0) {
+        // Insert in batches of 100 to avoid query size limits
+        for (let i = 0; i < chapters.length; i += 100) {
+          const batch = chapters.slice(i, i + 100);
+          await db
+            .insert(chapter)
+            .values(
+              batch.map((ch) => ({
+                id: `${mangaId}:${ch.sourceId}`,
+                mangaId,
+                number: ch.number,
+                title: ch.title,
+                sourceUrl: ch.sourceUrl,
+              })),
+            )
+            .onConflictDoNothing();
+        }
+      }
     }
 
     // Add to user's library
@@ -95,10 +101,14 @@ export const getLibrary = createServerFn({ method: 'GET' }).handler(async () => 
       title: manga.title,
       cover: manga.cover,
       source: manga.source,
+      sourceUrl: manga.sourceUrl,
     })
     .from(library)
     .innerJoin(manga, eq(library.mangaId, manga.id))
     .where(eq(library.userId, session.user.id));
 
-  return results;
+  return results.map((r) => ({
+    ...r,
+    slug: r.sourceUrl.split('/series/')[1] || r.mangaId,
+  }));
 });

@@ -75,7 +75,7 @@ function Library() {
             <Link
               key={item.id}
               to="/manga/$source/$slug"
-              params={{ source: item.source, slug: item.mangaId.split(':')[1] || item.mangaId }}
+              params={{ source: item.source, slug: item.slug }}
               className="group relative flex flex-col rounded-xl overflow-hidden bg-surface-container/60 border border-white/5 hover:border-primary/30 transition-all hover:-translate-y-1"
             >
               <div className="aspect-[3/4] relative overflow-hidden">
