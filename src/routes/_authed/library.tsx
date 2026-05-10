@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { BookOpen } from 'lucide-react';
 
 import { AppShell } from '~/components/app-shell';
 
@@ -9,13 +10,11 @@ export const Route = createFileRoute('/_authed/library')({
 function Library() {
   return (
     <AppShell>
-      {/* Watermark */}
       <div className="watermark">まだ何もない</div>
 
-      {/* Header */}
-      <header className="mb-12 relative inline-block pt-12 md:pt-0">
+      <header className="mb-8 relative inline-block pt-12 md:pt-0">
         <h1 className="font-heading text-5xl md:text-6xl font-black text-on-surface">Library</h1>
-        <div className="h-3 w-12 bg-primary absolute -bottom-2 left-0 opacity-60 rounded-full" />
+        <div className="h-1 w-12 bg-primary mt-2 rounded-full" />
       </header>
 
       {/* Filter Tabs */}
@@ -25,9 +24,9 @@ function Library() {
             <button
               key={tab}
               type="button"
-              className={`px-6 py-2 text-base font-medium rounded-full whitespace-nowrap transition-colors duration-300 ${
+              className={`px-5 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors ${
                 i === 0
-                  ? 'bg-surface-bright text-primary font-bold shadow-[0_0_15px_rgba(139,92,246,0.1)]'
+                  ? 'bg-surface-bright text-primary font-bold'
                   : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
@@ -39,6 +38,7 @@ function Library() {
 
       {/* Empty State */}
       <section className="flex flex-col items-center justify-center py-20 text-center">
+        <BookOpen size={64} className="text-primary opacity-20 mb-6" />
         <p className="text-on-surface-variant text-lg font-medium">Nothing here yet</p>
         <p className="text-on-surface-variant/60 text-sm mt-2">
           Search for manga and add them to your collection.
