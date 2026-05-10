@@ -47,8 +47,12 @@ function MangaDetailPage() {
       await addMangaToLibrary({ data: { sourceName, slug } });
       setAdded(true);
       toast.success('Added to library!');
-    } catch {
-      toast.error('Failed to add to library.');
+    } catch (err) {
+      const message =
+        err instanceof Error && err.message.includes('Unauthorized')
+          ? 'Please sign in to add to library.'
+          : 'Failed to add to library.';
+      toast.error(message);
     } finally {
       setAdding(false);
     }
@@ -130,7 +134,7 @@ function MangaDetailPage() {
             type="button"
             onClick={handleAdd}
             disabled={adding || added}
-            className="mt-6 flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-on-primary font-medium shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all disabled:opacity-60"
+            className="mt-6 flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-on-primary font-medium shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all disabled:opacity-60 cursor-pointer disabled:cursor-default"
           >
             {adding ? <Loader2 size={18} className="animate-spin" /> : <BookPlus size={18} />}
             {added ? 'Added to Library' : 'Add to Library'}
