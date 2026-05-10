@@ -180,6 +180,7 @@ function MangaDetailPage() {
         <Link
           to="/read/$source/$slug/$chapterNum"
           params={{ source: sourceName, slug, chapterNum: String(nextUnread.number) }}
+          search={{ mangaId }}
           className="mb-8 flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-on-primary font-medium shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all w-fit"
         >
           <Play size={18} />
@@ -200,6 +201,7 @@ function MangaDetailPage() {
                 key={ch.sourceId}
                 to="/read/$source/$slug/$chapterNum"
                 params={{ source: sourceName, slug, chapterNum: String(ch.number) }}
+                search={{ mangaId }}
                 className={`flex items-center px-4 py-3 rounded-lg hover:bg-white/5 transition-colors ${isRead ? 'opacity-60' : ''}`}
               >
                 <div className="flex items-center gap-3">

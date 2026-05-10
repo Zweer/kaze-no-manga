@@ -7,12 +7,16 @@ import { getChapters, getPages, markChapterRead } from '~/server/functions/chapt
 
 export const Route = createFileRoute('/read/$source/$slug/$chapterNum')({
   component: Reader,
+  validateSearch: (search: Record<string, unknown>) => ({
+    mangaId: (search.mangaId as string) || '',
+  }),
 });
 
 type ChapterInfo = Awaited<ReturnType<typeof getChapters>>[number];
 
 function Reader() {
   const { source, slug, chapterNum } = Route.useParams();
+  const { mangaId } = Route.useSearch();
   const navigate = useNavigate();
   const [pages, setPages] = useState<Page[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +25,6 @@ function Reader() {
   const [currentChapter, setCurrentChapter] = useState<ChapterInfo | null>(null);
   const [showUI, setShowUI] = useState(true);
 
-  const mangaId = `${source}:${slug}`;
   const num = Number.parseInt(chapterNum, 10);
 
   useEffect(() => {
@@ -55,9 +58,10 @@ function Reader() {
       navigate({
         to: '/read/$source/$slug/$chapterNum',
         params: { source, slug, chapterNum: String(chNum) },
+        search: { mangaId },
       });
     },
-    [navigate, source, slug],
+    [navigate, source, slug, mangaId],
   );
 
   if (loading) {

@@ -4,7 +4,7 @@ import { and, eq } from 'drizzle-orm';
 
 import { auth } from '~/lib/auth';
 import { db } from '~/lib/db';
-import { chapter, manga, readingProgress } from '~/lib/db/schema';
+import { chapter, library, manga, readingProgress } from '~/lib/db/schema';
 import { getSource } from '~/lib/scraper';
 
 export const getChapters = createServerFn({ method: 'GET' })
@@ -35,14 +35,25 @@ export const getMangaDetail = createServerFn({ method: 'GET' })
     const mangaDetail = await source.getManga(data.slug);
     const chapters = await source.getChapters(data.slug);
 
-    // Check if already in DB
+    // Check if in current user's library
     const mangaId = `${mangaDetail.sourceName}:${mangaDetail.sourceId}`;
-    const [existing] = await db.select().from(manga).where(eq(manga.id, mangaId)).limit(1);
+    let inLibrary = false;
+
+    const headers = getRequestHeaders();
+    const session = await auth.api.getSession({ headers });
+    if (session) {
+      const [lib] = await db
+        .select()
+        .from(library)
+        .where(and(eq(library.userId, session.user.id), eq(library.mangaId, mangaId)))
+        .limit(1);
+      inLibrary = !!lib;
+    }
 
     return {
       manga: mangaDetail,
       chapters: chapters.sort((a, b) => a.number - b.number),
-      inLibrary: !!existing,
+      inLibrary,
       mangaId,
     };
   });
