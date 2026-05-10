@@ -1,0 +1,211 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource/poppins/700.css";
+@import "@fontsource/poppins/900.css";
+
+/* ─── Design Tokens ─── */
+
+@theme {
+  /* Typography */
+  --font-heading: "Poppins", sans-serif;
+  --font-body: "Inter Variable", sans-serif;
+
+  /* Spacing */
+  --spacing-gutter: 24px;
+  --spacing-margin-mobile: 16px;
+
+  /* Animations */
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Colors — resolved via CSS variables for dark/light switching */
+  --color-background: var(--kaze-background);
+  --color-surface: var(--kaze-surface);
+  --color-surface-dim: var(--kaze-surface-dim);
+  --color-surface-bright: var(--kaze-surface-bright);
+  --color-surface-container: var(--kaze-surface-container);
+  --color-surface-container-low: var(--kaze-surface-container-low);
+  --color-surface-container-high: var(--kaze-surface-container-high);
+  --color-surface-container-highest: var(--kaze-surface-container-highest);
+  --color-surface-variant: var(--kaze-surface-variant);
+
+  --color-primary: var(--kaze-primary);
+  --color-primary-light: var(--kaze-primary-light);
+  --color-primary-container: var(--kaze-primary-container);
+  --color-on-primary: var(--kaze-on-primary);
+  --color-on-primary-container: var(--kaze-on-primary-container);
+  --color-inverse-primary: var(--kaze-inverse-primary);
+
+  --color-on-surface: var(--kaze-on-surface);
+  --color-on-surface-variant: var(--kaze-on-surface-variant);
+  --color-on-background: var(--kaze-on-background);
+  --color-inverse-surface: var(--kaze-inverse-surface);
+
+  --color-outline: var(--kaze-outline);
+  --color-outline-variant: var(--kaze-outline-variant);
+
+  --color-error: var(--kaze-error);
+  --color-on-error: var(--kaze-on-error);
+  --color-error-container: var(--kaze-error-container);
+}
+
+/* ─── Dark Theme (default) ─── */
+
+:root {
+  --kaze-background: #15121b;
+  --kaze-surface: #15121b;
+  --kaze-surface-dim: #15121b;
+  --kaze-surface-bright: #3b3742;
+  --kaze-surface-container: #211e27;
+  --kaze-surface-container-low: #1d1a23;
+  --kaze-surface-container-high: #2c2832;
+  --kaze-surface-container-highest: #37333d;
+  --kaze-surface-variant: #37333d;
+
+  --kaze-primary: #8b5cf6;
+  --kaze-primary-light: #d0bcff;
+  --kaze-primary-container: #a078ff;
+  --kaze-on-primary: #ffffff;
+  --kaze-on-primary-container: #340080;
+  --kaze-inverse-primary: #6d3bd7;
+
+  --kaze-on-surface: #e7e0ed;
+  --kaze-on-surface-variant: #cbc3d7;
+  --kaze-on-background: #e7e0ed;
+  --kaze-inverse-surface: #e7e0ed;
+
+  --kaze-outline: #958ea0;
+  --kaze-outline-variant: #494454;
+
+  --kaze-error: #ffb4ab;
+  --kaze-on-error: #690005;
+  --kaze-error-container: #93000a;
+}
+
+/* ─── Light Theme ─── */
+
+.light {
+  --kaze-background: #fef7ff;
+  --kaze-surface: #fef7ff;
+  --kaze-surface-dim: #ded7e4;
+  --kaze-surface-bright: #fef7ff;
+  --kaze-surface-container: #f3ebf8;
+  --kaze-surface-container-low: #f8f1fe;
+  --kaze-surface-container-high: #ede5f3;
+  --kaze-surface-container-highest: #e7e0ed;
+  --kaze-surface-variant: #e7e0ed;
+
+  --kaze-primary: #6b38d4;
+  --kaze-primary-light: #8455ef;
+  --kaze-primary-container: #8455ef;
+  --kaze-on-primary: #ffffff;
+  --kaze-on-primary-container: #fffbff;
+  --kaze-inverse-primary: #d0bcff;
+
+  --kaze-on-surface: #1d1a23;
+  --kaze-on-surface-variant: #494454;
+  --kaze-on-background: #1d1a23;
+  --kaze-inverse-surface: #322f39;
+
+  --kaze-outline: #7b7486;
+  --kaze-outline-variant: #cbc3d7;
+
+  --kaze-error: #ba1a1a;
+  --kaze-on-error: #ffffff;
+  --kaze-error-container: #ffdad6;
+}
+
+/* ─── Base Styles ─── */
+
+html {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+::selection {
+  background-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+/* ─── Noise Overlay ─── */
+
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.light .noise-overlay {
+  opacity: 0.03;
+}
+
+/* ─── Ink Divider ─── */
+
+.ink-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-primary) 20%, transparent) 50%,
+    transparent
+  );
+}
+
+/* ─── Card Vignette ─── */
+
+.card-vignette {
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
+}
+
+/* ─── Watermark ─── */
+
+.watermark {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-heading);
+  font-size: 15vw;
+  font-weight: 900;
+  color: var(--color-on-surface);
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 0;
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* ─── Scrollbar ─── */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-outline-variant);
+  border-radius: 3px;
+}
+
+/* ─── Utility: Hide Scrollbar ─── */
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}

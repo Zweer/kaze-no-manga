@@ -1,4 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { Search, Wind } from 'lucide-react';
+
+import { AppShell } from '~/components/app-shell';
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -6,9 +9,46 @@ export const Route = createFileRoute('/')({
 
 function Home() {
   return (
-    <div>
-      <h1>風の漫画</h1>
-      <p>Kaze no Manga — Never lose your place in manga again</p>
-    </div>
+    <AppShell>
+      {/* Watermark */}
+      <div className="watermark">風の漫画</div>
+
+      {/* Hero */}
+      <section className="flex flex-col items-center justify-center text-center mb-16 pt-12 md:pt-8">
+        <h1 className="md:hidden font-heading text-[4rem] leading-none text-on-surface font-black mb-2">
+          Kaze
+        </h1>
+        <p className="md:hidden font-heading text-2xl font-bold text-primary/80 tracking-[0.2em]">
+          風の漫画
+        </p>
+
+        {/* Search Input */}
+        <div className="w-full max-w-2xl mt-12 relative group">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
+            <Search size={24} />
+          </div>
+          <input
+            type="text"
+            placeholder="Search by title..."
+            autoComplete="off"
+            className="w-full h-16 pl-14 pr-4 rounded-xl bg-surface-container/60 backdrop-blur-2xl border border-white/10 text-on-surface placeholder-on-surface-variant/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-2xl text-base font-medium"
+          />
+        </div>
+      </section>
+
+      {/* Ink Divider */}
+      <div className="w-full max-w-4xl mx-auto ink-divider mb-12" />
+
+      {/* Empty State */}
+      <section className="flex flex-col items-center justify-center py-20 text-center">
+        <Wind size={96} className="text-primary opacity-20 mb-6" />
+        <h2 className="font-heading text-2xl font-bold text-on-surface-variant mb-2">
+          Search for your next journey
+        </h2>
+        <p className="text-base font-medium text-on-surface-variant/60 max-w-md mx-auto">
+          Discover worlds of ink and wind. Enter a title above to begin exploring.
+        </p>
+      </section>
+    </AppShell>
   );
 }
