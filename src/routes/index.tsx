@@ -45,14 +45,7 @@ function Home() {
     <AppShell>
       {!query && <div className="watermark">風の漫画</div>}
 
-      <section className="flex flex-col items-center justify-center text-center mb-8 pt-12 md:pt-8">
-        <h1 className="md:hidden font-heading text-6xl leading-none text-on-surface font-black mb-2">
-          Kaze
-        </h1>
-        <p className="md:hidden font-heading text-xl font-bold text-primary/80 tracking-[0.2em] mb-12">
-          風の漫画
-        </p>
-
+      <section className="flex flex-col items-center justify-center text-center mb-8 pt-4 md:pt-8">
         <div className="w-full max-w-2xl relative group">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-on-surface-variant group-focus-within:text-primary transition-colors">
             <Search size={24} />
