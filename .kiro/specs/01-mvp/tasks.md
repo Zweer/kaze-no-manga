@@ -27,17 +27,17 @@ Each task ends with a deploy to Vercel. The app grows incrementally.
 
 **Acceptance:** ✅ User signs in with Google, session persists across page reloads.
 
-## T2 — Data Models (Drizzle + Neon)
+## T2 — Data Models (Drizzle + Neon) ✅
 
 **Scope:** Schema definition, migrations, types
 
-- [ ] Drizzle schema: manga, chapter, user, library, reading_progress tables
-- [ ] Neon database provisioned (free tier)
-- [ ] Migrations generated and applied
-- [ ] TypeScript types exported from schema
-- [ ] Deploy
+- [x] Drizzle schema: manga, chapter, user, library, reading_progress tables
+- [x] Neon database provisioned (free tier)
+- [x] Migrations generated and applied
+- [x] TypeScript types exported from schema
+- [x] Deploy
 
-**Acceptance:** Schema compiles, tables exist in Neon, types are importable.
+**Acceptance:** ✅ Schema compiles, tables exist in Neon, types are importable.
 
 ## T3 — Scraper (OmegaScans) ✅
 
@@ -59,7 +59,7 @@ Each task ends with a deploy to Vercel. The app grows incrementally.
 - [x] Server function: addToLibrary / removeFromLibrary
 - [x] Server function: getChapter (returns image URLs from source)
 - [x] Server function: markChapterRead
-- [ ] R2 integration: upload/download chapter images (deferred)
+- [x] R2 integration: upload/download chapter images
 - [x] Deploy
 
 **Acceptance:** ✅ All server functions return expected data.

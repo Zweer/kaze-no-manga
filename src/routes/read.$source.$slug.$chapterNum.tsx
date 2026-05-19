@@ -124,7 +124,7 @@ function Reader() {
         {pages.map((page) => (
           <img
             key={page.index}
-            src={`/api/image-proxy?url=${encodeURIComponent(page.imageUrl)}`}
+            src={page.imageUrl}
             alt={`Page ${page.index + 1}`}
             className="w-full max-w-3xl"
             loading="lazy"

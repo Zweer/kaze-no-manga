@@ -97,6 +97,7 @@ export const chapter = pgTable(
     title: text('title'),
     sourceUrl: text('source_url').notNull(),
     imagesOnR2: boolean('images_on_r2').notNull().default(false),
+    pageCount: integer('page_count'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
   },
   (t) => [unique('chapter_manga_id_number_unique').on(t.mangaId, t.number)],

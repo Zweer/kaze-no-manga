@@ -15,6 +15,13 @@
       "when": 1778432837462,
       "tag": "0001_massive_princess_powerful",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779217940157,
+      "tag": "0002_ambitious_eternals",
+      "breakpoints": true
     }
   ]
 }

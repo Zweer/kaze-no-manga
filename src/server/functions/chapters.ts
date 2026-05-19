@@ -6,6 +6,7 @@ import { auth } from '~/lib/auth';
 import { db } from '~/lib/db';
 import { chapter, library, manga, readingProgress } from '~/lib/db/schema';
 import { getSource } from '~/lib/scraper';
+import { downloadImage, pagePublicUrl, uploadPage } from '~/lib/storage';
 
 export const getChapters = createServerFn({ method: 'GET' })
   .inputValidator((input: { mangaId: string }) => input)
@@ -65,10 +66,7 @@ export const getPages = createServerFn({ method: 'GET' })
     const [mangaRow] = await db.select().from(manga).where(eq(manga.id, data.mangaId)).limit(1);
     if (!mangaRow) throw new Error('Manga not found');
 
-    const source = getSource(mangaRow.source);
-    if (!source) throw new Error(`Source not found: ${mangaRow.source}`);
-
-    // Get chapter to find slug
+    // Get chapter
     const [chapterRow] = await db
       .select()
       .from(chapter)
@@ -76,16 +74,41 @@ export const getPages = createServerFn({ method: 'GET' })
       .limit(1);
     if (!chapterRow) throw new Error('Chapter not found');
 
-    // Extract slugs from URLs
+    // If already on R2, return public URLs directly
+    if (chapterRow.imagesOnR2 && chapterRow.pageCount) {
+      return Array.from({ length: chapterRow.pageCount }, (_, i) => ({
+        index: i,
+        imageUrl: pagePublicUrl(data.mangaId, data.chapterId, i),
+      }));
+    }
+
+    // Not on R2 — download from source, upload to R2, then serve
+    const source = getSource(mangaRow.source);
+    if (!source) throw new Error(`Source not found: ${mangaRow.source}`);
+
     const mangaSlug = mangaRow.sourceUrl.split('/series/')[1];
-    if (!mangaSlug) throw new Error('Invalid manga source URL');
-
     const chapterSlug = chapterRow.sourceUrl.split('/').pop();
-    if (!chapterSlug) throw new Error('Invalid chapter source URL');
+    if (!mangaSlug || !chapterSlug) throw new Error('Invalid source URLs');
 
-    // Fetch pages directly from source (R2 integration later)
-    const pages = await source.getPages(mangaSlug, chapterSlug);
-    return pages;
+    const sourcePages = await source.getPages(mangaSlug, chapterSlug);
+    const referer = `${source.baseUrl}/`;
+
+    // Upload all pages to R2 in parallel
+    const urls = await Promise.all(
+      sourcePages.map(async (page) => {
+        const { buffer, contentType } = await downloadImage(page.imageUrl, referer);
+        const url = await uploadPage(data.mangaId, data.chapterId, page.index, buffer, contentType);
+        return { index: page.index, imageUrl: url };
+      }),
+    );
+
+    // Mark chapter as stored on R2
+    await db
+      .update(chapter)
+      .set({ imagesOnR2: true, pageCount: sourcePages.length })
+      .where(eq(chapter.id, data.chapterId));
+
+    return urls;
   });
 
 export const markChapterRead = createServerFn({ method: 'POST' })
