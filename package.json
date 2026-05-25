@@ -69,8 +69,8 @@
     "lockfile-lint": "5.0.0",
     "sort-package-json": "3.6.1",
     "typescript": "6.0.3",
-    "vite": "8.0.13",
-    "vitest": "4.1.6"
+    "vite": "8.0.14",
+    "vitest": "4.1.7"
   },
   "engines": {
     "node": "24.x"
