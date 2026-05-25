@@ -1,30 +1,24 @@
 import { createServerFn } from '@tanstack/react-start';
-import { getRequestHeaders } from '@tanstack/react-start/server';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, count, eq } from 'drizzle-orm';
 
-import { auth } from '~/lib/auth';
 import { db } from '~/lib/db';
 import { chapter, library, manga, readingProgress } from '~/lib/db/schema';
 import { getSource } from '~/lib/scraper';
+import { authMiddleware } from '~/server/middleware/auth';
 
 export const addMangaToLibrary = createServerFn({ method: 'POST' })
+  .middleware([authMiddleware])
   .inputValidator((input: { sourceName: string; slug: string }) => input)
-  .handler(async ({ data }) => {
-    const headers = getRequestHeaders();
-    const session = await auth.api.getSession({ headers });
-    if (!session) throw new Error('Unauthorized');
-
+  .handler(async ({ data, context }) => {
     const source = getSource(data.sourceName);
     if (!source) throw new Error(`Source not found: ${data.sourceName}`);
 
-    // Check if manga already exists in DB
     const mangaDetail = await source.getManga(data.slug);
     const mangaId = `${mangaDetail.sourceName}:${mangaDetail.sourceId}`;
 
     const [existing] = await db.select().from(manga).where(eq(manga.id, mangaId)).limit(1);
 
     if (!existing) {
-      // Save manga to DB
       await db
         .insert(manga)
         .values({
@@ -37,10 +31,8 @@ export const addMangaToLibrary = createServerFn({ method: 'POST' })
         })
         .onConflictDoNothing();
 
-      // Fetch and save chapters
       const chapters = await source.getChapters(data.slug);
       if (chapters.length > 0) {
-        // Insert in batches of 100 to avoid query size limits
         for (let i = 0; i < chapters.length; i += 100) {
           const batch = chapters.slice(i, i + 100);
           await db
@@ -59,13 +51,12 @@ export const addMangaToLibrary = createServerFn({ method: 'POST' })
       }
     }
 
-    // Add to user's library
-    const libraryId = `${session.user.id}:${mangaId}`;
+    const libraryId = `${context.session.user.id}:${mangaId}`;
     await db
       .insert(library)
       .values({
         id: libraryId,
-        userId: session.user.id,
+        userId: context.session.user.id,
         mangaId,
       })
       .onConflictDoNothing();
@@ -74,62 +65,55 @@ export const addMangaToLibrary = createServerFn({ method: 'POST' })
   });
 
 export const removeFromLibrary = createServerFn({ method: 'POST' })
+  .middleware([authMiddleware])
   .inputValidator((input: { mangaId: string }) => input)
-  .handler(async ({ data }) => {
-    const headers = getRequestHeaders();
-    const session = await auth.api.getSession({ headers });
-    if (!session) throw new Error('Unauthorized');
-
+  .handler(async ({ data, context }) => {
     await db
       .delete(library)
-      .where(and(eq(library.userId, session.user.id), eq(library.mangaId, data.mangaId)));
+      .where(and(eq(library.userId, context.session.user.id), eq(library.mangaId, data.mangaId)));
 
     return { success: true };
   });
 
-export const getLibrary = createServerFn({ method: 'GET' }).handler(async () => {
-  const headers = getRequestHeaders();
-  const session = await auth.api.getSession({ headers });
-  if (!session) throw new Error('Unauthorized');
+export const getLibrary = createServerFn({ method: 'GET' })
+  .middleware([authMiddleware])
+  .handler(async ({ context }) => {
+    const userId = context.session.user.id;
 
-  const results = await db
-    .select({
-      id: library.id,
-      status: library.status,
-      addedAt: library.addedAt,
-      mangaId: manga.id,
-      title: manga.title,
-      cover: manga.cover,
-      source: manga.source,
-      sourceUrl: manga.sourceUrl,
-    })
-    .from(library)
-    .innerJoin(manga, eq(library.mangaId, manga.id))
-    .where(eq(library.userId, session.user.id));
+    const results = await db
+      .select({
+        id: library.id,
+        status: library.status,
+        addedAt: library.addedAt,
+        mangaId: manga.id,
+        title: manga.title,
+        cover: manga.cover,
+        source: manga.source,
+        sourceUrl: manga.sourceUrl,
+        totalChapters: count(chapter.id),
+      })
+      .from(library)
+      .innerJoin(manga, eq(library.mangaId, manga.id))
+      .leftJoin(chapter, eq(chapter.mangaId, manga.id))
+      .where(eq(library.userId, userId))
+      .groupBy(library.id, manga.id);
 
-  // Get chapter counts and read counts for each manga
-  const enriched = await Promise.all(
-    results.map(async (r) => {
-      const [chapterCount] = await db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(chapter)
-        .where(eq(chapter.mangaId, r.mangaId));
+    // Get read counts in a single query
+    const readCounts = await db
+      .select({
+        mangaId: readingProgress.mangaId,
+        count: count(readingProgress.id),
+      })
+      .from(readingProgress)
+      .where(eq(readingProgress.userId, userId))
+      .groupBy(readingProgress.mangaId);
 
-      const [readCount] = await db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(readingProgress)
-        .where(
-          and(eq(readingProgress.mangaId, r.mangaId), eq(readingProgress.userId, session.user.id)),
-        );
+    const readMap = new Map(readCounts.map((r) => [r.mangaId, r.count]));
 
-      return {
-        ...r,
-        slug: r.sourceUrl.split('/series/')[1] || r.mangaId,
-        totalChapters: chapterCount?.count ?? 0,
-        readChapters: readCount?.count ?? 0,
-      };
-    }),
-  );
-
-  return enriched;
-});
+    return results.map((r) => ({
+      ...r,
+      slug: r.sourceUrl.split('/series/')[1] || r.mangaId,
+      totalChapters: r.totalChapters,
+      readChapters: readMap.get(r.mangaId) ?? 0,
+    }));
+  });
