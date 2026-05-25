@@ -4,6 +4,7 @@ import { and, count, eq } from 'drizzle-orm';
 import { db } from '~/lib/db';
 import { chapter, library, manga, readingProgress } from '~/lib/db/schema';
 import { getSource } from '~/lib/scraper';
+import { downloadImage, uploadCover } from '~/lib/storage';
 import { authMiddleware } from '~/server/middleware/auth';
 
 export const addMangaToLibrary = createServerFn({ method: 'POST' })
@@ -19,12 +20,27 @@ export const addMangaToLibrary = createServerFn({ method: 'POST' })
     const [existing] = await db.select().from(manga).where(eq(manga.id, mangaId)).limit(1);
 
     if (!existing) {
+      // Upload cover to R2 if available
+      let coverR2: string | null = null;
+      if (mangaDetail.cover) {
+        try {
+          const { buffer, contentType } = await downloadImage(
+            mangaDetail.cover,
+            `${source.baseUrl}/`,
+          );
+          coverR2 = await uploadCover(mangaId, buffer, contentType);
+        } catch {
+          // Non-blocking: fall back to source URL
+        }
+      }
+
       await db
         .insert(manga)
         .values({
           id: mangaId,
           title: mangaDetail.title,
           cover: mangaDetail.cover,
+          coverR2,
           source: mangaDetail.sourceName,
           sourceId: mangaDetail.sourceId,
           sourceUrl: `${source.baseUrl}/series/${mangaDetail.slug}`,
@@ -75,6 +91,23 @@ export const removeFromLibrary = createServerFn({ method: 'POST' })
     return { success: true };
   });
 
+export const updateLibraryStatus = createServerFn({ method: 'POST' })
+  .middleware([authMiddleware])
+  .inputValidator(
+    (input: {
+      mangaId: string;
+      status: 'reading' | 'completed' | 'plan_to_read' | 'dropped' | 'on_hold';
+    }) => input,
+  )
+  .handler(async ({ data, context }) => {
+    await db
+      .update(library)
+      .set({ status: data.status })
+      .where(and(eq(library.userId, context.session.user.id), eq(library.mangaId, data.mangaId)));
+
+    return { success: true };
+  });
+
 export const getLibrary = createServerFn({ method: 'GET' })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
@@ -88,6 +121,7 @@ export const getLibrary = createServerFn({ method: 'GET' })
         mangaId: manga.id,
         title: manga.title,
         cover: manga.cover,
+        coverR2: manga.coverR2,
         source: manga.source,
         sourceUrl: manga.sourceUrl,
         totalChapters: count(chapter.id),

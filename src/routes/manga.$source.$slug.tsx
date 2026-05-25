@@ -1,11 +1,16 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { BookPlus, Check, Loader2, Play } from 'lucide-react';
+import { BookPlus, Check, Circle, Loader2, Play } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { AppShell } from '~/components/app-shell';
 import type { Chapter, MangaDetail } from '~/lib/scraper/types';
-import { getMangaDetail, getReadChapters } from '~/server/functions/chapters';
+import {
+  getMangaDetail,
+  getReadChapters,
+  markChapterRead,
+  unmarkChapterRead,
+} from '~/server/functions/chapters';
 import { addMangaToLibrary, removeFromLibrary } from '~/server/functions/library';
 
 export const Route = createFileRoute('/manga/$source/$slug')({
@@ -195,23 +200,43 @@ function MangaDetailPage() {
         </h2>
         <div className="flex flex-col gap-1">
           {chapters.map((ch) => {
-            const isRead = readIds.includes(`${mangaId}:${ch.sourceId}`);
+            const chapterId = `${mangaId}:${ch.sourceId}`;
+            const isRead = readIds.includes(chapterId);
             return (
-              <Link
-                key={ch.sourceId}
-                to="/read/$source/$slug/$chapterNum"
-                params={{ source: sourceName, slug, chapterNum: String(ch.number) }}
-                search={{ mangaId }}
-                className={`flex items-center px-4 py-3 rounded-lg hover:bg-white/5 transition-colors ${isRead ? 'opacity-60' : ''}`}
-              >
-                <div className="flex items-center gap-3">
-                  {isRead && <Check size={14} className="text-primary" />}
+              <div key={ch.sourceId} className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (isRead) {
+                      unmarkChapterRead({ data: { mangaId, chapterId } });
+                      setReadIds((prev) => prev.filter((id) => id !== chapterId));
+                    } else {
+                      markChapterRead({ data: { mangaId, chapterId } });
+                      setReadIds((prev) => [...prev, chapterId]);
+                    }
+                  }}
+                  className="p-2 rounded-lg hover:bg-white/5 transition-colors shrink-0"
+                  title={isRead ? 'Mark as unread' : 'Mark as read'}
+                >
+                  {isRead ? (
+                    <Check size={14} className="text-primary" />
+                  ) : (
+                    <Circle size={14} className="text-on-surface-variant/40" />
+                  )}
+                </button>
+                <Link
+                  to="/read/$source/$slug/$chapterNum"
+                  params={{ source: sourceName, slug, chapterNum: String(ch.number) }}
+                  search={{ mangaId }}
+                  className={`flex-1 flex items-center px-3 py-3 rounded-lg hover:bg-white/5 transition-colors ${isRead ? 'opacity-60' : ''}`}
+                >
                   <span className="text-sm font-medium text-on-surface">Chapter {ch.number}</span>
                   {ch.title && (
-                    <span className="text-sm text-on-surface-variant">— {ch.title}</span>
+                    <span className="text-sm text-on-surface-variant ml-2">— {ch.title}</span>
                   )}
-                </div>
-              </Link>
+                </Link>
+              </div>
             );
           })}
         </div>

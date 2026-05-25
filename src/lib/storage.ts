@@ -17,9 +17,19 @@ export function pageKey(mangaId: string, chapterId: string, pageIndex: number): 
   return `chapters/${mangaId}/${chapterId}/${String(pageIndex).padStart(3, '0')}.webp`;
 }
 
+/** Build the R2 key for a manga cover */
+export function coverKey(mangaId: string): string {
+  return `covers/${mangaId}/cover.jpg`;
+}
+
 /** Get the public URL for a stored page */
 export function pagePublicUrl(mangaId: string, chapterId: string, pageIndex: number): string {
   return `${publicUrl}/${pageKey(mangaId, chapterId, pageIndex)}`;
+}
+
+/** Get the public URL for a stored cover */
+export function coverPublicUrl(mangaId: string): string {
+  return `${publicUrl}/${coverKey(mangaId)}`;
 }
 
 /** Upload a single image buffer to R2 */
@@ -31,6 +41,24 @@ export async function uploadPage(
   contentType: string,
 ): Promise<string> {
   const key = pageKey(mangaId, chapterId, pageIndex);
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+    }),
+  );
+  return `${publicUrl}/${key}`;
+}
+
+/** Upload a manga cover to R2, returns the public URL */
+export async function uploadCover(
+  mangaId: string,
+  body: Buffer | Uint8Array,
+  contentType: string,
+): Promise<string> {
+  const key = coverKey(mangaId);
   await s3.send(
     new PutObjectCommand({
       Bucket: bucket,

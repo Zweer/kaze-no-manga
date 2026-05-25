@@ -121,6 +121,22 @@ export const markChapterRead = createServerFn({ method: 'POST' })
     return { success: true };
   });
 
+export const unmarkChapterRead = createServerFn({ method: 'POST' })
+  .middleware([authMiddleware])
+  .inputValidator((input: { mangaId: string; chapterId: string }) => input)
+  .handler(async ({ data, context }) => {
+    await db
+      .delete(readingProgress)
+      .where(
+        and(
+          eq(readingProgress.userId, context.session.user.id),
+          eq(readingProgress.chapterId, data.chapterId),
+        ),
+      );
+
+    return { success: true };
+  });
+
 export const getReadChapters = createServerFn({ method: 'GET' })
   .middleware([authMiddleware])
   .inputValidator((input: { mangaId: string }) => input)

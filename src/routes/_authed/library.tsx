@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { BookOpen, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 import { AppShell } from '~/components/app-shell';
-import { getLibrary } from '~/server/functions/library';
+import { getLibrary, updateLibraryStatus } from '~/server/functions/library';
 
 type LibraryItem = Awaited<ReturnType<typeof getLibrary>>[number];
 type Status = 'reading' | 'completed' | 'plan_to_read' | 'dropped' | 'on_hold';
@@ -16,6 +17,14 @@ const tabs: { label: string; value: Status | 'all' }[] = [
   { label: 'Dropped', value: 'dropped' },
   { label: 'On Hold', value: 'on_hold' },
 ];
+
+const statusLabels: Record<Status, string> = {
+  reading: 'Reading',
+  completed: 'Completed',
+  plan_to_read: 'Plan to Read',
+  dropped: 'Dropped',
+  on_hold: 'On Hold',
+};
 
 export const Route = createFileRoute('/_authed/library')({
   component: Library,
@@ -33,6 +42,16 @@ function Library() {
   }, []);
 
   const filtered = activeTab === 'all' ? items : items.filter((i) => i.status === activeTab);
+
+  const handleStatusChange = async (mangaId: string, status: Status) => {
+    try {
+      await updateLibraryStatus({ data: { mangaId, status } });
+      setItems((prev) => prev.map((i) => (i.mangaId === mangaId ? { ...i, status } : i)));
+      toast.success(`Status updated to "${statusLabels[status]}"`);
+    } catch {
+      toast.error('Failed to update status.');
+    }
+  };
 
   return (
     <AppShell>
@@ -61,68 +80,84 @@ function Library() {
         </div>
       </div>
 
-      {/* Loading */}
       {loading && (
         <div className="flex justify-center py-20">
           <Loader2 size={32} className="text-primary animate-spin" />
         </div>
       )}
 
-      {/* Grid */}
       {!loading && filtered.length > 0 && (
         <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {filtered.map((item) => (
-            <Link
+            <div
               key={item.id}
-              to="/manga/$source/$slug"
-              params={{ source: item.source, slug: item.slug }}
               className="group relative flex flex-col rounded-xl overflow-hidden bg-surface-container/60 border border-white/5 hover:border-primary/30 transition-all hover:-translate-y-1"
             >
-              <div className="aspect-[3/4] relative overflow-hidden">
-                {item.cover ? (
-                  <img
-                    src={item.cover}
-                    alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-surface-container-high flex items-center justify-center">
-                    <span className="text-on-surface-variant/40 text-4xl font-heading font-black">
-                      {item.title[0]}
-                    </span>
-                  </div>
-                )}
-                <div className="card-vignette absolute inset-0" />
-              </div>
-              <div className="p-3">
-                <h3 className="text-sm font-semibold text-on-surface line-clamp-2 leading-tight">
-                  {item.title}
-                </h3>
-                <div className="flex items-center justify-between mt-1">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-primary/70">
-                    {item.source}
-                  </p>
-                  {item.totalChapters - item.readChapters > 0 && (
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-on-primary">
-                      {item.totalChapters - item.readChapters}
-                    </span>
+              <Link
+                to="/manga/$source/$slug"
+                params={{ source: item.source, slug: item.slug }}
+                className="flex flex-col"
+              >
+                <div className="aspect-[3/4] relative overflow-hidden">
+                  {item.coverR2 || item.cover ? (
+                    <img
+                      src={item.coverR2 || item.cover!}
+                      alt={item.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-surface-container-high flex items-center justify-center">
+                      <span className="text-on-surface-variant/40 text-4xl font-heading font-black">
+                        {item.title[0]}
+                      </span>
+                    </div>
                   )}
+                  <div className="card-vignette absolute inset-0" />
                 </div>
+                <div className="p-3 pb-1">
+                  <h3 className="text-sm font-semibold text-on-surface line-clamp-2 leading-tight">
+                    {item.title}
+                  </h3>
+                  <div className="flex items-center justify-between mt-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-primary/70">
+                      {item.source}
+                    </p>
+                    {item.totalChapters - item.readChapters > 0 && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-on-primary">
+                        {item.totalChapters - item.readChapters}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Link>
+              {/* Status selector */}
+              <div className="px-3 pb-3 pt-1">
+                <select
+                  value={item.status}
+                  onChange={(e) => handleStatusChange(item.mangaId, e.target.value as Status)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full text-[11px] font-medium px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-on-surface-variant appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  {Object.entries(statusLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
               </div>
-            </Link>
+            </div>
           ))}
         </section>
       )}
 
-      {/* Empty State */}
       {!loading && filtered.length === 0 && (
         <section className="flex flex-col items-center justify-center py-20 text-center">
           <BookOpen size={64} className="text-primary opacity-20 mb-6" />
           <p className="text-on-surface-variant text-lg font-medium">
             {activeTab === 'all'
               ? 'Nothing here yet'
-              : `No manga with status "${activeTab.replace('_', ' ')}"`}
+              : `No manga with status "${statusLabels[activeTab as Status]}"`}
           </p>
           <p className="text-on-surface-variant/60 text-sm mt-2">
             Search for manga and add them to your collection.

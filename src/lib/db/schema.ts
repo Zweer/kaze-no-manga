@@ -77,6 +77,7 @@ export const manga = pgTable(
     id: text('id').primaryKey(),
     title: text('title').notNull(),
     cover: text('cover'),
+    coverR2: text('cover_r2'),
     source: text('source').notNull(),
     sourceId: text('source_id').notNull(),
     sourceUrl: text('source_url').notNull(),
