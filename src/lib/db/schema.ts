@@ -145,3 +145,14 @@ export const readingProgress = pgTable(
   },
   (t) => [unique('reading_progress_user_chapter_unique').on(t.userId, t.chapterId)],
 );
+
+export const pushSubscription = pgTable('push_subscription', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  endpoint: text('endpoint').notNull().unique(),
+  p256dh: text('p256dh').notNull(),
+  auth: text('auth').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});

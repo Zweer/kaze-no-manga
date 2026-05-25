@@ -29,6 +29,13 @@
       "when": 1779743605693,
       "tag": "0003_chilly_chamber",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1779744282802,
+      "tag": "0004_parallel_tigra",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,8 @@
 import { Link } from '@tanstack/react-router';
-import { LogOut, Moon, Sun, User } from 'lucide-react';
+import { Bell, BellOff, LogOut, Moon, Sun, User } from 'lucide-react';
 import { useState } from 'react';
 
+import { usePushNotifications } from '~/hooks/use-push-notifications';
 import { useTheme } from '~/hooks/use-theme';
 import { authClient } from '~/lib/auth-client';
 
@@ -12,6 +13,7 @@ interface UserMenuProps {
 export function UserMenu({ compact }: UserMenuProps) {
   const { data: session } = authClient.useSession();
   const { theme, toggle } = useTheme();
+  const push = usePushNotifications();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleSignOut = () => {
@@ -63,6 +65,17 @@ export function UserMenu({ compact }: UserMenuProps) {
                     <p className="text-xs text-on-surface-variant truncate">{session.user.email}</p>
                   )}
                 </div>
+                {push.supported && (
+                  <button
+                    type="button"
+                    onClick={push.toggle}
+                    disabled={push.loading}
+                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-on-surface-variant hover:bg-white/5 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {push.subscribed ? <BellOff size={iconSize} /> : <Bell size={iconSize} />}
+                    {push.subscribed ? 'Disable Notifications' : 'Enable Notifications'}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={handleSignOut}

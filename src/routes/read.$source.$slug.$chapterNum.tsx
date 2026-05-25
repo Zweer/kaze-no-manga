@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 import { getChapters, getPages, markChapterRead } from '~/server/functions/chapters';
 
@@ -23,9 +24,6 @@ export const Route = createFileRoute('/read/$source/$slug/$chapterNum')({
 
     const pages = await getPages({ data: { mangaId, chapterId: currentChapter.id } });
 
-    // Mark as read (fire and forget)
-    markChapterRead({ data: { mangaId, chapterId: currentChapter.id } });
-
     return { chapters: sorted, currentChapter, pages, mangaId, num };
   },
   component: Reader,
@@ -36,9 +34,33 @@ function Reader() {
   const { chapters, currentChapter, pages, mangaId, num } = Route.useLoaderData();
   const navigate = useNavigate();
   const [showUI, setShowUI] = useState(true);
+  const [markedRead, setMarkedRead] = useState(false);
+  const lastPageRef = useRef<HTMLImageElement>(null);
 
   const prevChapter = chapters.find((c) => c.number === num - 1);
   const nextChapter = chapters.find((c) => c.number === num + 1);
+
+  // Mark as read when last page becomes visible
+  useEffect(() => {
+    if (!currentChapter || pages.length === 0 || markedRead) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          markChapterRead({ data: { mangaId, chapterId: currentChapter.id } });
+          setMarkedRead(true);
+          toast.success('Chapter marked as read', { duration: 2000 });
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.5 },
+    );
+
+    const el = lastPageRef.current;
+    if (el) observer.observe(el);
+
+    return () => observer.disconnect();
+  }, [currentChapter, pages.length, markedRead, mangaId]);
 
   const goToChapter = useCallback(
     (chNum: number) => {
@@ -85,9 +107,10 @@ function Reader() {
 
       {/* Pages */}
       <div className="flex flex-col items-center">
-        {pages.map((page) => (
+        {pages.map((page, i) => (
           <img
             key={page.index}
+            ref={i === pages.length - 1 ? lastPageRef : undefined}
             src={page.imageUrl}
             alt={`Page ${page.index + 1}`}
             className="w-full max-w-3xl"
