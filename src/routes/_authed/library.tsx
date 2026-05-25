@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { BookOpen, Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { BookOpen } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { AppShell } from '~/components/app-shell';
@@ -27,19 +27,14 @@ const statusLabels: Record<Status, string> = {
 };
 
 export const Route = createFileRoute('/_authed/library')({
+  loader: () => getLibrary(),
   component: Library,
 });
 
 function Library() {
-  const [items, setItems] = useState<LibraryItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const initialItems = Route.useLoaderData();
+  const [items, setItems] = useState<LibraryItem[]>(initialItems);
   const [activeTab, setActiveTab] = useState<Status | 'all'>('all');
-
-  useEffect(() => {
-    getLibrary()
-      .then(setItems)
-      .finally(() => setLoading(false));
-  }, []);
 
   const filtered = activeTab === 'all' ? items : items.filter((i) => i.status === activeTab);
 
@@ -80,13 +75,7 @@ function Library() {
         </div>
       </div>
 
-      {loading && (
-        <div className="flex justify-center py-20">
-          <Loader2 size={32} className="text-primary animate-spin" />
-        </div>
-      )}
-
-      {!loading && filtered.length > 0 && (
+      {filtered.length > 0 && (
         <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {filtered.map((item) => (
             <div
@@ -131,7 +120,6 @@ function Library() {
                   </div>
                 </div>
               </Link>
-              {/* Status selector */}
               <div className="px-3 pb-3 pt-1">
                 <select
                   value={item.status}
@@ -151,7 +139,7 @@ function Library() {
         </section>
       )}
 
-      {!loading && filtered.length === 0 && (
+      {filtered.length === 0 && (
         <section className="flex flex-col items-center justify-center py-20 text-center">
           <BookOpen size={64} className="text-primary opacity-20 mb-6" />
           <p className="text-on-surface-variant text-lg font-medium">

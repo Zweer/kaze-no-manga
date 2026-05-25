@@ -1,54 +1,41 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useCallback, useState } from 'react';
 
-import type { Page } from '~/lib/scraper/types';
 import { getChapters, getPages, markChapterRead } from '~/server/functions/chapters';
 
 export const Route = createFileRoute('/read/$source/$slug/$chapterNum')({
-  component: Reader,
   validateSearch: (search: Record<string, unknown>) => ({
     mangaId: (search.mangaId as string) || '',
   }),
+  loaderDeps: ({ search }) => ({ mangaId: search.mangaId }),
+  loader: async ({ params, deps }) => {
+    const { mangaId } = deps;
+    const num = Number.parseInt(params.chapterNum, 10);
+
+    const chapters = await getChapters({ data: { mangaId } });
+    const sorted = chapters.sort((a, b) => a.number - b.number);
+    const currentChapter = sorted.find((c) => c.number === num);
+
+    if (!currentChapter) {
+      return { chapters: sorted, currentChapter: null, pages: [], mangaId, num };
+    }
+
+    const pages = await getPages({ data: { mangaId, chapterId: currentChapter.id } });
+
+    // Mark as read (fire and forget)
+    markChapterRead({ data: { mangaId, chapterId: currentChapter.id } });
+
+    return { chapters: sorted, currentChapter, pages, mangaId, num };
+  },
+  component: Reader,
 });
 
-type ChapterInfo = Awaited<ReturnType<typeof getChapters>>[number];
-
 function Reader() {
-  const { source, slug, chapterNum } = Route.useParams();
-  const { mangaId } = Route.useSearch();
+  const { source, slug } = Route.useParams();
+  const { chapters, currentChapter, pages, mangaId, num } = Route.useLoaderData();
   const navigate = useNavigate();
-  const [pages, setPages] = useState<Page[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [chapters, setChapters] = useState<ChapterInfo[]>([]);
-  const [currentChapter, setCurrentChapter] = useState<ChapterInfo | null>(null);
   const [showUI, setShowUI] = useState(true);
-
-  const num = Number.parseInt(chapterNum, 10);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    getChapters({ data: { mangaId } }).then((chs) => {
-      const sorted = chs.sort((a, b) => a.number - b.number);
-      setChapters(sorted);
-      const ch = sorted.find((c) => c.number === num);
-      setCurrentChapter(ch || null);
-
-      if (ch) {
-        getPages({ data: { mangaId, chapterId: ch.id } })
-          .then(setPages)
-          .catch(() => setError('Failed to load chapter images.'))
-          .finally(() => setLoading(false));
-
-        // Mark as read
-        markChapterRead({ data: { mangaId, chapterId: ch.id } });
-      } else {
-        setLoading(false);
-      }
-    });
-  }, [mangaId, num]);
 
   const prevChapter = chapters.find((c) => c.number === num - 1);
   const nextChapter = chapters.find((c) => c.number === num + 1);
@@ -64,33 +51,10 @@ function Reader() {
     [navigate, source, slug, mangaId],
   );
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 size={32} className="text-primary animate-spin" />
-      </div>
-    );
-  }
-
   if (!currentChapter) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center text-on-surface-variant">
         Chapter not found
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
-        <p className="text-white/60">{error}</p>
-        <button
-          type="button"
-          onClick={() => window.location.reload()}
-          className="px-6 py-3 bg-primary text-on-primary rounded-xl font-medium"
-        >
-          Retry
-        </button>
       </div>
     );
   }

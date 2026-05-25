@@ -1,10 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { BookPlus, Check, Circle, Loader2, Play } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
 import { AppShell } from '~/components/app-shell';
-import type { Chapter, MangaDetail } from '~/lib/scraper/types';
 import {
   getMangaDetail,
   getReadChapters,
@@ -14,37 +13,22 @@ import {
 import { addMangaToLibrary, removeFromLibrary } from '~/server/functions/library';
 
 export const Route = createFileRoute('/manga/$source/$slug')({
+  loader: async ({ params }) => {
+    const detail = await getMangaDetail({ data: { sourceName: params.source, slug: params.slug } });
+    const readIds = await getReadChapters({ data: { mangaId: detail.mangaId } }).catch(() => []);
+    return { ...detail, readIds };
+  },
   component: MangaDetailPage,
 });
 
 function MangaDetailPage() {
   const { source: sourceName, slug } = Route.useParams();
-  const [manga, setManga] = useState<MangaDetail | null>(null);
-  const [chapters, setChapters] = useState<Chapter[]>([]);
-  const [readIds, setReadIds] = useState<string[]>([]);
-  const [mangaId, setMangaId] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const loaderData = Route.useLoaderData();
+  const { manga, chapters, mangaId } = loaderData;
+
+  const [readIds, setReadIds] = useState<string[]>(loaderData.readIds);
   const [adding, setAdding] = useState(false);
-  const [added, setAdded] = useState(false);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-
-    getMangaDetail({ data: { sourceName, slug } })
-      .then(async (result) => {
-        setManga(result.manga);
-        setChapters(result.chapters);
-        setMangaId(result.mangaId);
-        setAdded(result.inLibrary);
-
-        const read = await getReadChapters({ data: { mangaId: result.mangaId } }).catch(() => []);
-        setReadIds(read);
-      })
-      .catch(() => setError('Failed to load manga details.'))
-      .finally(() => setLoading(false));
-  }, [sourceName, slug]);
+  const [added, setAdded] = useState(loaderData.inLibrary);
 
   const handleAdd = useCallback(async () => {
     setAdding(true);
@@ -72,33 +56,6 @@ function MangaDetailPage() {
       toast.error('Failed to remove.');
     }
   }, [mangaId]);
-
-  if (loading) {
-    return (
-      <AppShell>
-        <div className="flex justify-center py-20">
-          <Loader2 size={32} className="text-primary animate-spin" />
-        </div>
-      </AppShell>
-    );
-  }
-
-  if (error || !manga) {
-    return (
-      <AppShell>
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <p className="text-on-surface-variant mb-4">{error || 'Manga not found'}</p>
-          <button
-            type="button"
-            onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-primary text-on-primary rounded-xl font-medium"
-          >
-            Retry
-          </button>
-        </div>
-      </AppShell>
-    );
-  }
 
   // Find next unread chapter for "Continue Reading"
   const nextUnread = (() => {
@@ -206,8 +163,7 @@ function MangaDetailPage() {
               <div key={ch.sourceId} className="flex items-center gap-1">
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
+                  onClick={() => {
                     if (isRead) {
                       unmarkChapterRead({ data: { mangaId, chapterId } });
                       setReadIds((prev) => prev.filter((id) => id !== chapterId));
