@@ -60,18 +60,18 @@
     "web-push": "3.6.7"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.15",
+    "@biomejs/biome": "2.4.16",
     "@types/node": "25.9.1",
     "@types/react": "19.2.15",
     "@types/react-dom": "19.2.3",
     "@types/web-push": "3.6.4",
     "@vitejs/plugin-react": "6.0.2",
     "drizzle-kit": "0.31.10",
-    "lefthook": "2.1.8",
+    "lefthook": "2.1.9",
     "lockfile-lint": "5.0.0",
     "sort-package-json": "3.6.1",
     "typescript": "6.0.3",
-    "vite": "8.0.14",
+    "vite": "8.0.15",
     "vitest": "4.1.7"
   },
   "engines": {
