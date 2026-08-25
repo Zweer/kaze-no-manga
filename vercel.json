@@ -1,3 +1,4 @@
 {
+	"framework": "nextjs",
 	"buildCommand": "drizzle-kit migrate && next build"
 }
