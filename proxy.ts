@@ -13,7 +13,10 @@ export function proxy(request: NextRequest): NextResponse {
 		return NextResponse.next();
 	}
 
-	const sessionToken = request.cookies.get("better-auth.session_token")?.value;
+	// Better Auth prefixes cookie with __Secure- on HTTPS
+	const sessionToken =
+		request.cookies.get("__Secure-better-auth.session_token")?.value ||
+		request.cookies.get("better-auth.session_token")?.value;
 
 	if (!sessionToken) {
 		const homeUrl = new URL("/", request.url);

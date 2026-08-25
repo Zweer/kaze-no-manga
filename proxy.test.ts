@@ -60,6 +60,18 @@ describe("Proxy", () => {
 		expect(response.headers.get("x-middleware-next")).toBe("1");
 	});
 
+	it("should allow authenticated users with __Secure- prefixed cookie", () => {
+		const request = new NextRequest(new URL("http://localhost:3000/library"), {
+			headers: {
+				cookie: "__Secure-better-auth.session_token=valid-token-123",
+			},
+		});
+		const response = proxy(request);
+
+		expect(response.status).toBe(200);
+		expect(response.headers.get("x-middleware-next")).toBe("1");
+	});
+
 	it("should have correct matcher config", () => {
 		expect(config.matcher).toEqual(["/((?!api|_next/static|_next/image|favicon.ico).*)"]);
 	});
