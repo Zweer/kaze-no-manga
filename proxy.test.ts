@@ -11,29 +11,32 @@ describe("Proxy", () => {
 		expect(response.headers.get("x-middleware-next")).toBe("1");
 	});
 
-	it("should allow access to /login without auth", () => {
-		const request = new NextRequest(new URL("http://localhost:3000/login"));
+	it("should allow access to search without auth", () => {
+		const request = new NextRequest(new URL("http://localhost:3000/"));
 		const response = proxy(request);
 
 		expect(response.status).toBe(200);
 		expect(response.headers.get("x-middleware-next")).toBe("1");
 	});
 
-	it("should redirect unauthenticated users from /library to /login", () => {
+	it("should redirect unauthenticated users from /library to /?login=true", () => {
 		const request = new NextRequest(new URL("http://localhost:3000/library"));
 		const response = proxy(request);
 
 		expect(response.status).toBe(307);
-		expect(response.headers.get("location")).toContain("/login");
-		expect(response.headers.get("location")).toContain("callbackUrl=%2Flibrary");
+		const location = response.headers.get("location")!;
+		expect(location).toContain("/?login=true");
+		expect(location).toContain("callbackUrl=%2Flibrary");
 	});
 
-	it("should redirect unauthenticated users from /settings to /login", () => {
+	it("should redirect unauthenticated users from /settings to /?login=true", () => {
 		const request = new NextRequest(new URL("http://localhost:3000/settings"));
 		const response = proxy(request);
 
 		expect(response.status).toBe(307);
-		expect(response.headers.get("location")).toContain("/login");
+		const location = response.headers.get("location")!;
+		expect(location).toContain("/?login=true");
+		expect(location).toContain("callbackUrl=%2Fsettings");
 	});
 
 	it("should redirect unauthenticated users from nested protected routes", () => {
@@ -41,7 +44,8 @@ describe("Proxy", () => {
 		const response = proxy(request);
 
 		expect(response.status).toBe(307);
-		expect(response.headers.get("location")).toContain("/login");
+		const location = response.headers.get("location")!;
+		expect(location).toContain("/?login=true");
 	});
 
 	it("should allow authenticated users to access protected routes", () => {

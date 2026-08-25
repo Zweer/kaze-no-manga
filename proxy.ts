@@ -16,9 +16,10 @@ export function proxy(request: NextRequest): NextResponse {
 	const sessionToken = request.cookies.get("better-auth.session_token")?.value;
 
 	if (!sessionToken) {
-		const loginUrl = new URL("/login", request.url);
-		loginUrl.searchParams.set("callbackUrl", pathname);
-		return NextResponse.redirect(loginUrl);
+		const homeUrl = new URL("/", request.url);
+		homeUrl.searchParams.set("login", "true");
+		homeUrl.searchParams.set("callbackUrl", pathname);
+		return NextResponse.redirect(homeUrl);
 	}
 
 	return NextResponse.next();

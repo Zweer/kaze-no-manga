@@ -1,4 +1,6 @@
-import { DesktopNav, MobileNav, NoiseOverlay } from "@/components/layout";
+import { Suspense } from "react";
+import { MobileNav, DesktopNav, NoiseOverlay } from "@/components/layout";
+import { LoginDialog } from "@/components/login-dialog";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
 	return (
@@ -9,6 +11,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 				{children}
 			</main>
 			<MobileNav />
+			<Suspense>
+				<LoginDialog />
+			</Suspense>
 		</>
 	);
 }
