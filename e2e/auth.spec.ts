@@ -4,7 +4,7 @@ test.describe("Public access", () => {
 	test("should display the homepage without auth", async ({ page }) => {
 		await page.goto("/");
 		await expect(page).toHaveURL("/");
-		await expect(page.getByRole("heading", { name: "Kaze" })).toBeVisible();
+		await expect(page.getByText("Search manga...")).toBeVisible();
 	});
 
 	test("should show search placeholder on homepage", async ({ page }) => {

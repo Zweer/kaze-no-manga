@@ -1,17 +1,17 @@
 export default function SearchPage() {
 	return (
-		<div className="space-y-6">
-			<div className="space-y-2">
-				<h1 className="font-heading text-4xl font-black md:text-6xl">Kaze</h1>
-				<p className="text-sm text-muted-foreground">Search for your next journey</p>
-			</div>
-
+		<div className="space-y-8">
 			<div className="h-16 w-full rounded-xl border border-input bg-card/50 px-5 py-4 text-muted-foreground">
 				Search manga...
 			</div>
 
-			<div className="flex items-center justify-center py-20">
-				<p className="text-4xl text-muted-foreground/20 font-heading select-none">風の漫画</p>
+			<div className="flex flex-col items-center justify-center py-20">
+				<p className="select-none font-heading text-5xl text-muted-foreground/10 md:text-7xl">
+					風の漫画
+				</p>
+				<p className="mt-4 text-sm text-muted-foreground">
+					Search for your next journey
+				</p>
 			</div>
 		</div>
 	);
