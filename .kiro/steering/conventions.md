@@ -24,20 +24,29 @@
 - Drizzle ORM with `node-postgres` + `@vercel/functions` `attachDatabasePool`
 - Client in `lib/db/index.ts`
 - Models in `lib/db/models/` — one file per domain:
-  - `auth.ts` (user, session, account, verification)
-  - `manga.ts` (manga, chapter)
-  - `library.ts` (library, reading_progress)
+  - `auth.ts` (user, session, account, verification, passkey)
+  - `manga.ts` (manga, chapter) — future
+  - `library.ts` (library, reading_progress) — future
   - `index.ts` (barrel re-export)
 - Relations in `lib/db/relations.ts` (cross-domain, single source of truth)
-- Migrations in `drizzle/` directory
+- Migrations output in `db/` directory (committed to repo)
 - Runtime: `DATABASE_URL` (pooled, via PgBouncer)
 - Migrations: `DATABASE_URL_UNPOOLED` (direct connection for drizzle-kit)
+- Deploy: `drizzle-kit migrate` runs before `next build` (vercel.json buildCommand)
+- Local: `dotenv-cli` loads `.env.local` for db:* scripts
 
 ## Storage
 
-- Cloudflare R2 via `@aws-sdk/client-s3` (S3-compatible API)
-- Image strategy: TBD (store vs proxy — see architecture open points)
+- Images from source: direct links, no proxy, no R2 (simplicity first)
+- May revisit in post-MVP
 
 ## Auth
 
-- Solution: TBD (see architecture open points)
+- Better Auth (1.7+) with `@better-auth/drizzle-adapter/relations-v2`
+- Providers: Google OAuth + Passkey (`@better-auth/passkey`)
+- Server config in `lib/auth.ts`
+- Client helper in `lib/auth-client.ts`
+- Route handler in `app/api/auth/[...all]/route.ts`
+- Route protection via `proxy.ts` (Next.js 16 proxy convention)
+- Public routes: `/`, `/login`, search, manga detail
+- Protected routes: `/library`, `/settings`

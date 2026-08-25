@@ -1,30 +1,31 @@
 # MVP Waves
 
-## Wave 0 — Bootstrap
+## Wave 0 — Bootstrap ✅
 
 **Goal**: Working infra, clean slate, deployable app with auth.
 
 ### Tasks
 
-- [ ] Wipe Neon DB (drop all tables from old implementation)
-- [ ] `create-next-app` with App Router + TypeScript
-- [ ] Biome config (lint + format)
-- [ ] Lefthook config (pre-commit: biome check)
-- [ ] Drizzle ORM setup (node-postgres + @vercel/functions, models in lib/db/models/, migrations)
-- [ ] Better Auth setup (Google OAuth, Drizzle adapter relations-v2)
-- [ ] Auth tables generated + migrated
-- [ ] Login/logout flow (minimal — just functional)
-- [ ] Protected routes middleware
-- [ ] Vitest + Playwright setup
-- [ ] Deploy to Vercel (CI: lint + test on push)
-- [ ] Tests: auth flow unit tests + E2E login/logout
+- [x] Wipe Neon DB (drop all tables from old implementation)
+- [x] `create-next-app` with App Router + TypeScript
+- [x] Biome config (lint + format)
+- [x] Lefthook config (pre-commit: biome check + vitest)
+- [x] Drizzle ORM setup (node-postgres + @vercel/functions, models in lib/db/models/, migrations)
+- [x] Better Auth setup (Google OAuth + Passkey, Drizzle adapter relations-v2)
+- [x] Auth tables generated + migrated
+- [x] Login/logout flow (minimal — just functional)
+- [x] Protected routes via proxy.ts (Next.js 16 convention)
+- [x] Vitest + Playwright setup
+- [x] Deploy to Vercel (auto-migrate on build)
+- [x] Tests: proxy unit tests (100% coverage) + E2E login/redirect
 
-### Acceptance
+### Acceptance ✅
 
 - App deploys to Vercel on push
 - User can sign in with Google and sign out
-- Unauthenticated users are redirected to login
-- All tests pass, 100% coverage of wave code
+- Unauthenticated users are redirected to login on protected routes
+- Public routes (/, /login) accessible without auth
+- All tests pass, 100% coverage on proxy logic
 
 ---
 

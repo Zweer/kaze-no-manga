@@ -34,10 +34,12 @@ Kaze no Manga is a manga reading tracker — search, read, and track progress ac
 
 | Table | Purpose |
 |-------|---------|
-| `manga` | Global manga metadata (title, cover, source, source_id) |
-| `chapter` | Chapters per manga (number, title, source_url) |
 | `user` | User profiles (managed by Better Auth) |
 | `session` | Sessions (managed by Better Auth) |
 | `account` | OAuth accounts (managed by Better Auth) |
+| `verification` | Email/token verification (managed by Better Auth) |
+| `passkey` | WebAuthn credentials (managed by Better Auth) |
+| `manga` | Global manga metadata (title, cover, source, source_id) |
+| `chapter` | Chapters per manga (number, title, source_url) |
 | `library` | User ↔ Manga relationship (status, added_at) |
 | `reading_progress` | Current chapter per manga per user, chapters read |
