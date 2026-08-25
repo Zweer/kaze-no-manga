@@ -1,0 +1,49 @@
+{
+	"name": "kaze-no-manga",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "next dev --turbopack",
+		"build": "next build",
+		"start": "next start",
+		"lint": "biome check .",
+		"lint:fix": "biome check --fix .",
+		"format": "biome format --write .",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage",
+		"test:e2e": "playwright test",
+		"db:generate": "dotenv -e .env.local -- drizzle-kit generate",
+		"db:migrate": "dotenv -e .env.local -- drizzle-kit migrate",
+		"db:push": "dotenv -e .env.local -- drizzle-kit push",
+		"db:studio": "dotenv -e .env.local -- drizzle-kit studio",
+		"env:pull": "npx vercel env pull .env.local --environment production && sed -i 's/=\"\\[SENSITIVE\\]\"/=/g' .env.local && sed -i '/^#/d' .env.local"
+	},
+	"dependencies": {
+		"@better-auth/drizzle-adapter": "1.7.1",
+		"@better-auth/passkey": "1.7.1",
+		"@vercel/functions": "3.9.5",
+		"better-auth": "1.7.1",
+		"drizzle-orm": "1.0.0-rc.4",
+		"next": "16.3.2",
+		"pg": "8.23.0",
+		"react": "19.2.8",
+		"react-dom": "19.2.8"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.5.10",
+		"@playwright/test": "1.62.1",
+		"@tailwindcss/postcss": "4.3.3",
+		"@types/node": "26.3.0",
+		"@types/pg": "8.23.1",
+		"@types/react": "19.2.18",
+		"@types/react-dom": "19.2.5",
+		"@vitest/coverage-v8": "4.1.11",
+		"dotenv-cli": "11.0.0",
+		"drizzle-kit": "1.0.0-rc.4",
+		"tailwindcss": "4.3.3",
+		"typescript": "7.0.2",
+		"vitest": "4.1.11"
+	}
+}

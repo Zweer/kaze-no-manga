@@ -1,34 +1,35 @@
-# Dependencies
-node_modules/
+# dependencies
+/node_modules
 
-# Build
-.output/
-.vinxi/
-dist/
+# next.js
+/.next/
+/out/
 
-# Generated
-src/routeTree.gen.ts
+# production
+/build
 
-# Environment
-.env
-.env.*
+# testing
+/coverage
+/playwright-report/
+/test-results/
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+
+# env files
+.env*
 !.env.example
 
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Test
-coverage/
-
-# Misc
-*.tsbuildinfo
-*.log
+# vercel
 .vercel
-.env*
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# drizzle migrations metadata
+# (committare tutto db/ — serve a drizzle-kit migrate al deploy)
