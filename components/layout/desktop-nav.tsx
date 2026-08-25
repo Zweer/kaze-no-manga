@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
 import { UserMenu } from "@/components/user-menu";
+import { cn } from "@/lib/utils";
 
 const navItems = [
 	{ href: "/", label: "Search" },
@@ -32,9 +32,7 @@ export function DesktopNav() {
 									href={item.href}
 									className={cn(
 										"relative rounded-lg px-4 py-2 text-sm font-medium transition-colors",
-										isActive
-											? "text-foreground"
-											: "text-muted-foreground hover:text-foreground",
+										isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground",
 									)}
 								>
 									{item.label}

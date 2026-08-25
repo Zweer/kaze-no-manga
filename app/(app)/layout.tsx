@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { MobileNav, DesktopNav, NoiseOverlay } from "@/components/layout";
+import { DesktopNav, MobileNav, NoiseOverlay } from "@/components/layout";
 import { LoginDialog } from "@/components/login-dialog";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {

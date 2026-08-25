@@ -1,7 +1,8 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import { KeyRound } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -9,8 +10,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { signIn, authClient } from "@/lib/auth-client";
+import { authClient, signIn } from "@/lib/auth-client";
 
 export function LoginDialog() {
 	const router = useRouter();
@@ -37,9 +37,7 @@ export function LoginDialog() {
 		<Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
 			<DialogContent className="sm:max-w-sm">
 				<DialogHeader className="text-center">
-					<DialogTitle className="font-heading text-2xl font-bold">
-						Kaze no Manga
-					</DialogTitle>
+					<DialogTitle className="font-heading text-2xl font-bold">Kaze no Manga</DialogTitle>
 					<DialogDescription>Sign in to track your manga</DialogDescription>
 				</DialogHeader>
 

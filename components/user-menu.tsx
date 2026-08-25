@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import { LogIn, LogOut, User } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,11 +36,12 @@ export function UserMenu() {
 	}
 
 	const { user } = session;
-	const initials = user.name
-		?.split(" ")
-		.map((n) => n[0])
-		.join("")
-		.toUpperCase() ?? "?";
+	const initials =
+		user.name
+			?.split(" ")
+			.map((n) => n[0])
+			.join("")
+			.toUpperCase() ?? "?";
 
 	const handleSignOut = async () => {
 		await signOut();
@@ -63,10 +64,7 @@ export function UserMenu() {
 					<p className="text-xs text-muted-foreground">{user.email}</p>
 				</div>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem
-					className="cursor-pointer"
-					onClick={() => router.push("/settings")}
-				>
+				<DropdownMenuItem className="cursor-pointer" onClick={() => router.push("/settings")}>
 					<User className="mr-2 size-4" />
 					Settings
 				</DropdownMenuItem>

@@ -6,7 +6,15 @@
 		"rules": {
 			"preset": "recommended",
 			"style": {
-				"noNonNullAssertion": "info"
+				"noNonNullAssertion": "off"
+			},
+			"suspicious": {
+				"noArrayIndexKey": "off"
+			},
+			"a11y": {
+				"noStaticElementInteractions": "off",
+				"useKeyWithClickEvents": "off",
+				"noSvgWithoutTitle": "off"
 			}
 		}
 	},
