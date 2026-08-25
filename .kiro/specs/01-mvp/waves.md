@@ -33,16 +33,18 @@
 
 **Goal**: The app looks and feels complete, but everything is fake data.
 
-### Step A: Shell + Visual Infrastructure
+### Step A: Shell + Visual Infrastructure ✅
 
-- [ ] shadcn/ui init (Tailwind v4, OKLCH colors)
-- [ ] Custom theme "Ink & Wind" (dark primary, purple accent, Inter + Poppins)
-- [ ] Noise overlay, ink dividers, glassmorphism elements
-- [ ] Root layout with dark mode by default
-- [ ] Mobile navigation (floating bottom bar: Search, Library, Settings)
-- [ ] Desktop navigation (top bar: logo + nav items)
-- [ ] Empty placeholder pages (navigable)
-- [ ] Tests: E2E navigation between pages
+- [x] shadcn/ui init (Tailwind v4, OKLCH colors)
+- [x] Custom theme "Ink & Wind" (dark primary, purple accent, Inter + Poppins)
+- [x] Noise overlay, ink dividers, glassmorphism elements
+- [x] Root layout with dark mode by default
+- [x] Mobile navigation (floating bottom bar: Search, Library)
+- [x] Desktop navigation (top bar: logo + nav items)
+- [x] User menu (avatar dropdown with Settings + Sign out, or Sign in button)
+- [x] Login dialog (lightbox with blur, Google + Passkey buttons)
+- [x] Empty placeholder pages (navigable)
+- [x] Tests: E2E navigation + login dialog flow
 
 ### Step B: Pages with Mock Data
 
@@ -51,8 +53,9 @@
 - [ ] Library page (grid with status tabs)
 - [ ] Manga Detail page (cover, info, chapter list)
 - [ ] Reader page (vertical scroll, placeholder images)
-- [ ] Settings page (minimal: theme toggle, account info)
+- [ ] Settings page (theme toggle, account info, passkey registration)
 - [ ] Empty states + loading skeletons
+- [ ] Favicon / app icon
 - [ ] Responsive: works great on mobile + desktop
 - [ ] Tests: E2E full navigation flow, responsive checks
 
