@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { proxy, config } from "@/proxy";
+import { describe, expect, it } from "vitest";
+import { config, proxy } from "@/proxy";
 
 describe("Proxy", () => {
 	it("should allow access to public routes", () => {

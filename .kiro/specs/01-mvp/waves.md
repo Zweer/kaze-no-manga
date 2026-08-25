@@ -33,18 +33,28 @@
 
 **Goal**: The app looks and feels complete, but everything is fake data.
 
-### Tasks
+### Step A: Shell + Visual Infrastructure
 
-- [ ] Design tokens (colors, fonts, spacing)
-- [ ] Dark/light theme (dark primary)
-- [ ] App shell layout (header, nav, content area)
-- [ ] Mobile navigation (bottom bar)
-- [ ] Desktop navigation (top bar)
-- [ ] Pages with mock data: Search, Library, Manga Detail, Reader
-- [ ] Empty states
-- [ ] Loading states / skeletons
+- [ ] shadcn/ui init (Tailwind v4, OKLCH colors)
+- [ ] Custom theme "Ink & Wind" (dark primary, purple accent, Inter + Poppins)
+- [ ] Noise overlay, ink dividers, glassmorphism elements
+- [ ] Root layout with dark mode by default
+- [ ] Mobile navigation (floating bottom bar: Search, Library, Settings)
+- [ ] Desktop navigation (top bar: logo + nav items)
+- [ ] Empty placeholder pages (navigable)
+- [ ] Tests: E2E navigation between pages
+
+### Step B: Pages with Mock Data
+
+- [ ] Mock data: 5-6 manga with chapters (static, from API routes)
+- [ ] Search page (input + results grid)
+- [ ] Library page (grid with status tabs)
+- [ ] Manga Detail page (cover, info, chapter list)
+- [ ] Reader page (vertical scroll, placeholder images)
+- [ ] Settings page (minimal: theme toggle, account info)
+- [ ] Empty states + loading skeletons
 - [ ] Responsive: works great on mobile + desktop
-- [ ] Tests: E2E navigation flow, responsive checks
+- [ ] Tests: E2E full navigation flow, responsive checks
 
 ### Acceptance
 
