@@ -1,8 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { LogOut, User } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { LogIn, LogOut, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -14,10 +15,24 @@ import { signOut, useSession } from "@/lib/auth-client";
 
 export function UserMenu() {
 	const router = useRouter();
-	const { data: session } = useSession();
+	const { data: session, isPending } = useSession();
+
+	if (isPending) {
+		return <div className="size-8 animate-pulse rounded-full bg-muted" />;
+	}
 
 	if (!session?.user) {
-		return null;
+		return (
+			<Button
+				variant="ghost"
+				size="sm"
+				className="cursor-pointer gap-2"
+				onClick={() => router.push("/?login=true")}
+			>
+				<LogIn className="size-4" />
+				<span className="hidden sm:inline">Sign in</span>
+			</Button>
+		);
 	}
 
 	const { user } = session;
