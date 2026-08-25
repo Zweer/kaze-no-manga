@@ -7,19 +7,13 @@
 
 ## Linting & Formatting
 
-> TBD — decide before first code is written.
-
-Options to evaluate:
-- **Biome** (used before — fast, single tool)
-- **ESLint + Prettier** (Next.js default, larger ecosystem)
+- **Biome** — single tool for lint + format (fast, no config sprawl)
+- Runs on pre-commit hook
 
 ## Git Hooks
 
-> TBD — decide with linting.
-
-Options:
-- **Lefthook** (used before — fast, no node deps)
-- **Husky + lint-staged** (more common in Next.js ecosystem)
+- **Lefthook** — fast, no node deps, simple YAML config
+- Pre-commit: Biome check (lint + format)
 
 ## Package Manager
 
@@ -28,6 +22,4 @@ Options:
 
 ## Open Points
 
-- [ ] Linting: Biome or ESLint?
-- [ ] Git hooks: Lefthook or Husky?
 - [ ] Turbopack or Webpack for production builds?

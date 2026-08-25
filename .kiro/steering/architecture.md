@@ -8,10 +8,9 @@ Kaze no Manga is a manga reading tracker — search, read, and track progress ac
 
 - **Framework**: Next.js (App Router)
 - **Language**: TypeScript (strict)
-- **Database**: Neon Postgres + Drizzle ORM
-- **Storage**: Cloudflare R2 (manga images, zero egress, S3-compatible)
-- **Auth**: TBD (open point)
-- **UI**: TBD (open point)
+- **Database**: Neon Postgres + Drizzle ORM (1.0, relations v2)
+- **Auth**: Better Auth (1.7+) with `@better-auth/drizzle-adapter/relations-v2`
+- **UI**: shadcn/ui
 - **Hosting**: Vercel
 - **Jobs**: Vercel Cron
 
@@ -19,25 +18,26 @@ Kaze no Manga is a manga reading tracker — search, read, and track progress ac
 
 - **Next.js** over TanStack Start: larger ecosystem, more stable, better Vercel integration
 - **Postgres** over DynamoDB: full-text search, relational queries, portable
-- **Cloudflare R2** over S3/Vercel Blob: zero egress fees (critical for serving manga images)
+- **Better Auth** over NextAuth/Clerk: self-hosted, full control, great DX, free
+- **shadcn/ui**: copy-paste components, full ownership, Tailwind-native
+- **Images from source**: link directly to external source — no R2, no proxy (simplicity first)
 - **Vercel** over AWS: zero infra management, git-push deploys
 
 ## Open Points
 
-> These need to be decided before implementation begins.
+> To be decided when the relevant wave starts.
 
-- [ ] **Auth solution**: Better Auth? NextAuth? Clerk? (evaluate DX, cost, features)
-- [ ] **UI library**: shadcn/ui again? Or something else?
-- [ ] **Image storage strategy**: Store images on R2 or fetch on-demand from source and proxy?
 - [ ] **Project structure**: App Router conventions (route groups, server components, etc.)
 - [ ] **Monorepo vs single app**: Still single app?
 
-## Database Schema (unchanged concept)
+## Database Schema (concept)
 
 | Table | Purpose |
 |-------|---------|
 | `manga` | Global manga metadata (title, cover, source, source_id) |
 | `chapter` | Chapters per manga (number, title, source_url) |
-| `user` | User profiles |
+| `user` | User profiles (managed by Better Auth) |
+| `session` | Sessions (managed by Better Auth) |
+| `account` | OAuth accounts (managed by Better Auth) |
 | `library` | User ↔ Manga relationship (status, added_at) |
 | `reading_progress` | Current chapter per manga per user, chapters read |

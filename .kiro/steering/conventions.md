@@ -21,9 +21,17 @@
 
 ## Database
 
-- Drizzle ORM schema location: TBD
+- Drizzle ORM with `node-postgres` + `@vercel/functions` `attachDatabasePool`
+- Client in `lib/db/index.ts`
+- Models in `lib/db/models/` — one file per domain:
+  - `auth.ts` (user, session, account, verification)
+  - `manga.ts` (manga, chapter)
+  - `library.ts` (library, reading_progress)
+  - `index.ts` (barrel re-export)
+- Relations in `lib/db/relations.ts` (cross-domain, single source of truth)
 - Migrations in `drizzle/` directory
-- Use Neon serverless driver for edge compatibility
+- Runtime: `DATABASE_URL` (pooled, via PgBouncer)
+- Migrations: `DATABASE_URL_UNPOOLED` (direct connection for drizzle-kit)
 
 ## Storage
 
