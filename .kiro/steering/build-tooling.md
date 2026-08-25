@@ -2,36 +2,32 @@
 
 ## Build System
 
-- **Vite** for dev server and production builds (via TanStack Start plugin)
-- **Nitro** as the server runtime (configured automatically by TanStack Start)
-- Output: `.output/` directory with server + client bundles
-
-### Scripts
-```bash
-npm run dev          # Vite dev server on :3000
-npm run build        # Production build → .output/
-npm run start        # Start production server locally
-npm run lint         # biome check .
-npm run lint:fix     # biome check --write .
-npm run db:generate  # Drizzle Kit generate migrations
-npm run db:migrate   # Drizzle Kit run migrations
-npm run db:studio    # Drizzle Kit Studio (DB browser)
-```
+- **Next.js** built-in (Turbopack for dev, Webpack/Turbopack for production)
+- Output: `.next/` directory
 
 ## Linting & Formatting
 
-- **Biome** for linting and formatting (NOT ESLint/Prettier)
-- Single quotes, trailing commas, semicolons
-- Configuration in `biome.json` at root
-- Import organization via Biome assist
+> TBD — decide before first code is written.
+
+Options to evaluate:
+- **Biome** (used before — fast, single tool)
+- **ESLint + Prettier** (Next.js default, larger ecosystem)
 
 ## Git Hooks
 
-- **Lefthook** for pre-commit hooks
-- Pre-commit: biome check, lockfile-lint, sort-package-json, tsc --noEmit
+> TBD — decide with linting.
+
+Options:
+- **Lefthook** (used before — fast, no node deps)
+- **Husky + lint-staged** (more common in Next.js ecosystem)
 
 ## Package Manager
 
 - **npm** (no workspaces — single app)
-- Lock file: `package-lock.json`
 - Exact versions pinned (no `^` or `~`)
+
+## Open Points
+
+- [ ] Linting: Biome or ESLint?
+- [ ] Git hooks: Lefthook or Husky?
+- [ ] Turbopack or Webpack for production builds?

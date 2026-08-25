@@ -1,1 +1,0 @@
-ALTER TABLE "chapter" ADD COLUMN "page_count" integer;

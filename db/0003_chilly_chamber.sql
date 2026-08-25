@@ -1,1 +1,0 @@
-ALTER TABLE "manga" ADD COLUMN "cover_r2" text;

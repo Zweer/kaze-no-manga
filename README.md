@@ -4,47 +4,21 @@
 
 Cross-device manga reading tracker — search, read, and track your progress.
 
-## Stack
+## Status
 
-- **Framework**: TanStack Start (SSR, file-based routing, server functions)
-- **Auth**: Better Auth (Google OAuth)
+🚧 **Fresh start** — the project is being rebuilt from scratch with Next.js.
+
+The previous implementation (TanStack Start) has been removed. Only documentation and project specs remain in `.kiro/`.
+
+## Planned Stack
+
+- **Framework**: Next.js (App Router)
+- **Language**: TypeScript (strict)
 - **Database**: Neon Postgres + Drizzle ORM
-- **Storage**: Cloudflare R2 (manga images, zero egress)
-- **UI**: shadcn/ui + Tailwind CSS 4
+- **Storage**: Cloudflare R2
 - **Hosting**: Vercel
-- **Jobs**: Vercel Cron
 
-## Project Structure
-
-```
-src/
-├── routes/         # File-based routing (TanStack Router)
-├── components/     # UI components (shadcn/ui + custom)
-├── lib/            # Business logic (auth, db, scraper, storage)
-├── server/         # Server functions (type-safe RPC)
-└── styles/         # Tailwind CSS
-```
-
-## Getting Started
-
-```bash
-npm install
-npm run dev          # Start dev server on http://localhost:3000
-```
-
-## Scripts
-
-```bash
-npm run dev          # Development server
-npm run build        # Production build
-npm run start        # Start production server
-npm run lint         # Biome check
-npm run lint:fix     # Biome auto-fix
-npm run test         # Vitest
-npm run db:generate  # Generate Drizzle migrations
-npm run db:migrate   # Run migrations
-npm run db:studio    # Open Drizzle Studio
-```
+See `.kiro/steering/architecture.md` for full details and open decisions.
 
 ## License
 

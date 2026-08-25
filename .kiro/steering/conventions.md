@@ -1,39 +1,35 @@
 # Project Conventions
 
+> These conventions will be defined once the project structure is set up.
+> Open points in architecture.md need to be resolved first.
+
 ## Routes
 
-- TanStack Router file-based routing in `src/routes/`
-- Layout routes use underscore prefix: `_authed.tsx`
-- Dynamic params use dollar sign: `manga.$id.tsx`
-- API/server routes in `src/routes/api/`
+- Next.js App Router (`app/` directory)
+- Route groups, layouts, and server components — TBD
 
-## Server Functions
+## Server Logic
 
-- Defined in `src/server/functions/` grouped by domain
-- Use `createServerFn` from `@tanstack/react-start`
-- Always validate input with `.inputValidator()`
-- Auth middleware applied via `.middleware()`
+- React Server Components for data fetching
+- Server Actions for mutations
+- Route Handlers (`app/api/`) for external integrations
 
 ## Components
 
-- shadcn/ui components in `src/components/ui/`
-- Custom components in `src/components/`
+- Component library: TBD (see architecture open points)
 - One component per file, named export
 
 ## Database
 
-- Drizzle ORM schema in `src/lib/db/schema.ts`
-- Migrations in `drizzle/migrations/`
+- Drizzle ORM schema location: TBD
+- Migrations in `drizzle/` directory
 - Use Neon serverless driver for edge compatibility
 
 ## Storage
 
 - Cloudflare R2 via `@aws-sdk/client-s3` (S3-compatible API)
-- Helpers in `src/lib/storage.ts`
-- Public bucket for serving manga images directly
+- Image strategy: TBD (store vs proxy — see architecture open points)
 
 ## Auth
 
-- Better Auth config in `src/lib/auth.ts`
-- Client-side auth in `src/lib/auth-client.ts`
-- API route handler in `src/routes/api/auth.$.ts`
+- Solution: TBD (see architecture open points)
