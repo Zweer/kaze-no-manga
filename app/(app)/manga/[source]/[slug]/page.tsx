@@ -53,7 +53,8 @@ export default function MangaDetailPage() {
 
 	const handleAddToLibrary = async () => {
 		if (!session?.user) {
-			router.push(`/?login=true&callbackUrl=/manga/${params.source}/${params.slug}`);
+			const currentPath = `/manga/${params.source}/${params.slug}`;
+			router.push(`${currentPath}?login=true&callbackUrl=${currentPath}`);
 			return;
 		}
 		if (!manga) return;

@@ -14,8 +14,10 @@ export function proxy(request: NextRequest): NextResponse {
 	}
 
 	// Better Auth prefixes cookie with __Secure- on HTTPS
+	// Also check for __Host- prefix variant
 	const sessionToken =
 		request.cookies.get("__Secure-better-auth.session_token")?.value ||
+		request.cookies.get("__Host-better-auth.session_token")?.value ||
 		request.cookies.get("better-auth.session_token")?.value;
 
 	if (!sessionToken) {

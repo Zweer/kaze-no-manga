@@ -19,7 +19,11 @@ export function LoginDialog() {
 	const callbackUrl = searchParams.get("callbackUrl") ?? "/";
 
 	const handleClose = () => {
-		router.replace("/");
+		// Remove login params, stay on current page
+		const url = new URL(window.location.href);
+		url.searchParams.delete("login");
+		url.searchParams.delete("callbackUrl");
+		router.replace(url.pathname);
 	};
 
 	const handleGoogleSignIn = async () => {
