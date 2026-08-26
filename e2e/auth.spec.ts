@@ -43,10 +43,13 @@ test.describe("Manga Detail", () => {
 });
 
 test.describe("Reader", () => {
-	test("should display reader page with controls", async ({ page }) => {
-		await page.goto("/read/omegascans/test-slug/chapter-1");
-		await expect(page.getByText("Prev")).toBeVisible();
-		await expect(page.getByText("Next")).toBeVisible();
+	test("should load chapter images from API", async ({ page }) => {
+		// Go directly to a known chapter
+		await page.goto("/read/omegascans/my-illustrator/chapter-1");
+		// Should show loading then images
+		await expect(page.locator("img").first()).toBeVisible({ timeout: 15000 });
+		// Should show page count
+		await expect(page.getByText("pages")).toBeVisible();
 	});
 });
 
