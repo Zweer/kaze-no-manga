@@ -93,7 +93,7 @@ export class HeanCms implements MangaSource {
 			sourceIdentifier: series.id.toString(),
 			title: series.title,
 			cover: this.buildCoverUrl(series.thumbnail),
-			description: series.description ?? "",
+			description: this.stripHtml(series.description ?? ""),
 			status: this.parseStatus(series.status),
 			genres: series.tags.map((tag) => tag.name),
 		};
@@ -127,8 +127,8 @@ export class HeanCms implements MangaSource {
 					sourceId: this.id,
 					mangaSlug: manga.slug,
 					slug: ch.chapter_slug,
-					number: Number.parseFloat(ch.chapter_number) || 0,
-					title: ch.chapter_title || ch.chapter_name || `Chapter ${ch.chapter_number}`,
+					number: this.extractChapterNumber(ch.chapter_name, ch.chapter_slug),
+					title: ch.chapter_title || ch.chapter_name || `Chapter ${ch.chapter_slug}`,
 					releasedAt: ch.created_at,
 				});
 			}
@@ -158,6 +158,26 @@ export class HeanCms implements MangaSource {
 		}
 
 		return data.chapter.chapter_data.images.map((img) => this.toAbsoluteUrl(img));
+	}
+
+	private stripHtml(html: string): string {
+		return html.replace(/<[^>]*>/g, "").trim();
+	}
+
+	private extractChapterNumber(name: string | null, slug: string): number {
+		// Try to extract from chapter_name (e.g. "Chapter 80", "Chapter 78.5")
+		if (name) {
+			const match = name.match(/(\d+(?:\.\d+)?)/);
+			if (match) return Number.parseFloat(match[1]!);
+		}
+		// Fallback: extract from slug (e.g. "chapter-80", "chapter-78-5")
+		const slugMatch = slug.match(/(\d+)(?:-(\d+))?$/);
+		if (slugMatch) {
+			const major = slugMatch[1]!;
+			const minor = slugMatch[2];
+			return Number.parseFloat(minor ? `${major}.${minor}` : major);
+		}
+		return 0;
 	}
 
 	private buildCoverUrl(thumbnail: string | null): string {

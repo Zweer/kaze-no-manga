@@ -48,7 +48,6 @@ export interface HeanCmsChapter {
 	chapter_name: string | null;
 	chapter_title: string | null;
 	chapter_slug: string;
-	chapter_number: string;
 	price: number;
 	created_at: string;
 }

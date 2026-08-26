@@ -129,9 +129,9 @@ describe("HeanCms", () => {
 		it("should return free chapters sorted by number", async () => {
 			const mockResponse: HeanCmsChapterListResponse = {
 				data: [
-					{ id: 1, chapter_name: null, chapter_title: "Intro", chapter_slug: "chapter-1", chapter_number: "1", price: 0, created_at: "2024-01-01T00:00:00Z" },
-					{ id: 2, chapter_name: null, chapter_title: null, chapter_slug: "chapter-2", chapter_number: "2", price: 0, created_at: "2024-01-08T00:00:00Z" },
-					{ id: 3, chapter_name: null, chapter_title: "VIP", chapter_slug: "chapter-3", chapter_number: "3", price: 100, created_at: "2024-01-15T00:00:00Z" },
+					{ id: 1, chapter_name: "Chapter 1", chapter_title: "Intro", chapter_slug: "chapter-1", price: 0, created_at: "2024-01-01T00:00:00Z" },
+					{ id: 2, chapter_name: "Chapter 2", chapter_title: null, chapter_slug: "chapter-2", price: 0, created_at: "2024-01-08T00:00:00Z" },
+					{ id: 3, chapter_name: "Chapter 3", chapter_title: "VIP", chapter_slug: "chapter-3", price: 100, created_at: "2024-01-15T00:00:00Z" },
 				],
 				meta: { current_page: 1, last_page: 1, per_page: 1000, total: 3 },
 			};
