@@ -30,7 +30,11 @@ export function LoginDialog() {
 	};
 
 	const handlePasskeySignIn = async () => {
-		await authClient.signIn.passkey();
+		const result = await authClient.signIn.passkey();
+		if (!result.error) {
+			router.replace(callbackUrl);
+			router.refresh();
+		}
 	};
 
 	return (
