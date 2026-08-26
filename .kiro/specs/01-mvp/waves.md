@@ -46,20 +46,20 @@
 - [x] Empty placeholder pages (navigable)
 - [x] Tests: E2E navigation + login dialog flow
 
-### Step B: Pages with Mock Data
+### Step B: Pages with Mock Data ✅
 
-- [ ] Mock data: 5-6 manga with chapters (static, from API routes)
-- [ ] Search page (input + results grid)
-- [ ] Library page (grid with status tabs)
-- [ ] Manga Detail page (cover, info, chapter list)
-- [ ] Reader page (vertical scroll, placeholder images)
-- [ ] Settings page (theme toggle, account info, passkey registration)
-- [ ] Empty states + loading skeletons
-- [ ] Favicon / app icon
-- [ ] Responsive: works great on mobile + desktop
-- [ ] Tests: E2E full navigation flow, responsive checks
+- [x] Mock data: 5-6 manga with chapters (static, from API routes)
+- [x] Search page (input + results grid)
+- [x] Library page (grid with status tabs)
+- [x] Manga Detail page (cover, info, chapter list)
+- [x] Reader page (vertical scroll, placeholder images)
+- [x] Settings page (theme toggle, account info, passkey registration)
+- [x] Empty states + loading skeletons
+- [x] Favicon / app icon
+- [x] Responsive: works great on mobile + desktop
+- [x] Tests: E2E full navigation flow, responsive checks
 
-### Acceptance
+### Acceptance ✅
 
 - User can navigate all pages (mock data)
 - Design is polished — feels like a finished app
