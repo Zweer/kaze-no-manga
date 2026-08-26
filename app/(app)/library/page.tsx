@@ -40,7 +40,7 @@ export default function LibraryPage() {
 			</div>
 
 			<Tabs value={activeStatus} onValueChange={setActiveStatus}>
-				<TabsList className="w-full justify-start overflow-x-auto">
+				<TabsList className="h-auto w-full flex-wrap justify-start gap-1">
 					{statuses.map((status) => (
 						<TabsTrigger key={status.value} value={status.value} className="cursor-pointer">
 							{status.label}

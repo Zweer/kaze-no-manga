@@ -28,7 +28,7 @@ export const mockManga: MockManga[] = [
 		slug: "solo-leveling",
 		source: "omegascans",
 		title: "Solo Leveling",
-		cover: "https://placehold.co/300x420/1a1625/8b5cf6?text=Solo+Leveling",
+		cover: "https://picsum.photos/seed/solo-leveling/300/420",
 		description:
 			"In a world where hunters — human warriors who possess supernatural abilities — must battle deadly monsters to protect the human race from total annihilation, a notoriously weak hunter named Sung Jinwoo finds himself in a constantly life-threatening situation.",
 		status: "completed",
@@ -44,7 +44,7 @@ export const mockManga: MockManga[] = [
 		slug: "tower-of-god",
 		source: "omegascans",
 		title: "Tower of God",
-		cover: "https://placehold.co/300x420/1a1625/8b5cf6?text=Tower+of+God",
+		cover: "https://picsum.photos/seed/tower-of-god/300/420",
 		description:
 			"What do you desire? Money and wealth? Honor and pride? Authority and power? Revenge? Or something that transcends them all? Whatever you desire — it's here.",
 		status: "ongoing",
@@ -60,7 +60,7 @@ export const mockManga: MockManga[] = [
 		slug: "omniscient-reader",
 		source: "omegascans",
 		title: "Omniscient Reader's Viewpoint",
-		cover: "https://placehold.co/300x420/1a1625/8b5cf6?text=Omniscient+Reader",
+		cover: "https://picsum.photos/seed/omniscient-reader/300/420",
 		description:
 			"Dokja was an average office worker whose sole hobby was reading a web novel called 'Three Ways to Survive the Apocalypse.' One day, the novel becomes reality.",
 		status: "ongoing",
@@ -76,7 +76,7 @@ export const mockManga: MockManga[] = [
 		slug: "eleceed",
 		source: "omegascans",
 		title: "Eleceed",
-		cover: "https://placehold.co/300x420/1a1625/8b5cf6?text=Eleceed",
+		cover: "https://picsum.photos/seed/eleceed/300/420",
 		description:
 			"Jiwoo is a kind-hearted young man who harnesses the power of super speed. He encounters Kayden, a secret agent hiding in the body of a fat old cat.",
 		status: "ongoing",
@@ -92,7 +92,7 @@ export const mockManga: MockManga[] = [
 		slug: "the-beginning-after-the-end",
 		source: "omegascans",
 		title: "The Beginning After the End",
-		cover: "https://placehold.co/300x420/1a1625/8b5cf6?text=TBATE",
+		cover: "https://picsum.photos/seed/tbate/300/420",
 		description:
 			"King Grey has unrivaled strength, wealth, and prestige in a world governed by martial ability. However, solitude lingers closely behind those with great power.",
 		status: "ongoing",
@@ -108,7 +108,7 @@ export const mockManga: MockManga[] = [
 		slug: "windbreaker",
 		source: "omegascans",
 		title: "Wind Breaker",
-		cover: "https://placehold.co/300x420/1a1625/8b5cf6?text=Wind+Breaker",
+		cover: "https://picsum.photos/seed/wind-breaker/300/420",
 		description:
 			"Jay is a student at a school for aspiring professional cyclists. With a sharp mind for strategy and a natural talent for cycling, he joins the school's competitive team.",
 		status: "hiatus",

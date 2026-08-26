@@ -12,7 +12,7 @@ export function MangaCard({ manga, className }: MangaCardProps) {
 	return (
 		<Link
 			href={`/manga/${manga.source}/${manga.slug}`}
-			className={cn("group relative overflow-hidden rounded-xl", className)}
+			className={cn("group", className)}
 		>
 			<div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-card">
 				<Image
