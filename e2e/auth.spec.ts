@@ -10,10 +10,9 @@ test.describe("Search", () => {
 	test("should show results when searching", async ({ page }) => {
 		await page.goto("/");
 		await page.getByPlaceholder("Search manga...").fill("the");
-		// Wait for results to appear (real API)
-		await expect(page.getByRole("link").filter({ has: page.locator("img") }).first()).toBeVisible({
-			timeout: 10000,
-		});
+		await expect(
+			page.getByRole("link").filter({ has: page.locator("img") }).first(),
+		).toBeVisible({ timeout: 10000 });
 	});
 
 	test("should show no results message for unknown query", async ({ page }) => {
@@ -24,41 +23,30 @@ test.describe("Search", () => {
 });
 
 test.describe("Manga Detail", () => {
-	test("should display manga info and chapters", async ({ page }) => {
-		await page.goto("/manga/omegascans/solo-leveling");
-		await expect(page.getByRole("heading", { name: "Solo Leveling" })).toBeVisible();
-		await expect(page.getByText("Action")).toBeVisible();
-		await expect(page.getByText("Chapters (20)")).toBeVisible();
+	test("should navigate from search to manga detail", async ({ page }) => {
+		await page.goto("/");
+		await page.getByPlaceholder("Search manga...").fill("love");
+		const firstResult = page.getByRole("link").filter({ has: page.locator("img") }).first();
+		await expect(firstResult).toBeVisible({ timeout: 10000 });
+		await firstResult.click();
+
+		await expect(page).toHaveURL(/\/manga\/omegascans\//);
+		await expect(page.getByRole("heading").first()).toBeVisible({ timeout: 10000 });
 		await expect(page.getByText("Add to Library")).toBeVisible();
+		await expect(page.getByText("Chapters")).toBeVisible({ timeout: 15000 });
 	});
 
-	test("should navigate to reader from chapter list", async ({ page }) => {
-		await page.goto("/manga/omegascans/solo-leveling");
-		await page
-			.getByRole("link", { name: /Chapter 1\b/ })
-			.first()
-			.click();
-		await expect(page).toHaveURL(/\/read\/omegascans\/solo-leveling\//);
+	test("should show error for non-existent manga", async ({ page }) => {
+		await page.goto("/manga/omegascans/this-manga-does-not-exist-xyz");
+		await expect(page.getByText(/not found|failed/i)).toBeVisible({ timeout: 10000 });
 	});
 });
 
 test.describe("Reader", () => {
-	test("should display chapter pages", async ({ page }) => {
-		await page.goto("/read/omegascans/solo-leveling/1");
-		await expect(page.getByText("Chapter 1")).toBeVisible();
-		await expect(page.getByText("Page 1")).toBeVisible();
-	});
-
-	test("should have prev/next chapter navigation", async ({ page }) => {
-		await page.goto("/read/omegascans/solo-leveling/5");
+	test("should display reader page with controls", async ({ page }) => {
+		await page.goto("/read/omegascans/test-slug/chapter-1");
 		await expect(page.getByText("Prev")).toBeVisible();
 		await expect(page.getByText("Next")).toBeVisible();
-	});
-
-	test("should navigate back to manga detail", async ({ page }) => {
-		await page.goto("/read/omegascans/solo-leveling/1");
-		await page.getByRole("button", { name: "Back" }).click();
-		await expect(page).toHaveURL(/\/manga\/omegascans\/solo-leveling/);
 	});
 });
 

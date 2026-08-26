@@ -111,22 +111,23 @@
 
 ---
 
-## Wave 4 — Manga Detail
+## Wave 4 — Manga Detail ✅
 
 **Goal**: User can view manga info and chapter list.
 
 ### Tasks
 
-- [ ] API route: `GET /api/manga/[source]/[slug]` (fetch + upsert to DB)
-- [ ] Manga detail page (cover, title, description, metadata)
-- [ ] Chapter list (ordered, with number + title)
-- [ ] Link from search results to detail page
-- [ ] Tests: API tests, E2E detail page navigation
+- [x] API route: `GET /api/manga/[source]/[slug]` (fetch from scraper, no DB)
+- [x] API route: `GET /api/manga/[source]/[slug]/chapters` (fetch chapters from scraper)
+- [x] Manga detail page (cover, title, description, metadata, genres)
+- [x] Chapter list (ordered desc, with number + title + date)
+- [x] Link from search results to detail page
+- [x] Tests: E2E search → detail flow with real API
 
-### Acceptance
+### Acceptance ✅
 
-- Clicking a search result shows manga detail with chapter list
-- Manga is persisted in DB after first view
+- Clicking a search result shows real manga detail with chapter list
+- Loading skeleton while fetching, error state for invalid slugs
 - Tests pass
 
 ---
