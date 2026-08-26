@@ -18,7 +18,7 @@ export interface HeanCmsPaginationMeta {
 export interface HeanCmsSeriesSummary {
 	id: number;
 	title: string;
-	slug: string;
+	series_slug: string;
 	thumbnail: string | null;
 	status: string | null;
 }
@@ -26,7 +26,7 @@ export interface HeanCmsSeriesSummary {
 export interface HeanCmsSeriesDetail {
 	id: number;
 	title: string;
-	slug: string;
+	series_slug: string;
 	description: string | null;
 	thumbnail: string | null;
 	status: string | null;

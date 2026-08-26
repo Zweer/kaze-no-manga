@@ -29,8 +29,8 @@ describe("HeanCms", () => {
 		it("should return manga results from search", async () => {
 			const mockResponse: HeanCmsSearchResponse = {
 				data: [
-					{ id: 1, title: "Test Manga", slug: "test-manga", thumbnail: "covers/test.jpg", status: "Ongoing" },
-					{ id: 2, title: "Another Manga", slug: "another-manga", thumbnail: "https://cdn.example.com/img.jpg", status: "Completed" },
+					{ id: 1, title: "Test Manga", series_slug: "test-manga", thumbnail: "covers/test.jpg", status: "Ongoing" },
+					{ id: 2, title: "Another Manga", series_slug: "another-manga", thumbnail: "https://cdn.example.com/img.jpg", status: "Completed" },
 				],
 				meta: { current_page: 1, last_page: 2, per_page: 12, total: 20 },
 			};
@@ -53,7 +53,7 @@ describe("HeanCms", () => {
 
 		it("should return hasNextPage false on last page", async () => {
 			const mockResponse: HeanCmsSearchResponse = {
-				data: [{ id: 1, title: "Manga", slug: "manga", thumbnail: null, status: null }],
+				data: [{ id: 1, title: "Manga", series_slug: "manga", thumbnail: null, status: null }],
 				meta: { current_page: 2, last_page: 2, per_page: 12, total: 15 },
 			};
 
@@ -95,7 +95,7 @@ describe("HeanCms", () => {
 			const mockSeries: HeanCmsSeriesDetail = {
 				id: 42,
 				title: "Amazing Manga",
-				slug: "amazing-manga",
+				series_slug: "amazing-manga",
 				description: "A great manga",
 				thumbnail: "covers/amazing.jpg",
 				status: "Ongoing",

@@ -64,7 +64,7 @@ export class HeanCms implements MangaSource {
 
 		const mangas: MangaSummary[] = data.data.map((series) => ({
 			sourceId: this.id,
-			slug: series.slug,
+			slug: series.series_slug,
 			title: series.title,
 			cover: this.buildCoverUrl(series.thumbnail),
 		}));
@@ -89,7 +89,7 @@ export class HeanCms implements MangaSource {
 
 		return {
 			sourceId: this.id,
-			slug: series.slug,
+			slug: series.series_slug,
 			sourceIdentifier: series.id.toString(),
 			title: series.title,
 			cover: this.buildCoverUrl(series.thumbnail),
