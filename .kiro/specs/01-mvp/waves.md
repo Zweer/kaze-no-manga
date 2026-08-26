@@ -132,24 +132,26 @@
 
 ---
 
-## Wave 5 — Library (Base)
+## Wave 5 — Library (Base) ✅
 
 **Goal**: User can save manga to their collection.
 
 ### Tasks
 
-- [ ] DB: library table (user_id, manga_id, status, added_at)
-- [ ] API routes: add to library, remove from library, get library
-- [ ] "Add to Library" button on manga detail
-- [ ] Library page: flat grid of saved manga
-- [ ] "Remove" action
-- [ ] Tests: API CRUD tests, E2E add/remove flow
+- [x] DB: manga table (id, source, slug, title, cover, description, status, genres)
+- [x] DB: library table (id, user_id, manga_id, status, added_at)
+- [x] API routes: POST /api/library (upsert manga + add), DELETE /api/library/[id], GET /api/library
+- [x] "Add to Library" button on manga detail (with auth check)
+- [x] Library page: grid of saved manga from DB
+- [x] "Remove" action (trash icon on hover)
+- [x] Tests: 17 unit + 11 E2E passing
 
-### Acceptance
+### Acceptance ✅
 
-- User adds manga from detail page
+- User adds manga from detail page (upserts to DB)
 - Library page shows saved manga
 - User can remove manga
+- Unauthenticated "Add" opens login dialog
 - Tests pass
 
 ---

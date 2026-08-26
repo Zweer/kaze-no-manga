@@ -1,21 +1,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { BookOpen, Clock } from "lucide-react";
+import { BookOpen, Clock, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useSession } from "@/lib/auth-client";
 import type { MangaDetail, Chapter } from "@/lib/scraper";
 
 export default function MangaDetailPage() {
 	const params = useParams<{ source: string; slug: string }>();
+	const router = useRouter();
+	const { data: session } = useSession();
 	const [manga, setManga] = useState<MangaDetail | null>(null);
 	const [chapters, setChapters] = useState<Chapter[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isLoadingChapters, setIsLoadingChapters] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [isAdding, setIsAdding] = useState(false);
+	const [isInLibrary, setIsInLibrary] = useState(false);
 
 	useEffect(() => {
 		const fetchManga = async () => {
@@ -45,6 +50,36 @@ export default function MangaDetailPage() {
 		};
 		fetchManga();
 	}, [params.source, params.slug]);
+
+	const handleAddToLibrary = async () => {
+		if (!session?.user) {
+			router.push(`/?login=true&callbackUrl=/manga/${params.source}/${params.slug}`);
+			return;
+		}
+		if (!manga) return;
+
+		setIsAdding(true);
+		try {
+			const res = await fetch("/api/library", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					source: manga.sourceId,
+					slug: manga.slug,
+					title: manga.title,
+					cover: manga.cover,
+					description: manga.description,
+					status: manga.status,
+					genres: manga.genres,
+				}),
+			});
+			if (res.ok) {
+				setIsInLibrary(true);
+			}
+		} finally {
+			setIsAdding(false);
+		}
+	};
 
 	if (isLoading) {
 		return (
@@ -116,9 +151,23 @@ export default function MangaDetailPage() {
 						))}
 					</div>
 
-					<Button className="mt-4 cursor-pointer gap-2">
-						<BookOpen className="size-4" />
-						Add to Library
+					<Button className="mt-4 cursor-pointer gap-2" onClick={handleAddToLibrary} disabled={isAdding || isInLibrary}>
+						{isInLibrary ? (
+							<>
+								<Check className="size-4" />
+								In Library
+							</>
+						) : isAdding ? (
+							<>
+								<Loader2 className="size-4 animate-spin" />
+								Adding...
+							</>
+						) : (
+							<>
+								<BookOpen className="size-4" />
+								Add to Library
+							</>
+						)}
 					</Button>
 				</div>
 			</div>
