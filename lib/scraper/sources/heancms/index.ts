@@ -1,11 +1,5 @@
 import { fetchWithRetry, safeJson } from "../../fetch-utils";
-import type {
-	Chapter,
-	MangaDetail,
-	MangaSource,
-	MangaSummary,
-	SearchResult,
-} from "../../types";
+import type { Chapter, MangaDetail, MangaSource, MangaSummary, SearchResult } from "../../types";
 import type {
 	HeanCmsChapterDetailResponse,
 	HeanCmsChapterListResponse,

@@ -1,9 +1,9 @@
+import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { eq, and } from "drizzle-orm";
+import { apiError, requireSession } from "@/lib/api-helpers";
 import { db } from "@/lib/db";
 import { library } from "@/lib/db/models";
-import { apiError, requireSession } from "@/lib/api-helpers";
-import { patchLibrarySchema, parseBody } from "@/lib/validations";
+import { parseBody, patchLibrarySchema } from "@/lib/validations";
 
 interface Params {
 	params: Promise<{ id: string }>;

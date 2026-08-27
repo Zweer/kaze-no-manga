@@ -12,6 +12,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { signOut, useSession } from "@/lib/auth-client";
+import { getInitials } from "@/lib/utils";
 
 export function UserMenu() {
 	const router = useRouter();
@@ -28,6 +29,7 @@ export function UserMenu() {
 				size="sm"
 				className="cursor-pointer gap-2"
 				onClick={() => router.push("/?login=true")}
+				aria-label="Sign in"
 			>
 				<LogIn className="size-4" />
 				<span className="hidden sm:inline">Sign in</span>
@@ -36,12 +38,6 @@ export function UserMenu() {
 	}
 
 	const { user } = session;
-	const initials =
-		user.name
-			?.split(" ")
-			.map((n) => n[0])
-			.join("")
-			.toUpperCase() ?? "?";
 
 	const handleSignOut = async () => {
 		await signOut();
@@ -54,7 +50,7 @@ export function UserMenu() {
 				<Avatar className="size-8">
 					<AvatarImage src={user.image ?? undefined} alt={user.name ?? "User"} />
 					<AvatarFallback className="bg-primary text-xs text-primary-foreground">
-						{initials}
+						{getInitials(user.name)}
 					</AvatarFallback>
 				</Avatar>
 			</DropdownMenuTrigger>

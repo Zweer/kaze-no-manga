@@ -1,8 +1,8 @@
+import { and, desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { eq, and, desc } from "drizzle-orm";
+import { apiError, buildMangaId } from "@/lib/api-helpers";
 import { db } from "@/lib/db";
 import { readingProgress } from "@/lib/db/models";
-import { apiError, buildMangaId } from "@/lib/api-helpers";
 import { getSession } from "@/lib/session";
 
 interface Params {
@@ -26,9 +26,7 @@ export async function GET(_request: Request, { params }: Params): Promise<NextRe
 				readAt: readingProgress.readAt,
 			})
 			.from(readingProgress)
-			.where(
-				and(eq(readingProgress.userId, session.user.id), eq(readingProgress.mangaId, mangaId)),
-			)
+			.where(and(eq(readingProgress.userId, session.user.id), eq(readingProgress.mangaId, mangaId)))
 			.orderBy(desc(readingProgress.readAt));
 
 		const readChapters = entries.map((e) => e.chapterSlug);

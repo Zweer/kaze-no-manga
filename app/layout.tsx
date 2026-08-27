@@ -18,10 +18,12 @@ export const metadata: Metadata = {
 		default: "Kaze no Manga — 風の漫画",
 		template: "%s | Kaze no Manga",
 	},
-	description: "Never lose your place in manga again. Search, read, and track your manga progress across devices.",
+	description:
+		"Never lose your place in manga again. Search, read, and track your manga progress across devices.",
 	openGraph: {
 		title: "Kaze no Manga — 風の漫画",
-		description: "Never lose your place in manga again. Search, read, and track your manga progress across devices.",
+		description:
+			"Never lose your place in manga again. Search, read, and track your manga progress across devices.",
 		type: "website",
 		siteName: "Kaze no Manga",
 	},
@@ -38,10 +40,15 @@ export const viewport: Viewport = {
 	themeColor: "#0d0b14",
 };
 
+import { Toaster } from "@/components/ui/sonner";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang="en" className={`${inter.variable} ${poppins.variable} dark`}>
-			<body className="min-h-dvh antialiased">{children}</body>
+			<body className="min-h-dvh antialiased">
+				{children}
+				<Toaster />
+			</body>
 		</html>
 	);
 }

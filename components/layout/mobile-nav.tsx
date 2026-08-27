@@ -1,21 +1,16 @@
 "use client";
 
-import { BookOpen, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserMenu } from "@/components/user-menu";
 import { cn } from "@/lib/utils";
-
-const navItems = [
-	{ href: "/", icon: Search, label: "Search" },
-	{ href: "/library", icon: BookOpen, label: "Library" },
-];
+import { navItems } from "./nav-items";
 
 export function MobileNav() {
 	const pathname = usePathname();
 
 	return (
-		<nav className="fixed bottom-6 left-6 right-6 z-50 md:hidden">
+		<nav aria-label="Mobile navigation" className="fixed bottom-6 left-6 right-6 z-50 md:hidden">
 			<div className="flex items-center justify-around rounded-3xl border border-white/10 bg-black/60 px-6 py-3 backdrop-blur-2xl">
 				{navItems.map((item) => {
 					const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);

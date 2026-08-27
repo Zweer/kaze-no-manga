@@ -22,7 +22,12 @@ interface StatusSelectProps {
 	size?: "sm" | "default";
 }
 
-export function StatusSelect({ value, onValueChange, disabled, size = "default" }: StatusSelectProps) {
+export function StatusSelect({
+	value,
+	onValueChange,
+	disabled,
+	size = "default",
+}: StatusSelectProps) {
 	return (
 		<Select value={value} onValueChange={(v) => v && onValueChange(v)} disabled={disabled}>
 			<SelectTrigger

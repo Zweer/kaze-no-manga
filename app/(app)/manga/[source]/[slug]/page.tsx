@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { BookOpen, Clock, Loader2, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { BookOpen, Clock, Check, Loader2, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { StatusSelect } from "@/components/status-select";
-import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
-import type { MangaDetail, Chapter } from "@/lib/scraper";
+import type { Chapter, MangaDetail } from "@/lib/scraper";
+import { cn } from "@/lib/utils";
 
 export default function MangaDetailPage() {
 	const params = useParams<{ source: string; slug: string }>();
@@ -49,9 +49,15 @@ export default function MangaDetailPage() {
 				}
 
 				// Check if in library
-				const libRes = await fetch(`/api/library/check?source=${params.source}&slug=${params.slug}`);
+				const libRes = await fetch(
+					`/api/library/check?source=${params.source}&slug=${params.slug}`,
+				);
 				if (libRes.ok) {
-					const libData = (await libRes.json()) as { inLibrary: boolean; entryId?: string; status?: string };
+					const libData = (await libRes.json()) as {
+						inLibrary: boolean;
+						entryId?: string;
+						status?: string;
+					};
 					if (libData.inLibrary) {
 						setIsInLibrary(true);
 						setLibraryEntryId(libData.entryId ?? null);
@@ -193,9 +199,7 @@ export default function MangaDetailPage() {
 						</Badge>
 					</div>
 
-					<p className="text-sm leading-relaxed text-muted-foreground">
-						{manga.description}
-					</p>
+					<p className="text-sm leading-relaxed text-muted-foreground">{manga.description}</p>
 
 					<div className="flex flex-wrap gap-1.5">
 						{manga.genres.map((genre) => (
@@ -208,10 +212,7 @@ export default function MangaDetailPage() {
 					<div className="mt-4 flex items-center gap-3">
 						{isInLibrary ? (
 							<>
-								<StatusSelect
-									value={libraryStatus}
-									onValueChange={handleStatusChange}
-								/>
+								<StatusSelect value={libraryStatus} onValueChange={handleStatusChange} />
 								<Button
 									variant="ghost"
 									size="sm"
@@ -223,7 +224,11 @@ export default function MangaDetailPage() {
 								</Button>
 							</>
 						) : (
-							<Button className="cursor-pointer gap-2" onClick={handleAddToLibrary} disabled={isAdding}>
+							<Button
+								className="cursor-pointer gap-2"
+								onClick={handleAddToLibrary}
+								disabled={isAdding}
+							>
 								{isAdding ? (
 									<>
 										<Loader2 className="size-4 animate-spin" />
@@ -300,17 +305,12 @@ export default function MangaDetailPage() {
 												)}
 											/>
 											<span
-												className={cn(
-													"text-sm font-medium",
-													isRead && "text-muted-foreground",
-												)}
+												className={cn("text-sm font-medium", isRead && "text-muted-foreground")}
 											>
 												Chapter {chapter.number}
 											</span>
 											{chapter.title !== `Chapter ${chapter.number}` && (
-												<span className="text-sm text-muted-foreground">
-													{chapter.title}
-												</span>
+												<span className="text-sm text-muted-foreground">{chapter.title}</span>
 											)}
 										</div>
 										<div className="flex items-center gap-2 text-xs text-muted-foreground">

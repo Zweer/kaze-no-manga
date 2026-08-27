@@ -1,8 +1,8 @@
+import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { eq, and } from "drizzle-orm";
+import { apiError, buildMangaId, requireSession } from "@/lib/api-helpers";
 import { db } from "@/lib/db";
-import { readingProgress, library } from "@/lib/db/models";
-import { apiError, requireSession, buildMangaId } from "@/lib/api-helpers";
+import { library, readingProgress } from "@/lib/db/models";
 import { markReadSchema, parseBody } from "@/lib/validations";
 
 export async function POST(request: Request): Promise<NextResponse> {

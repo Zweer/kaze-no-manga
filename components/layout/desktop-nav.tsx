@@ -4,11 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserMenu } from "@/components/user-menu";
 import { cn } from "@/lib/utils";
-
-const navItems = [
-	{ href: "/", label: "Search" },
-	{ href: "/library", label: "Library" },
-];
+import { navItems } from "./nav-items";
 
 export function DesktopNav() {
 	const pathname = usePathname();
@@ -22,7 +18,7 @@ export function DesktopNav() {
 				</Link>
 
 				<div className="flex items-center gap-4">
-					<nav className="flex items-center gap-1">
+					<nav aria-label="Main navigation" className="flex items-center gap-1">
 						{navItems.map((item) => {
 							const isActive =
 								item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);

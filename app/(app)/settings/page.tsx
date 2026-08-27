@@ -2,11 +2,15 @@
 
 import { Check, KeyRound, Plus } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
+import { PageHeading } from "@/components/page-heading";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { authClient, useSession } from "@/lib/auth-client";
+import { getInitials } from "@/lib/utils";
 
 export default function SettingsPage() {
 	const { data: session, isPending } = useSession();
@@ -19,19 +23,18 @@ export default function SettingsPage() {
 			setPasskeyStatus("registering");
 			await authClient.passkey.addPasskey();
 			setPasskeyStatus("success");
+			toast.success("Passkey registered successfully");
 		} catch {
 			setPasskeyStatus("error");
+			toast.error("Failed to register passkey");
 		}
 	};
 
 	if (isPending) {
 		return (
 			<div className="space-y-6">
-				<div className="space-y-2">
-					<div className="h-8 w-32 animate-pulse rounded bg-muted" />
-					<div className="h-1 w-12 rounded-full bg-primary" />
-				</div>
-				<div className="h-40 animate-pulse rounded-xl bg-muted" />
+				<PageHeading title="Settings" />
+				<Skeleton className="h-40 rounded-xl" />
 			</div>
 		);
 	}
@@ -45,21 +48,11 @@ export default function SettingsPage() {
 	}
 
 	const { user } = session;
-	const initials =
-		user.name
-			?.split(" ")
-			.map((n) => n[0])
-			.join("")
-			.toUpperCase() ?? "?";
 
 	return (
 		<div className="space-y-6">
-			<div className="space-y-2">
-				<h1 className="font-heading text-3xl font-bold">Settings</h1>
-				<div className="h-1 w-12 rounded-full bg-primary" />
-			</div>
+			<PageHeading title="Settings" />
 
-			{/* Account info */}
 			<Card>
 				<CardHeader>
 					<CardTitle>Account</CardTitle>
@@ -70,7 +63,7 @@ export default function SettingsPage() {
 						<Avatar className="size-14">
 							<AvatarImage src={user.image ?? undefined} alt={user.name ?? "User"} />
 							<AvatarFallback className="bg-primary text-primary-foreground">
-								{initials}
+								{getInitials(user.name)}
 							</AvatarFallback>
 						</Avatar>
 						<div>
@@ -81,7 +74,6 @@ export default function SettingsPage() {
 				</CardContent>
 			</Card>
 
-			{/* Passkey registration */}
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">

@@ -1,12 +1,12 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import type { Chapter } from "@/lib/scraper";
+import { cn } from "@/lib/utils";
 
 export default function ReaderPage() {
 	const params = useParams<{ source: string; slug: string; chapter: string }>();
@@ -43,9 +43,7 @@ export default function ReaderPage() {
 			setShowEndPrompt(false);
 			setScrollProgress(0);
 			try {
-				const res = await fetch(
-					`/api/chapter/${params.source}/${params.slug}/${params.chapter}`,
-				);
+				const res = await fetch(`/api/chapter/${params.source}/${params.slug}/${params.chapter}`);
 				if (!res.ok) {
 					const data = await res.json();
 					throw new Error(data.error ?? "Failed to load chapter");
@@ -53,18 +51,6 @@ export default function ReaderPage() {
 				const data = (await res.json()) as { pages: string[] };
 				setPages(data.pages);
 				window.scrollTo(0, 0);
-
-				// Auto-mark chapter as read
-				fetch("/api/progress", {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({
-						source: params.source,
-						mangaSlug: params.slug,
-						chapterSlug: params.chapter,
-						chapterNumber: currentIndex >= 0 ? sortedChapters[currentIndex]?.number?.toString() ?? "0" : "0",
-					}),
-				}).catch(() => {}); // Fire and forget
 			} catch (err) {
 				setError(err instanceof Error ? err.message : "Failed to load chapter");
 			} finally {
@@ -73,6 +59,22 @@ export default function ReaderPage() {
 		};
 		fetchPages();
 	}, [params.source, params.slug, params.chapter]);
+
+	// Auto-mark chapter as read when pages are loaded
+	useEffect(() => {
+		if (pages.length === 0) return;
+		fetch("/api/progress", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				source: params.source,
+				mangaSlug: params.slug,
+				chapterSlug: params.chapter,
+				chapterNumber:
+					currentIndex >= 0 ? (sortedChapters[currentIndex]?.number?.toString() ?? "0") : "0",
+			}),
+		}).catch(() => {});
+	}, [pages.length, params.source, params.slug, params.chapter, currentIndex, sortedChapters]);
 
 	// Fetch chapter list for navigation
 	useEffect(() => {
@@ -140,10 +142,7 @@ export default function ReaderPage() {
 	}
 
 	return (
-		<div
-			className="relative min-h-dvh bg-black"
-			onClick={() => setShowControls((prev) => !prev)}
-		>
+		<div className="relative min-h-dvh bg-black" onClick={() => setShowControls((prev) => !prev)}>
 			{/* Scroll progress bar */}
 			<div className="fixed top-0 right-0 left-0 z-[60] h-0.5">
 				<div
@@ -177,11 +176,7 @@ export default function ReaderPage() {
 			{/* Pages */}
 			<div className="mx-auto max-w-3xl pt-14 pb-20">
 				{pages.map((pageUrl, index) => (
-					<div
-						key={pageUrl}
-						className="relative w-full"
-						onClick={(e) => e.stopPropagation()}
-					>
+					<div key={pageUrl} className="relative w-full" onClick={(e) => e.stopPropagation()}>
 						<Image
 							src={pageUrl}
 							alt={`Page ${index + 1}`}

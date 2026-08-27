@@ -1,12 +1,26 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
-import Link from "next/link";
 import { ArrowDownAZ, Clock, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { MangaCardSkeleton } from "@/components/manga-card-skeleton";
+import { MangaCover } from "@/components/manga-cover";
+import { PageHeading } from "@/components/page-heading";
+import { StatusSelect } from "@/components/status-select";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { StatusSelect } from "@/components/status-select";
 import { useSession } from "@/lib/auth-client";
 
 interface LibraryEntry {
@@ -38,7 +52,6 @@ export default function LibraryPage() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [activeStatus, setActiveStatus] = useState("all");
 	const [sort, setSort] = useState<"recently_added" | "alphabetical">("recently_added");
-	const [removingId, setRemovingId] = useState<string | null>(null);
 
 	const fetchLibrary = useCallback(async () => {
 		if (!session?.user) return;
@@ -47,12 +60,19 @@ export default function LibraryPage() {
 		if (activeStatus !== "all") params.set("status", activeStatus);
 		params.set("sort", sort);
 
-		const res = await fetch(`/api/library?${params.toString()}`);
-		if (res.ok) {
-			const data = (await res.json()) as LibraryEntry[];
-			setEntries(data);
+		try {
+			const res = await fetch(`/api/library?${params.toString()}`);
+			if (res.ok) {
+				const data = (await res.json()) as LibraryEntry[];
+				setEntries(data);
+			} else {
+				toast.error("Failed to load library");
+			}
+		} catch {
+			toast.error("Failed to load library");
+		} finally {
+			setIsLoading(false);
 		}
-		setIsLoading(false);
 	}, [session, activeStatus, sort]);
 
 	useEffect(() => {
@@ -64,60 +84,57 @@ export default function LibraryPage() {
 		fetchLibrary();
 	}, [isSessionLoading, session, fetchLibrary]);
 
-	const handleRemove = async (id: string) => {
-		setRemovingId(id);
-		const res = await fetch(`/api/library/${id}`, { method: "DELETE" });
-		if (res.ok) {
-			setEntries((prev) => prev.filter((e) => e.id !== id));
+	const handleRemove = async (id: string, title: string) => {
+		try {
+			const res = await fetch(`/api/library/${id}`, { method: "DELETE" });
+			if (res.ok) {
+				setEntries((prev) => prev.filter((e) => e.id !== id));
+				toast.success(`Removed "${title}" from library`);
+			} else {
+				toast.error("Failed to remove from library");
+			}
+		} catch {
+			toast.error("Failed to remove from library");
 		}
-		setRemovingId(null);
 	};
 
 	const handleStatusChange = async (entryId: string, newStatus: string) => {
-		const res = await fetch(`/api/library/${entryId}`, {
-			method: "PATCH",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ status: newStatus }),
-		});
-		if (res.ok) {
-			if (activeStatus !== "all" && newStatus !== activeStatus) {
-				// Remove from current view if filter is active and status changed
-				setEntries((prev) => prev.filter((e) => e.id !== entryId));
+		try {
+			const res = await fetch(`/api/library/${entryId}`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ status: newStatus }),
+			});
+			if (res.ok) {
+				if (activeStatus !== "all" && newStatus !== activeStatus) {
+					setEntries((prev) => prev.filter((e) => e.id !== entryId));
+				} else {
+					setEntries((prev) =>
+						prev.map((e) => (e.id === entryId ? { ...e, status: newStatus } : e)),
+					);
+				}
+				toast.success("Status updated");
 			} else {
-				setEntries((prev) =>
-					prev.map((e) => (e.id === entryId ? { ...e, status: newStatus } : e)),
-				);
+				toast.error("Failed to update status");
 			}
+		} catch {
+			toast.error("Failed to update status");
 		}
 	};
 
 	if (isLoading || isSessionLoading) {
 		return (
 			<div className="space-y-6">
-				<div className="space-y-2">
-					<h1 className="font-heading text-3xl font-bold">Library</h1>
-					<div className="h-1 w-12 rounded-full bg-primary" />
-				</div>
-				<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-					{Array.from({ length: 4 }, (_, i) => (
-						<div key={`skeleton-${i}`} className="space-y-2">
-							<div className="aspect-[3/4] animate-pulse rounded-xl bg-muted" />
-							<div className="h-3 w-3/4 animate-pulse rounded bg-muted" />
-						</div>
-					))}
-				</div>
+				<PageHeading title="Library" />
+				<MangaCardSkeleton />
 			</div>
 		);
 	}
 
 	return (
 		<div className="space-y-6">
-			<div className="space-y-2">
-				<h1 className="font-heading text-3xl font-bold">Library</h1>
-				<div className="h-1 w-12 rounded-full bg-primary" />
-			</div>
+			<PageHeading title="Library" />
 
-			{/* Filter tabs + sort */}
 			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<Tabs value={activeStatus} onValueChange={setActiveStatus}>
 					<TabsList className="h-auto flex-wrap justify-start gap-1">
@@ -133,10 +150,9 @@ export default function LibraryPage() {
 					variant="ghost"
 					size="sm"
 					className="cursor-pointer gap-2 self-start text-muted-foreground"
+					aria-label={sort === "alphabetical" ? "Sort by recently added" : "Sort alphabetically"}
 					onClick={() =>
-						setSort((prev) =>
-							prev === "recently_added" ? "alphabetical" : "recently_added",
-						)
+						setSort((prev) => (prev === "recently_added" ? "alphabetical" : "recently_added"))
 					}
 				>
 					{sort === "alphabetical" ? (
@@ -153,32 +169,12 @@ export default function LibraryPage() {
 				</Button>
 			</div>
 
-			{/* Grid */}
 			{entries.length > 0 && (
 				<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
 					{entries.map((entry) => (
 						<div key={entry.id} className="group relative">
-							<Link
-								href={`/manga/${entry.manga.source}/${entry.manga.slug}`}
-								className="block"
-							>
-								<div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-card">
-									{entry.manga.cover ? (
-										<Image
-											src={entry.manga.cover}
-											alt={entry.manga.title}
-											fill
-											className="object-cover transition-transform duration-300 group-hover:-translate-y-1 group-hover:scale-105"
-											sizes="(max-width: 768px) 50vw, 200px"
-											unoptimized
-										/>
-									) : (
-										<div className="flex h-full items-center justify-center text-muted-foreground">
-											No cover
-										</div>
-									)}
-									<div className="absolute inset-0 shadow-[inset_0_0_40px_rgba(0,0,0,0.3)]" />
-								</div>
+							<Link href={`/manga/${entry.manga.source}/${entry.manga.slug}`} className="block">
+								<MangaCover src={entry.manga.cover} alt={entry.manga.title} hoverable />
 								<div className="mt-2">
 									<p className="line-clamp-2 text-xs font-semibold leading-tight">
 										{entry.manga.title}
@@ -186,7 +182,6 @@ export default function LibraryPage() {
 								</div>
 							</Link>
 
-							{/* Status dropdown */}
 							<div className="mt-1" onClick={(e) => e.stopPropagation()}>
 								<StatusSelect
 									value={entry.status}
@@ -195,16 +190,36 @@ export default function LibraryPage() {
 								/>
 							</div>
 
-							{/* Remove button */}
-							<Button
-								variant="ghost"
-								size="sm"
-								className="absolute top-2 right-2 size-8 cursor-pointer rounded-full bg-black/60 p-0 opacity-0 backdrop-blur-sm transition-opacity hover:bg-destructive group-hover:opacity-100"
-								onClick={() => handleRemove(entry.id)}
-								disabled={removingId === entry.id}
-							>
-								<Trash2 className="size-3.5" />
-							</Button>
+							<AlertDialog>
+								<AlertDialogTrigger>
+									<Button
+										variant="ghost"
+										size="sm"
+										aria-label={`Remove ${entry.manga.title} from library`}
+										className="absolute top-2 right-2 size-8 cursor-pointer rounded-full bg-black/60 p-0 opacity-0 backdrop-blur-sm transition-opacity hover:bg-destructive group-hover:opacity-100"
+									>
+										<Trash2 className="size-3.5" />
+									</Button>
+								</AlertDialogTrigger>
+								<AlertDialogContent>
+									<AlertDialogHeader>
+										<AlertDialogTitle>Remove from library?</AlertDialogTitle>
+										<AlertDialogDescription>
+											This will remove &quot;{entry.manga.title}&quot; from your library. Your
+											reading progress will be kept.
+										</AlertDialogDescription>
+									</AlertDialogHeader>
+									<AlertDialogFooter>
+										<AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
+										<AlertDialogAction
+											className="cursor-pointer"
+											onClick={() => handleRemove(entry.id, entry.manga.title)}
+										>
+											Remove
+										</AlertDialogAction>
+									</AlertDialogFooter>
+								</AlertDialogContent>
+							</AlertDialog>
 						</div>
 					))}
 				</div>

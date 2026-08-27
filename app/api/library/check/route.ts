@@ -1,8 +1,8 @@
+import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { eq, and } from "drizzle-orm";
+import { apiError, buildMangaId } from "@/lib/api-helpers";
 import { db } from "@/lib/db";
 import { library } from "@/lib/db/models";
-import { apiError, buildMangaId } from "@/lib/api-helpers";
 import { getSession } from "@/lib/session";
 
 export async function GET(request: Request): Promise<NextResponse> {
@@ -28,7 +28,11 @@ export async function GET(request: Request): Promise<NextResponse> {
 			.limit(1);
 
 		if (entry.length > 0) {
-			return NextResponse.json({ inLibrary: true, entryId: entry[0]!.id, status: entry[0]!.status });
+			return NextResponse.json({
+				inLibrary: true,
+				entryId: entry[0]!.id,
+				status: entry[0]!.status,
+			});
 		}
 
 		return NextResponse.json({ inLibrary: false });

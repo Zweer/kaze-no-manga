@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { manga, chapter, library } from "@/lib/db/models";
+import { NextResponse } from "next/server";
 import { apiError } from "@/lib/api-helpers";
+import { db } from "@/lib/db";
+import { chapter, library, manga } from "@/lib/db/models";
 import { getSource } from "@/lib/scraper";
 
 export const dynamic = "force-dynamic";
@@ -39,11 +39,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 						releasedAt: new Date(ch.releasedAt),
 					}));
 
-					const result = await db
-						.insert(chapter)
-						.values(values)
-						.onConflictDoNothing()
-						.returning();
+					const result = await db.insert(chapter).values(values).onConflictDoNothing().returning();
 
 					newChapters += result.length;
 				}

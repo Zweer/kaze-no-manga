@@ -1,5 +1,5 @@
-import type { MangaSource } from "./types";
 import { omegascans } from "./sources/omegascans";
+import type { MangaSource } from "./types";
 
 /** All available manga sources, keyed by id */
 const sources: Record<string, MangaSource> = {
@@ -28,4 +28,4 @@ export function getAllSources(): MangaSource[] {
 /** Default source for MVP */
 export const DEFAULT_SOURCE = "omegascans";
 
-export type { MangaSource, SearchResult, MangaSummary, MangaDetail, Chapter } from "./types";
+export type { Chapter, MangaDetail, MangaSource, MangaSummary, SearchResult } from "./types";

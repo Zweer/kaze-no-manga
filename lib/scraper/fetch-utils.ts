@@ -35,7 +35,11 @@ export interface RetryOptions {
 export async function fetchWithRetry(
 	url: string,
 	opts?: RequestInit,
-	{ maxRetries = DEFAULT_MAX_RETRIES, timeoutMs = DEFAULT_TIMEOUT_MS, baseDelayMs = DEFAULT_BASE_DELAY_MS }: RetryOptions = {},
+	{
+		maxRetries = DEFAULT_MAX_RETRIES,
+		timeoutMs = DEFAULT_TIMEOUT_MS,
+		baseDelayMs = DEFAULT_BASE_DELAY_MS,
+	}: RetryOptions = {},
 ): Promise<Response> {
 	let lastError: unknown;
 
@@ -64,6 +68,8 @@ export async function safeJson<T>(response: Response): Promise<T> {
 		return JSON.parse(text) as T;
 	} catch {
 		const preview = text.slice(0, 200);
-		throw new Error(`Failed to parse JSON from ${response.url} (status ${response.status}): ${preview}`);
+		throw new Error(
+			`Failed to parse JSON from ${response.url} (status ${response.status}): ${preview}`,
+		);
 	}
 }
