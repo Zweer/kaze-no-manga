@@ -44,7 +44,6 @@ export default function SearchPage() {
 		return () => clearTimeout(timeout);
 	};
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: debounce pattern
 	useEffect(fetchResults, [query]);
 
 	return (

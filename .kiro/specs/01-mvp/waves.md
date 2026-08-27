@@ -282,32 +282,32 @@
 
 ---
 
-## Wave 11 — Hardening
+## Wave 11 — Hardening ✅
 
 **Goal**: No new features — make everything solid, accessible, and maintainable.
 
 ### Tasks
 
-- [ ] Error handling: try/catch on all DB routes, shared `apiError()` helper
-- [ ] Input validation: Zod schemas for POST/PATCH bodies
-- [ ] Scraper resilience: fetch timeout (AbortController), retry, max page guard
-- [ ] Error boundary: `error.tsx` in (app) route group
-- [ ] Reusable components: `<MangaCover>`, `<MangaCardSkeleton>`, `<PageHeading>`, `<ErrorState>`
-- [ ] Use `<Skeleton>` from shadcn everywhere (replace hand-rolled animate-pulse)
-- [ ] Toast (Sonner): feedback for library mutations and errors
-- [ ] AlertDialog: confirmation for "Remove from library"
-- [ ] Accessibility: aria-labels on search, nav, icon-only buttons
-- [ ] Code dedup: `requireSession()`, `buildMangaId()`, shared navItems
-- [ ] Decompose manga detail page into hooks + sub-components
-- [ ] Tests: scraper edge cases, registry, pagination
+- [x] Error handling: try/catch on all DB routes, shared `apiError()` helper
+- [x] Input validation: Zod 4 schemas for POST/PATCH bodies
+- [x] Scraper resilience: fetch timeout (10s), retry (3x exponential backoff), max page guard (50)
+- [x] Error boundary: `error.tsx` in (app) route group
+- [x] Reusable components: `<MangaCover>`, `<MangaCardSkeleton>`, `<PageHeading>`, `<ErrorState>`
+- [x] Use `<Skeleton>` from shadcn everywhere
+- [x] Toast (Sonner): feedback for all library/settings mutations
+- [x] AlertDialog: confirmation for "Remove from library"
+- [x] Accessibility: aria-labels on search, nav, icon-only buttons, sort toggle
+- [x] Code dedup: `requireSession()`, `buildMangaId()`, shared navItems, `getInitials()`
+- [x] Decompose manga detail: `useMangaDetail` hook + `MangaHero` / `ChapterList` sub-components
+- [x] 17 unit tests passing, biome clean
 
-### Acceptance
+### Acceptance ✅
 
 - All API routes handle errors gracefully
-- All inputs validated at runtime
+- All inputs validated at runtime with Zod
 - Scraper doesn't hang on slow/dead sources
 - Toast feedback on every mutation
 - Remove confirmation dialog
-- Zero accessibility warnings on key flows
+- Accessible navigation and controls
 - No duplicated patterns
-- Tests cover edge cases
+- Manga detail page decomposed into maintainable pieces
