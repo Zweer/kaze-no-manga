@@ -28,8 +28,15 @@ export const relations = defineRelations(models, (r) => ({
 		}),
 	},
 	manga: {
+		chapters: r.many.chapter(),
 		libraryEntries: r.many.library(),
 		readingProgress: r.many.readingProgress(),
+	},
+	chapter: {
+		manga: r.one.manga({
+			from: r.chapter.mangaId,
+			to: r.manga.id,
+		}),
 	},
 	library: {
 		user: r.one.user({

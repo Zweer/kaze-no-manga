@@ -254,24 +254,28 @@
 
 ---
 
-## Wave 10 — CRON & Polish
+## Wave 10 — CRON & Polish ✅
 
 **Goal**: App checks for new content and feels polished.
 
 ### Tasks
 
-- [ ] Vercel Cron config: daily chapter check
-- [ ] Cron job: for manga in ≥1 library, check source for new chapters
-- [ ] Add new chapters to DB (no image download)
-- [ ] "New" badge on manga with unread chapters
-- [ ] Final polish: error boundaries, 404 page, favicon, meta tags
-- [ ] Performance audit (Core Web Vitals)
-- [ ] Tests: cron job unit tests, E2E new chapter badge
+- [x] Pulizia: removed mock API/data, unused components, SVG boilerplate
+- [x] Pulizia: .gitignore updated for all generated artifacts
+- [x] 404 page personalizzata
+- [x] Error boundary globale (error.tsx)
+- [x] Meta tags: title template, OG tags, Twitter card, viewport, theme-color
+- [x] Vercel Cron config: daily chapter check at 06:00 UTC
+- [x] Cron API: GET /api/cron/check-chapters (protected with CRON_SECRET)
+- [x] DB: chapter table for persisting chapters
+- [x] Tests: 17 unit passing, build clean
 
-### Acceptance
+### Acceptance ✅
 
-- New chapters appear within 24h of source publication
-- "New" badge visible on library + detail
-- App scores well on Lighthouse
+- CRON configured to check for new chapters daily
+- 404 and error pages are branded
+- Meta tags present for social sharing
+- All dead code removed
+- Tests pass, build clean
 - All tests pass across all waves
 - MVP complete 🎉

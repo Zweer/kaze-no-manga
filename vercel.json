@@ -1,4 +1,10 @@
 {
 	"framework": "nextjs",
-	"buildCommand": "drizzle-kit migrate && next build"
+	"buildCommand": "drizzle-kit migrate && next build",
+	"crons": [
+		{
+			"path": "/api/cron/check-chapters",
+			"schedule": "0 6 * * *"
+		}
+	]
 }
