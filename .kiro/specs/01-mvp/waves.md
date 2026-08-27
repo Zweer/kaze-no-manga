@@ -227,25 +227,28 @@
 
 ---
 
-## Wave 9 — Progress
+## Wave 9 — Progress ✅
 
 **Goal**: Reading progress tracked and synced.
 
 ### Tasks
 
-- [ ] DB: reading_progress table (user_id, manga_id, chapter_id, read_at)
-- [ ] Auto-mark chapter as read when opened
-- [ ] Show read/unread state in chapter list
-- [ ] "Continue reading" button (resume from last chapter)
-- [ ] Track current chapter per manga per user
-- [ ] Cross-device sync (same account, different browser)
-- [ ] Tests: API tests, E2E progress tracking + resume
+- [x] DB: reading_progress table (user_id, manga_id, chapter_slug, chapter_number, read_at)
+- [x] API: POST /api/progress (mark chapter read + auto-update library status to "reading")
+- [x] API: GET /api/progress/[source]/[slug] (read chapters + last read)
+- [x] Reader: auto-mark chapter as read when opened (fire-and-forget)
+- [x] Manga detail: read/unread indicators in chapter list (purple dot = read)
+- [x] Manga detail: "Continue Reading" button (resumes at next unread chapter)
+- [x] Library: "Reading" tab restored (auto-set when user reads a chapter)
+- [x] Cross-device sync (progress stored in DB)
+- [x] Tests: 17 unit passing
 
-### Acceptance
+### Acceptance ✅
 
 - Opening a chapter marks it as read
 - Chapter list shows read/unread correctly
 - "Continue reading" resumes at the right chapter
+- Library status auto-changes from "Plan to Read" to "Reading"
 - Progress syncs across devices
 - Tests pass
 

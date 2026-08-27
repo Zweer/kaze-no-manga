@@ -7,6 +7,7 @@ export const relations = defineRelations(models, (r) => ({
 		accounts: r.many.account(),
 		passkeys: r.many.passkey(),
 		libraryEntries: r.many.library(),
+		readingProgress: r.many.readingProgress(),
 	},
 	session: {
 		user: r.one.user({
@@ -28,6 +29,7 @@ export const relations = defineRelations(models, (r) => ({
 	},
 	manga: {
 		libraryEntries: r.many.library(),
+		readingProgress: r.many.readingProgress(),
 	},
 	library: {
 		user: r.one.user({
@@ -36,6 +38,16 @@ export const relations = defineRelations(models, (r) => ({
 		}),
 		manga: r.one.manga({
 			from: r.library.mangaId,
+			to: r.manga.id,
+		}),
+	},
+	readingProgress: {
+		user: r.one.user({
+			from: r.readingProgress.userId,
+			to: r.user.id,
+		}),
+		manga: r.one.manga({
+			from: r.readingProgress.mangaId,
 			to: r.manga.id,
 		}),
 	},

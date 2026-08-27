@@ -53,6 +53,18 @@ export default function ReaderPage() {
 				const data = (await res.json()) as { pages: string[] };
 				setPages(data.pages);
 				window.scrollTo(0, 0);
+
+				// Auto-mark chapter as read
+				fetch("/api/progress", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						source: params.source,
+						mangaSlug: params.slug,
+						chapterSlug: params.chapter,
+						chapterNumber: currentIndex >= 0 ? sortedChapters[currentIndex]?.number?.toString() ?? "0" : "0",
+					}),
+				}).catch(() => {}); // Fire and forget
 			} catch (err) {
 				setError(err instanceof Error ? err.message : "Failed to load chapter");
 			} finally {

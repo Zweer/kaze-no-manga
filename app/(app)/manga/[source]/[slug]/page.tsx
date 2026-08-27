@@ -8,6 +8,7 @@ import { BookOpen, Clock, Check, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { StatusSelect } from "@/components/status-select";
+import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
 import type { MangaDetail, Chapter } from "@/lib/scraper";
 
@@ -24,6 +25,8 @@ export default function MangaDetailPage() {
 	const [isInLibrary, setIsInLibrary] = useState(false);
 	const [libraryEntryId, setLibraryEntryId] = useState<string | null>(null);
 	const [libraryStatus, setLibraryStatus] = useState<string>("plan_to_read");
+	const [readChapters, setReadChapters] = useState<Set<string>>(new Set());
+	const [lastReadChapterSlug, setLastReadChapterSlug] = useState<string | null>(null);
 
 	useEffect(() => {
 		const fetchManga = async () => {
@@ -54,6 +57,17 @@ export default function MangaDetailPage() {
 						setLibraryEntryId(libData.entryId ?? null);
 						setLibraryStatus(libData.status ?? "reading");
 					}
+				}
+
+				// Fetch reading progress
+				const progressRes = await fetch(`/api/progress/${params.source}/${params.slug}`);
+				if (progressRes.ok) {
+					const progressData = (await progressRes.json()) as {
+						readChapters: string[];
+						lastChapter: { chapterSlug: string } | null;
+					};
+					setReadChapters(new Set(progressData.readChapters));
+					setLastReadChapterSlug(progressData.lastChapter?.chapterSlug ?? null);
 				}
 			} catch (err) {
 				setError(err instanceof Error ? err.message : "Failed to load manga");
@@ -228,9 +242,31 @@ export default function MangaDetailPage() {
 			</div>
 
 			<div className="space-y-4">
-				<h2 className="font-heading text-xl font-semibold">
-					Chapters{chapters.length > 0 && ` (${chapters.length})`}
-				</h2>
+				<div className="flex items-center justify-between">
+					<h2 className="font-heading text-xl font-semibold">
+						Chapters{chapters.length > 0 && ` (${chapters.length})`}
+					</h2>
+					{lastReadChapterSlug && (
+						<Button
+							size="sm"
+							className="cursor-pointer gap-2"
+							onClick={() => {
+								// Find next unread chapter after last read
+								const sorted = [...chapters].sort((a, b) => a.number - b.number);
+								const lastReadIndex = sorted.findIndex((ch) => ch.slug === lastReadChapterSlug);
+								const nextUnread = sorted.find(
+									(ch, i) => i > lastReadIndex && !readChapters.has(ch.slug),
+								);
+								const target = nextUnread ?? sorted.find((ch) => ch.slug === lastReadChapterSlug);
+								if (target && manga) {
+									router.push(`/read/${manga.sourceId}/${manga.slug}/${target.slug}`);
+								}
+							}}
+						>
+							Continue Reading
+						</Button>
+					)}
+				</div>
 
 				{isLoadingChapters && (
 					<div className="space-y-2">
@@ -248,29 +284,42 @@ export default function MangaDetailPage() {
 					<div className="space-y-1">
 						{chapters
 							.sort((a, b) => b.number - a.number)
-							.map((chapter) => (
-								<Link
-									key={chapter.slug}
-									href={`/read/${manga.sourceId}/${manga.slug}/${chapter.slug}`}
-									className="flex items-center justify-between rounded-lg px-4 py-3 transition-colors hover:bg-accent"
-								>
-									<div className="flex items-center gap-3">
-										<span className="size-2 rounded-full bg-muted-foreground/30" />
-										<span className="text-sm font-medium">
-											Chapter {chapter.number}
-										</span>
-										{chapter.title !== `Chapter ${chapter.number}` && (
-											<span className="text-sm text-muted-foreground">
-												{chapter.title}
+							.map((chapter) => {
+								const isRead = readChapters.has(chapter.slug);
+								return (
+									<Link
+										key={chapter.slug}
+										href={`/read/${manga.sourceId}/${manga.slug}/${chapter.slug}`}
+										className="flex items-center justify-between rounded-lg px-4 py-3 transition-colors hover:bg-accent"
+									>
+										<div className="flex items-center gap-3">
+											<span
+												className={cn(
+													"size-2 rounded-full",
+													isRead ? "bg-primary" : "bg-muted-foreground/30",
+												)}
+											/>
+											<span
+												className={cn(
+													"text-sm font-medium",
+													isRead && "text-muted-foreground",
+												)}
+											>
+												Chapter {chapter.number}
 											</span>
-										)}
-									</div>
-									<div className="flex items-center gap-2 text-xs text-muted-foreground">
-										<Clock className="size-3" />
-										{new Date(chapter.releasedAt).toLocaleDateString()}
-									</div>
-								</Link>
-							))}
+											{chapter.title !== `Chapter ${chapter.number}` && (
+												<span className="text-sm text-muted-foreground">
+													{chapter.title}
+												</span>
+											)}
+										</div>
+										<div className="flex items-center gap-2 text-xs text-muted-foreground">
+											<Clock className="size-3" />
+											{new Date(chapter.releasedAt).toLocaleDateString()}
+										</div>
+									</Link>
+								);
+							})}
 					</div>
 				)}
 			</div>
