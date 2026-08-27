@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowDownAZ, Clock, Trash2 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -230,9 +231,13 @@ export default function LibraryPage() {
 					<p className="text-muted-foreground">
 						{activeStatus === "all" ? "Nothing here yet" : "No manga with this status"}
 					</p>
-					<p className="mt-2 select-none font-heading text-4xl text-muted-foreground/10">
-						まだ何もない
-					</p>
+					<Image
+						src="/images/manga-wind.png"
+						alt=""
+						width={400}
+						height={267}
+						className="mt-4 w-48 opacity-20 md:w-64"
+					/>
 				</div>
 			)}
 		</div>

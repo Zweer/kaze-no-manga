@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { getInitials } from "./utils";
 import { buildMangaId } from "./api-helpers";
+import { getInitials } from "./utils";
 
 describe("getInitials", () => {
 	it("should return initials from full name", () => {

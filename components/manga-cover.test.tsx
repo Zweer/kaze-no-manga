@@ -22,9 +22,7 @@ describe("MangaCover", () => {
 	});
 
 	it("should have vignette shadow overlay", () => {
-		const { container } = render(
-			<MangaCover src="https://example.com/cover.jpg" alt="Test" />,
-		);
+		const { container } = render(<MangaCover src="https://example.com/cover.jpg" alt="Test" />);
 		const shadow = container.querySelector("[class*='shadow-\\[inset']");
 		expect(shadow).toBeInTheDocument();
 	});

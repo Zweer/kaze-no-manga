@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fetchWithTimeout, fetchWithRetry, safeJson } from "./fetch-utils";
+import { fetchWithRetry, fetchWithTimeout, safeJson } from "./fetch-utils";
 
 const mockFetch = vi.fn();
 
@@ -36,9 +36,7 @@ describe("fetchWithTimeout", () => {
 				});
 			});
 		});
-		await expect(fetchWithTimeout("https://test.com", undefined, 50)).rejects.toThrow(
-			"timed out",
-		);
+		await expect(fetchWithTimeout("https://test.com", undefined, 50)).rejects.toThrow("timed out");
 	}, 10000);
 });
 

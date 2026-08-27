@@ -1,6 +1,7 @@
 "use client";
 
 import { Search } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ErrorState } from "@/components/error-state";
@@ -89,10 +90,14 @@ export default function SearchPage() {
 			)}
 
 			{!query && (
-				<div className="flex flex-col items-center py-20">
-					<p className="select-none font-heading text-5xl text-muted-foreground/10 md:text-7xl">
-						風の漫画
-					</p>
+				<div className="flex flex-col items-center py-12">
+					<Image
+						src="/images/manga-wind.png"
+						alt=""
+						width={400}
+						height={267}
+						className="w-64 opacity-30 md:w-80"
+					/>
 					<p className="mt-4 text-sm text-muted-foreground">Search for your next journey</p>
 				</div>
 			)}

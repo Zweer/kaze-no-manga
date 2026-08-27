@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getSource, getSourceIds, getAllSources, DEFAULT_SOURCE } from "./index";
+import { DEFAULT_SOURCE, getAllSources, getSource, getSourceIds } from "./index";
 
 describe("Scraper Registry", () => {
 	it("should return omegascans as the default source", () => {

@@ -79,6 +79,6 @@ test.describe("Navigation", () => {
 	test("should show desktop nav on wide viewport", async ({ page }) => {
 		await page.setViewportSize({ width: 1280, height: 800 });
 		await page.goto("/");
-		await expect(page.getByRole("link", { name: "Kaze 風の漫画" })).toBeVisible();
+		await expect(page.getByRole("link", { name: "Kaze no Manga" })).toBeVisible();
 	});
 });

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserMenu } from "@/components/user-menu";
@@ -12,9 +13,15 @@ export function DesktopNav() {
 	return (
 		<header className="fixed top-0 right-0 left-0 z-50 hidden md:block">
 			<div className="mx-auto flex max-w-5xl items-center justify-between border-b border-white/5 bg-background/40 px-6 py-4 backdrop-blur-2xl">
-				<Link href="/" className="flex items-baseline gap-2">
-					<span className="font-heading text-xl font-bold">Kaze</span>
-					<span className="text-xs text-muted-foreground">風の漫画</span>
+				<Link href="/" className="flex items-center">
+					<Image
+						src="/images/wordmark.png"
+						alt="Kaze no Manga"
+						width={120}
+						height={40}
+						className="h-8 w-auto"
+						priority
+					/>
 				</Link>
 
 				<div className="flex items-center gap-4">
