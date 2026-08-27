@@ -9,6 +9,17 @@ import type {
 
 const mockFetch = vi.fn();
 
+function mockResponse(data: unknown, ok = true, status = 200) {
+	const text = JSON.stringify(data);
+	return {
+		ok,
+		status,
+		url: "https://api.test.com/mock",
+		text: () => Promise.resolve(text),
+		json: () => Promise.resolve(data),
+	};
+}
+
 beforeEach(() => {
 	vi.stubGlobal("fetch", mockFetch);
 });
@@ -27,7 +38,7 @@ const heancms = new HeanCms({
 describe("HeanCms", () => {
 	describe("search", () => {
 		it("should return manga results from search", async () => {
-			const mockResponse: HeanCmsSearchResponse = {
+			const data: HeanCmsSearchResponse = {
 				data: [
 					{ id: 1, title: "Test Manga", series_slug: "test-manga", thumbnail: "covers/test.jpg", status: "Ongoing" },
 					{ id: 2, title: "Another Manga", series_slug: "another-manga", thumbnail: "https://cdn.example.com/img.jpg", status: "Completed" },
@@ -35,10 +46,7 @@ describe("HeanCms", () => {
 				meta: { current_page: 1, last_page: 2, per_page: 12, total: 20 },
 			};
 
-			mockFetch.mockResolvedValueOnce({
-				ok: true,
-				json: () => Promise.resolve(mockResponse),
-			});
+			mockFetch.mockResolvedValueOnce(mockResponse(data));
 
 			const result = await heancms.search("test");
 
@@ -52,15 +60,12 @@ describe("HeanCms", () => {
 		});
 
 		it("should return hasNextPage false on last page", async () => {
-			const mockResponse: HeanCmsSearchResponse = {
+			const data: HeanCmsSearchResponse = {
 				data: [{ id: 1, title: "Manga", series_slug: "manga", thumbnail: null, status: null }],
 				meta: { current_page: 2, last_page: 2, per_page: 12, total: 15 },
 			};
 
-			mockFetch.mockResolvedValueOnce({
-				ok: true,
-				json: () => Promise.resolve(mockResponse),
-			});
+			mockFetch.mockResolvedValueOnce(mockResponse(data));
 
 			const result = await heancms.search("manga", 2);
 
@@ -69,16 +74,14 @@ describe("HeanCms", () => {
 		});
 
 		it("should throw on failed search", async () => {
-			mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
+			// 4xx errors are not retried
+			mockFetch.mockResolvedValue(mockResponse(null, false, 404));
 
-			await expect(heancms.search("test")).rejects.toThrow("HeanCms search failed: 500");
+			await expect(heancms.search("test")).rejects.toThrow("HeanCms search failed: 404");
 		});
 
 		it("should build correct search URL with query params", async () => {
-			mockFetch.mockResolvedValueOnce({
-				ok: true,
-				json: () => Promise.resolve({ data: [], meta: null }),
-			});
+			mockFetch.mockResolvedValueOnce(mockResponse({ data: [], meta: null }));
 
 			await heancms.search("one piece", 3);
 
@@ -92,20 +95,17 @@ describe("HeanCms", () => {
 
 	describe("getManga", () => {
 		it("should return manga detail", async () => {
-			const mockSeries: HeanCmsSeriesDetail = {
+			const data: HeanCmsSeriesDetail = {
 				id: 42,
 				title: "Amazing Manga",
 				series_slug: "amazing-manga",
-				description: "A great manga",
+				description: "<p>A great manga</p>",
 				thumbnail: "covers/amazing.jpg",
 				status: "Ongoing",
 				tags: [{ id: 1, name: "Action" }, { id: 2, name: "Fantasy" }],
 			};
 
-			mockFetch.mockResolvedValueOnce({
-				ok: true,
-				json: () => Promise.resolve(mockSeries),
-			});
+			mockFetch.mockResolvedValueOnce(mockResponse(data));
 
 			const result = await heancms.getManga("amazing-manga");
 
@@ -119,7 +119,7 @@ describe("HeanCms", () => {
 		});
 
 		it("should throw on not found", async () => {
-			mockFetch.mockResolvedValueOnce({ ok: false, status: 404 });
+			mockFetch.mockResolvedValue(mockResponse(null, false, 404));
 
 			await expect(heancms.getManga("nonexistent")).rejects.toThrow("HeanCms getManga failed: 404");
 		});
@@ -127,7 +127,7 @@ describe("HeanCms", () => {
 
 	describe("getChapters", () => {
 		it("should return free chapters sorted by number", async () => {
-			const mockResponse: HeanCmsChapterListResponse = {
+			const data: HeanCmsChapterListResponse = {
 				data: [
 					{ id: 1, chapter_name: "Chapter 1", chapter_title: "Intro", chapter_slug: "chapter-1", price: 0, created_at: "2024-01-01T00:00:00Z" },
 					{ id: 2, chapter_name: "Chapter 2", chapter_title: null, chapter_slug: "chapter-2", price: 0, created_at: "2024-01-08T00:00:00Z" },
@@ -136,10 +136,7 @@ describe("HeanCms", () => {
 				meta: { current_page: 1, last_page: 1, per_page: 1000, total: 3 },
 			};
 
-			mockFetch.mockResolvedValueOnce({
-				ok: true,
-				json: () => Promise.resolve(mockResponse),
-			});
+			mockFetch.mockResolvedValueOnce(mockResponse(data));
 
 			const manga = {
 				sourceId: "test-source",
@@ -154,7 +151,7 @@ describe("HeanCms", () => {
 
 			const chapters = await heancms.getChapters(manga);
 
-			expect(chapters).toHaveLength(2); // Paid chapter filtered out
+			expect(chapters).toHaveLength(2);
 			expect(chapters[0]!.number).toBe(1);
 			expect(chapters[0]!.title).toBe("Intro");
 			expect(chapters[1]!.number).toBe(2);
@@ -164,7 +161,7 @@ describe("HeanCms", () => {
 
 	describe("getChapterPages", () => {
 		it("should return image URLs", async () => {
-			const mockResponse: HeanCmsChapterDetailResponse = {
+			const data: HeanCmsChapterDetailResponse = {
 				chapter: {
 					id: 1,
 					chapter_slug: "chapter-1",
@@ -173,18 +170,12 @@ describe("HeanCms", () => {
 					price: 0,
 					paywall: false,
 					chapter_data: {
-						images: [
-							"https://cdn.example.com/page1.jpg",
-							"uploads/page2.jpg",
-						],
+						images: ["https://cdn.example.com/page1.jpg", "uploads/page2.jpg"],
 					},
 				},
 			};
 
-			mockFetch.mockResolvedValueOnce({
-				ok: true,
-				json: () => Promise.resolve(mockResponse),
-			});
+			mockFetch.mockResolvedValueOnce(mockResponse(data));
 
 			const chapter = {
 				sourceId: "test-source",
@@ -203,7 +194,7 @@ describe("HeanCms", () => {
 		});
 
 		it("should throw on paywalled chapter", async () => {
-			const mockResponse: HeanCmsChapterDetailResponse = {
+			const data: HeanCmsChapterDetailResponse = {
 				chapter: {
 					id: 1,
 					chapter_slug: "chapter-1",
@@ -215,10 +206,7 @@ describe("HeanCms", () => {
 				},
 			};
 
-			mockFetch.mockResolvedValueOnce({
-				ok: true,
-				json: () => Promise.resolve(mockResponse),
-			});
+			mockFetch.mockResolvedValueOnce(mockResponse(data));
 
 			const chapter = {
 				sourceId: "test-source",

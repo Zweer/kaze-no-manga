@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-helpers";
 import { getSource } from "@/lib/scraper";
 
 interface Params {
@@ -13,8 +14,6 @@ export async function GET(_request: Request, { params }: Params): Promise<NextRe
 		const manga = await scraper.getManga(slug);
 		return NextResponse.json(manga);
 	} catch (error) {
-		const message = error instanceof Error ? error.message : "Failed to fetch manga";
-		const status = message.includes("404") ? 404 : 500;
-		return NextResponse.json({ error: message }, { status });
+		return apiError(error, "Failed to fetch manga");
 	}
 }

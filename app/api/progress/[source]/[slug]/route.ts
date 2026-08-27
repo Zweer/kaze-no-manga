@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { eq, and, desc } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { readingProgress } from "@/lib/db/models";
+import { apiError, buildMangaId } from "@/lib/api-helpers";
 import { getSession } from "@/lib/session";
 
 interface Params {
@@ -14,23 +15,27 @@ export async function GET(_request: Request, { params }: Params): Promise<NextRe
 		return NextResponse.json({ readChapters: [], lastChapter: null });
 	}
 
-	const { source, slug } = await params;
-	const mangaId = `${source}:${slug}`;
+	try {
+		const { source, slug } = await params;
+		const mangaId = buildMangaId(source, slug);
 
-	const entries = await db
-		.select({
-			chapterSlug: readingProgress.chapterSlug,
-			chapterNumber: readingProgress.chapterNumber,
-			readAt: readingProgress.readAt,
-		})
-		.from(readingProgress)
-		.where(
-			and(eq(readingProgress.userId, session.user.id), eq(readingProgress.mangaId, mangaId)),
-		)
-		.orderBy(desc(readingProgress.readAt));
+		const entries = await db
+			.select({
+				chapterSlug: readingProgress.chapterSlug,
+				chapterNumber: readingProgress.chapterNumber,
+				readAt: readingProgress.readAt,
+			})
+			.from(readingProgress)
+			.where(
+				and(eq(readingProgress.userId, session.user.id), eq(readingProgress.mangaId, mangaId)),
+			)
+			.orderBy(desc(readingProgress.readAt));
 
-	const readChapters = entries.map((e) => e.chapterSlug);
-	const lastChapter = entries.length > 0 ? entries[0] : null;
+		const readChapters = entries.map((e) => e.chapterSlug);
+		const lastChapter = entries.length > 0 ? entries[0] : null;
 
-	return NextResponse.json({ readChapters, lastChapter });
+		return NextResponse.json({ readChapters, lastChapter });
+	} catch (err) {
+		return apiError(err, "Failed to fetch reading progress");
+	}
 }

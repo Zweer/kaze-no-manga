@@ -1,22 +1,19 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { DEFAULT_SOURCE, getSource } from "@/lib/scraper";
+import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-helpers";
+import { getSource } from "@/lib/scraper";
+import { parseSearchParams, searchParamsSchema } from "@/lib/validations";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-	const query = request.nextUrl.searchParams.get("q");
-	const sourceId = request.nextUrl.searchParams.get("source") ?? DEFAULT_SOURCE;
-	const page = Number(request.nextUrl.searchParams.get("page") ?? "1");
-
-	if (!query || query.trim().length === 0) {
-		return NextResponse.json({ mangas: [], hasNextPage: false });
-	}
+	const parsed = parseSearchParams(request.nextUrl.searchParams, searchParamsSchema);
+	if (parsed.error) return parsed.error;
+	const { q: query, source: sourceId, page } = parsed.data;
 
 	try {
 		const source = getSource(sourceId);
-		const result = await source.search(query.trim(), page);
+		const result = await source.search(query, page);
 		return NextResponse.json(result);
 	} catch (error) {
-		const message = error instanceof Error ? error.message : "Search failed";
-		return NextResponse.json({ error: message }, { status: 500 });
+		return apiError(error, "Search failed");
 	}
 }

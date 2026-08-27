@@ -279,3 +279,35 @@
 - Tests pass, build clean
 - All tests pass across all waves
 - MVP complete 🎉
+
+---
+
+## Wave 11 — Hardening
+
+**Goal**: No new features — make everything solid, accessible, and maintainable.
+
+### Tasks
+
+- [ ] Error handling: try/catch on all DB routes, shared `apiError()` helper
+- [ ] Input validation: Zod schemas for POST/PATCH bodies
+- [ ] Scraper resilience: fetch timeout (AbortController), retry, max page guard
+- [ ] Error boundary: `error.tsx` in (app) route group
+- [ ] Reusable components: `<MangaCover>`, `<MangaCardSkeleton>`, `<PageHeading>`, `<ErrorState>`
+- [ ] Use `<Skeleton>` from shadcn everywhere (replace hand-rolled animate-pulse)
+- [ ] Toast (Sonner): feedback for library mutations and errors
+- [ ] AlertDialog: confirmation for "Remove from library"
+- [ ] Accessibility: aria-labels on search, nav, icon-only buttons
+- [ ] Code dedup: `requireSession()`, `buildMangaId()`, shared navItems
+- [ ] Decompose manga detail page into hooks + sub-components
+- [ ] Tests: scraper edge cases, registry, pagination
+
+### Acceptance
+
+- All API routes handle errors gracefully
+- All inputs validated at runtime
+- Scraper doesn't hang on slow/dead sources
+- Toast feedback on every mutation
+- Remove confirmation dialog
+- Zero accessibility warnings on key flows
+- No duplicated patterns
+- Tests cover edge cases

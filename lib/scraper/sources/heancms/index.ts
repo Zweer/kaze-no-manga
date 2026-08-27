@@ -1,3 +1,4 @@
+import { fetchWithRetry, safeJson } from "../../fetch-utils";
 import type {
 	Chapter,
 	MangaDetail,
@@ -17,14 +18,13 @@ export interface HeanCmsConfig {
 	name: string;
 	baseUrl: string;
 	apiUrl: string;
-	/** Path prefix for covers (e.g. "" or "uploads/") */
 	coverPath?: string;
-	/** Subdirectory for manga pages (e.g. "series") */
 	mangaSubDirectory?: string;
 }
 
 const PER_PAGE = 12;
 const PER_PAGE_CHAPTERS = 1000;
+const MAX_PAGES = 50;
 
 export class HeanCms implements MangaSource {
 	readonly id: string;
@@ -55,12 +55,12 @@ export class HeanCms implements MangaSource {
 		url.searchParams.set("tags_ids", "[]");
 		url.searchParams.set("adult", "true");
 
-		const response = await fetch(url.toString());
+		const response = await fetchWithRetry(url.toString());
 		if (!response.ok) {
 			throw new Error(`HeanCms search failed: ${response.status}`);
 		}
 
-		const data = (await response.json()) as HeanCmsSearchResponse;
+		const data = await safeJson<HeanCmsSearchResponse>(response);
 
 		const mangas: MangaSummary[] = data.data.map((series) => ({
 			sourceId: this.id,
@@ -69,15 +69,13 @@ export class HeanCms implements MangaSource {
 			cover: this.buildCoverUrl(series.thumbnail),
 		}));
 
-		const hasNextPage = data.meta
-			? data.meta.current_page < data.meta.last_page
-			: false;
+		const hasNextPage = data.meta ? data.meta.current_page < data.meta.last_page : false;
 
 		return { mangas, hasNextPage };
 	}
 
 	async getManga(slug: string): Promise<MangaDetail> {
-		const response = await fetch(`${this.apiUrl}/series/${slug}`, {
+		const response = await fetchWithRetry(`${this.apiUrl}/series/${slug}`, {
 			headers: { Accept: "application/json" },
 		});
 
@@ -85,7 +83,7 @@ export class HeanCms implements MangaSource {
 			throw new Error(`HeanCms getManga failed: ${response.status}`);
 		}
 
-		const series = (await response.json()) as HeanCmsSeriesDetail;
+		const series = await safeJson<HeanCmsSeriesDetail>(response);
 
 		return {
 			sourceId: this.id,
@@ -104,13 +102,13 @@ export class HeanCms implements MangaSource {
 		let page = 1;
 		let hasNextPage = true;
 
-		while (hasNextPage) {
+		while (hasNextPage && page <= MAX_PAGES) {
 			const url = new URL(`${this.apiUrl}/chapter/query`);
 			url.searchParams.set("page", page.toString());
 			url.searchParams.set("perPage", PER_PAGE_CHAPTERS.toString());
 			url.searchParams.set("series_id", manga.sourceIdentifier);
 
-			const response = await fetch(url.toString(), {
+			const response = await fetchWithRetry(url.toString(), {
 				headers: { Accept: "application/json" },
 			});
 
@@ -118,10 +116,10 @@ export class HeanCms implements MangaSource {
 				throw new Error(`HeanCms getChapters failed: ${response.status}`);
 			}
 
-			const data = (await response.json()) as HeanCmsChapterListResponse;
+			const data = await safeJson<HeanCmsChapterListResponse>(response);
 
 			for (const ch of data.data) {
-				if (ch.price > 0) continue; // Skip paid chapters
+				if (ch.price > 0) continue;
 
 				chapters.push({
 					sourceId: this.id,
@@ -143,7 +141,7 @@ export class HeanCms implements MangaSource {
 	async getChapterPages(chapter: Chapter): Promise<string[]> {
 		const url = `${this.apiUrl}/chapter/${chapter.mangaSlug}/${chapter.slug}`;
 
-		const response = await fetch(url, {
+		const response = await fetchWithRetry(url, {
 			headers: { Accept: "application/json" },
 		});
 
@@ -151,7 +149,7 @@ export class HeanCms implements MangaSource {
 			throw new Error(`HeanCms getChapterPages failed: ${response.status}`);
 		}
 
-		const data = (await response.json()) as HeanCmsChapterDetailResponse;
+		const data = await safeJson<HeanCmsChapterDetailResponse>(response);
 
 		if (!data.chapter.chapter_data?.images) {
 			throw new Error("Chapter has no images (possibly paywalled)");
@@ -165,12 +163,10 @@ export class HeanCms implements MangaSource {
 	}
 
 	private extractChapterNumber(name: string | null, slug: string): number {
-		// Try to extract from chapter_name (e.g. "Chapter 80", "Chapter 78.5")
 		if (name) {
 			const match = name.match(/(\d+(?:\.\d+)?)/);
 			if (match) return Number.parseFloat(match[1]!);
 		}
-		// Fallback: extract from slug (e.g. "chapter-80", "chapter-78-5")
 		const slugMatch = slug.match(/(\d+)(?:-(\d+))?$/);
 		if (slugMatch) {
 			const major = slugMatch[1]!;
