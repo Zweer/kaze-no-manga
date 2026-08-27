@@ -7,6 +7,7 @@ import Link from "next/link";
 import { BookOpen, Clock, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StatusSelect } from "@/components/status-select";
 import { useSession } from "@/lib/auth-client";
 import type { MangaDetail, Chapter } from "@/lib/scraper";
 
@@ -21,6 +22,8 @@ export default function MangaDetailPage() {
 	const [error, setError] = useState<string | null>(null);
 	const [isAdding, setIsAdding] = useState(false);
 	const [isInLibrary, setIsInLibrary] = useState(false);
+	const [libraryEntryId, setLibraryEntryId] = useState<string | null>(null);
+	const [libraryStatus, setLibraryStatus] = useState<string>("reading");
 
 	useEffect(() => {
 		const fetchManga = async () => {
@@ -40,6 +43,17 @@ export default function MangaDetailPage() {
 				if (chapRes.ok) {
 					const chapData = (await chapRes.json()) as Chapter[];
 					setChapters(chapData);
+				}
+
+				// Check if in library
+				const libRes = await fetch(`/api/library/check?source=${params.source}&slug=${params.slug}`);
+				if (libRes.ok) {
+					const libData = (await libRes.json()) as { inLibrary: boolean; entryId?: string; status?: string };
+					if (libData.inLibrary) {
+						setIsInLibrary(true);
+						setLibraryEntryId(libData.entryId ?? null);
+						setLibraryStatus(libData.status ?? "reading");
+					}
 				}
 			} catch (err) {
 				setError(err instanceof Error ? err.message : "Failed to load manga");
@@ -76,9 +90,24 @@ export default function MangaDetailPage() {
 			});
 			if (res.ok) {
 				setIsInLibrary(true);
+				const data = (await res.json()) as { id: string };
+				setLibraryEntryId(data.id);
+				setLibraryStatus("reading");
 			}
 		} finally {
 			setIsAdding(false);
+		}
+	};
+
+	const handleStatusChange = async (newStatus: string) => {
+		if (!libraryEntryId) return;
+		const res = await fetch(`/api/library/${libraryEntryId}`, {
+			method: "PATCH",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ status: newStatus }),
+		});
+		if (res.ok) {
+			setLibraryStatus(newStatus);
 		}
 	};
 
@@ -152,24 +181,28 @@ export default function MangaDetailPage() {
 						))}
 					</div>
 
-					<Button className="mt-4 cursor-pointer gap-2" onClick={handleAddToLibrary} disabled={isAdding || isInLibrary}>
+					<div className="mt-4 flex items-center gap-3">
 						{isInLibrary ? (
-							<>
-								<Check className="size-4" />
-								In Library
-							</>
-						) : isAdding ? (
-							<>
-								<Loader2 className="size-4 animate-spin" />
-								Adding...
-							</>
+							<StatusSelect
+								value={libraryStatus}
+								onValueChange={handleStatusChange}
+							/>
 						) : (
-							<>
-								<BookOpen className="size-4" />
-								Add to Library
-							</>
+							<Button className="cursor-pointer gap-2" onClick={handleAddToLibrary} disabled={isAdding}>
+								{isAdding ? (
+									<>
+										<Loader2 className="size-4 animate-spin" />
+										Adding...
+									</>
+								) : (
+									<>
+										<BookOpen className="size-4" />
+										Add to Library
+									</>
+								)}
+							</Button>
 						)}
-					</Button>
+					</div>
 				</div>
 			</div>
 

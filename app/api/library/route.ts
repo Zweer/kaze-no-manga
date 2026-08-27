@@ -1,14 +1,26 @@
 import { NextResponse } from "next/server";
-import { eq, and } from "drizzle-orm";
+import { eq, and, asc, desc } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { manga, library } from "@/lib/db/models";
 import { getSession } from "@/lib/session";
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: Request): Promise<NextResponse> {
 	const session = await getSession();
 	if (!session?.user) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
+
+	const url = new URL(request.url);
+	const statusFilter = url.searchParams.get("status");
+	const sort = url.searchParams.get("sort") ?? "recently_added";
+
+	const conditions = [eq(library.userId, session.user.id)];
+	if (statusFilter && statusFilter !== "all") {
+		conditions.push(eq(library.status, statusFilter));
+	}
+
+	const orderBy =
+		sort === "alphabetical" ? asc(manga.title) : desc(library.addedAt);
 
 	const entries = await db
 		.select({
@@ -26,7 +38,8 @@ export async function GET(): Promise<NextResponse> {
 		})
 		.from(library)
 		.innerJoin(manga, eq(library.mangaId, manga.id))
-		.where(eq(library.userId, session.user.id));
+		.where(and(...conditions))
+		.orderBy(orderBy);
 
 	return NextResponse.json(entries);
 }

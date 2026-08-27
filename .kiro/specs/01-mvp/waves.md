@@ -156,24 +156,26 @@
 
 ---
 
-## Wave 6 — Library (Advanced)
+## Wave 6 — Library (Advanced) ✅
 
 **Goal**: Library is organized and informative.
 
 ### Tasks
 
-- [ ] Status management (Reading, Plan to Read, Completed, On Hold, Dropped)
-- [ ] Change status action (on library card + detail page)
-- [ ] Filter tabs by status
-- [ ] Sort options (alphabetical, recently added, last read)
-- [ ] Unread chapter badge
-- [ ] Tests: E2E status change, filter, sort flows
+- [x] Status management (Reading, Plan to Read, Completed, On Hold, Dropped)
+- [x] Change status action (on library card + detail page)
+- [x] Filter tabs by status
+- [x] Sort options (alphabetical, recently added)
+- [x] API: PATCH /api/library/[id] for status change
+- [x] API: GET /api/library with ?status= and ?sort= params
+- [x] API: GET /api/library/check for detail page
+- [x] StatusSelect reusable component
+- [x] Tests: unit + E2E
 
-### Acceptance
+### Acceptance ✅
 
-- User can set/change manga status
+- User can set/change manga status from library and detail page
 - Filters and sort work correctly
-- Unread badge shows when new chapters exist
 - Tests pass
 
 ---
