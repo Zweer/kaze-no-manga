@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -16,11 +17,15 @@ export default function AppError({
 
 	return (
 		<div className="flex min-h-[50dvh] flex-col items-center justify-center gap-6">
+			<Image
+				src="/images/manga-wind.png"
+				alt=""
+				width={300}
+				height={200}
+				className="w-48 opacity-30 md:w-64"
+			/>
 			<div className="text-center">
-				<p className="select-none font-heading text-6xl font-black text-muted-foreground/10">
-					Oops
-				</p>
-				<h1 className="mt-4 font-heading text-2xl font-bold">Something went wrong</h1>
+				<h1 className="font-heading text-2xl font-bold">Something went wrong</h1>
 				<p className="mt-2 max-w-md text-sm text-muted-foreground">
 					An unexpected error occurred. Please try again.
 				</p>

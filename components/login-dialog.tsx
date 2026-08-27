@@ -1,6 +1,7 @@
 "use client";
 
 import { KeyRound } from "lucide-react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +20,6 @@ export function LoginDialog() {
 	const callbackUrl = searchParams.get("callbackUrl") ?? "/";
 
 	const handleClose = () => {
-		// Remove login params, stay on current page
 		const url = new URL(window.location.href);
 		url.searchParams.delete("login");
 		url.searchParams.delete("callbackUrl");
@@ -44,7 +44,8 @@ export function LoginDialog() {
 	return (
 		<Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
 			<DialogContent className="sm:max-w-sm">
-				<DialogHeader className="text-center">
+				<DialogHeader className="items-center text-center">
+					<Image src="/images/kanji-wind.png" alt="" width={64} height={64} className="size-16" />
 					<DialogTitle className="font-heading text-2xl font-bold">Kaze no Manga</DialogTitle>
 					<DialogDescription>Sign in to track your manga</DialogDescription>
 				</DialogHeader>

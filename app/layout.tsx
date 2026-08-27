@@ -21,6 +21,7 @@ export const metadata: Metadata = {
 	},
 	description:
 		"Never lose your place in manga again. Search, read, and track your manga progress across devices.",
+	manifest: "/manifest.json",
 	icons: {
 		icon: [
 			{ url: "/favicon.ico", sizes: "48x48" },
