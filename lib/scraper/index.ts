@@ -1,9 +1,13 @@
 import { omegascans } from "./sources/omegascans";
+import { toongod } from "./sources/toongod";
+import { toonily } from "./sources/toonily";
 import type { MangaSource } from "./types";
 
 /** All available manga sources, keyed by id */
 const sources: Record<string, MangaSource> = {
 	omegascans,
+	toongod,
+	toonily,
 };
 
 /** Get a source by id. Throws if not found. */
