@@ -25,7 +25,6 @@ interface LibraryEntry {
 
 const filterTabs = [
 	{ value: "all", label: "All" },
-	{ value: "reading", label: "Reading" },
 	{ value: "plan_to_read", label: "Plan to Read" },
 	{ value: "completed", label: "Completed" },
 	{ value: "on_hold", label: "On Hold" },

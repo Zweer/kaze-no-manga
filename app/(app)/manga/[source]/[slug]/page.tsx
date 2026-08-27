@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { BookOpen, Clock, Check, Loader2 } from "lucide-react";
+import { BookOpen, Clock, Check, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { StatusSelect } from "@/components/status-select";
@@ -23,7 +23,7 @@ export default function MangaDetailPage() {
 	const [isAdding, setIsAdding] = useState(false);
 	const [isInLibrary, setIsInLibrary] = useState(false);
 	const [libraryEntryId, setLibraryEntryId] = useState<string | null>(null);
-	const [libraryStatus, setLibraryStatus] = useState<string>("reading");
+	const [libraryStatus, setLibraryStatus] = useState<string>("plan_to_read");
 
 	useEffect(() => {
 		const fetchManga = async () => {
@@ -92,7 +92,7 @@ export default function MangaDetailPage() {
 				setIsInLibrary(true);
 				const data = (await res.json()) as { id: string };
 				setLibraryEntryId(data.id);
-				setLibraryStatus("reading");
+				setLibraryStatus("plan_to_read");
 			}
 		} finally {
 			setIsAdding(false);
@@ -108,6 +108,16 @@ export default function MangaDetailPage() {
 		});
 		if (res.ok) {
 			setLibraryStatus(newStatus);
+		}
+	};
+
+	const handleRemoveFromLibrary = async () => {
+		if (!libraryEntryId) return;
+		const res = await fetch(`/api/library/${libraryEntryId}`, { method: "DELETE" });
+		if (res.ok) {
+			setIsInLibrary(false);
+			setLibraryEntryId(null);
+			setLibraryStatus("plan_to_read");
 		}
 	};
 
@@ -183,10 +193,21 @@ export default function MangaDetailPage() {
 
 					<div className="mt-4 flex items-center gap-3">
 						{isInLibrary ? (
-							<StatusSelect
-								value={libraryStatus}
-								onValueChange={handleStatusChange}
-							/>
+							<>
+								<StatusSelect
+									value={libraryStatus}
+									onValueChange={handleStatusChange}
+								/>
+								<Button
+									variant="ghost"
+									size="sm"
+									className="cursor-pointer text-muted-foreground hover:text-destructive"
+									onClick={handleRemoveFromLibrary}
+								>
+									<Trash2 className="size-4" />
+									Remove
+								</Button>
+							</>
 						) : (
 							<Button className="cursor-pointer gap-2" onClick={handleAddToLibrary} disabled={isAdding}>
 								{isAdding ? (

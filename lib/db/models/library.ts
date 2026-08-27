@@ -12,7 +12,7 @@ export const library = pgTable(
 		mangaId: text("manga_id")
 			.notNull()
 			.references(() => manga.id, { onDelete: "cascade" }),
-		status: text("status").notNull().default("reading"),
+		status: text("status").notNull().default("plan_to_read"),
 		addedAt: timestamp("added_at").defaultNow().notNull(),
 	},
 	(table) => [

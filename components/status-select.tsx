@@ -9,10 +9,9 @@ import {
 } from "@/components/ui/select";
 
 const statuses = [
-	{ value: "reading", label: "Reading" },
 	{ value: "plan_to_read", label: "Plan to Read" },
-	{ value: "completed", label: "Completed" },
 	{ value: "on_hold", label: "On Hold" },
+	{ value: "completed", label: "Completed" },
 	{ value: "dropped", label: "Dropped" },
 ];
 

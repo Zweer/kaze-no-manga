@@ -108,7 +108,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 		id: libraryId,
 		userId: session.user.id,
 		mangaId,
-		status: "reading",
+		status: "plan_to_read",
 	});
 
 	return NextResponse.json({ message: "Added to library", id: libraryId }, { status: 201 });
