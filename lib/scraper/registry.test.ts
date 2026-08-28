@@ -34,12 +34,16 @@ describe("Scraper Registry", () => {
 		expect(ids).toContain("mangadex");
 		expect(ids).toContain("comick");
 		expect(ids).toContain("omegascans");
-		expect(ids).toHaveLength(3);
+		expect(ids).toContain("toonily");
+		expect(ids).toContain("toongod");
+		expect(ids).toContain("weebcentral");
+		expect(ids).toContain("atsumaru");
+		expect(ids).toHaveLength(7);
 	});
 
 	it("should return all sources", () => {
 		const sources = getAllSources();
-		expect(sources.length).toBe(3);
+		expect(sources.length).toBe(7);
 		for (const source of sources) {
 			expect(source.id).toBeDefined();
 			expect(source.name).toBeDefined();
