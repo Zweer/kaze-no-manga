@@ -1,15 +1,13 @@
 import { comick } from "./sources/comick";
+import { mangadex } from "./sources/mangadex";
 import { omegascans } from "./sources/omegascans";
-import { toongod } from "./sources/toongod";
-import { toonily } from "./sources/toonily";
 import type { MangaSource } from "./types";
 
 /** All available manga sources, keyed by id */
 const sources: Record<string, MangaSource> = {
+	mangadex,
 	comick,
 	omegascans,
-	toongod,
-	toonily,
 };
 
 /** Get a source by id. Throws if not found. */
@@ -31,7 +29,7 @@ export function getAllSources(): MangaSource[] {
 	return Object.values(sources);
 }
 
-/** Default source for MVP */
-export const DEFAULT_SOURCE = "omegascans";
+/** Default source */
+export const DEFAULT_SOURCE = "mangadex";
 
 export type { Chapter, MangaDetail, MangaSource, MangaSummary, SearchResult } from "./types";

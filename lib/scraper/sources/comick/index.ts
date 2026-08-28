@@ -3,14 +3,14 @@ import { fetchWithRetry, safeJson } from "../../fetch-utils";
 import type { Chapter, MangaDetail, MangaSource, MangaSummary, SearchResult } from "../../types";
 import type { ComickChapter, ComickChaptersResponse, ComickSearchResult } from "./types";
 
-const API_URL = "https://api.comick.io";
+const API_URL = "https://api.comick.dev";
 const IMAGE_HOST = "https://meo.comick.pictures";
 const PER_PAGE = 20;
 
 export class Comick implements MangaSource {
 	readonly id = "comick";
 	readonly name = "Comick";
-	readonly baseUrl = "https://comick.io";
+	readonly baseUrl = "https://comick.dev";
 
 	private headers() {
 		return {
