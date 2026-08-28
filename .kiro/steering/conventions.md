@@ -1,23 +1,28 @@
 # Project Conventions
 
-> These conventions will be defined once the project structure is set up.
-> Open points in architecture.md need to be resolved first.
-
 ## Routes
 
 - Next.js App Router (`app/` directory)
-- Route groups, layouts, and server components — TBD
+- Route group `(app)` for pages with navigation layout
+- API routes in `app/api/`
+- Proxy (`proxy.ts`) protects `/library` and `/settings`
 
 ## Server Logic
 
-- React Server Components for data fetching
-- Server Actions for mutations
-- Route Handlers (`app/api/`) for external integrations
+- API Route Handlers for all data fetching
+- Client-side fetching with `useEffect` + `useState`
+- Shared helpers: `requireSession()`, `apiError()`, `buildMangaId()`
+- Input validation: Zod schemas in `lib/validations.ts`
 
 ## Components
 
-- Component library: TBD (see architecture open points)
-- One component per file, named export
+- shadcn/ui for primitives (Button, Card, Dialog, Tabs, Select, etc.)
+- Reusable app components: `MangaCover`, `MangaCardSkeleton`, `PageHeading`, `ErrorState`, `StatusSelect`
+- Layout components: `MobileNav`, `DesktopNav`, `NoiseOverlay`, `LoginDialog`, `UserMenu`
+- Shared nav items in `components/layout/nav-items.ts`
+- Custom hooks in `hooks/` (e.g. `useMangaDetail`)
+- Toast via Sonner for mutation feedback
+- AlertDialog for destructive actions
 
 ## Database
 
@@ -25,8 +30,10 @@
 - Client in `lib/db/index.ts`
 - Models in `lib/db/models/` — one file per domain:
   - `auth.ts` (user, session, account, verification, passkey)
-  - `manga.ts` (manga, chapter) — future
-  - `library.ts` (library, reading_progress) — future
+  - `manga.ts` (manga)
+  - `chapter.ts` (chapter)
+  - `library.ts` (library)
+  - `progress.ts` (reading_progress)
   - `index.ts` (barrel re-export)
 - Relations in `lib/db/relations.ts` (cross-domain, single source of truth)
 - Migrations output in `db/` directory (committed to repo)
@@ -35,10 +42,19 @@
 - Deploy: `drizzle-kit migrate` runs before `next build` (vercel.json buildCommand)
 - Local: `dotenv-cli` loads `.env.local` for db:* scripts
 
+## Scraper
+
+- Interface: `MangaSource` in `lib/scraper/types.ts`
+- Registry: `lib/scraper/index.ts` (getSource, getAllSources)
+- Resilience: `fetchWithRetry` (10s timeout, 3 retries, exponential backoff)
+- Safe JSON parsing: `safeJson<T>()`
+- Base classes: `HeanCms` (JSON API), `Madara` (HTML scraping via cheerio)
+- Sources: OmegaScans, ToonGod, Toonily, Comick
+
 ## Storage
 
-- Images from source: direct links, no proxy, no R2 (simplicity first)
-- May revisit in post-MVP
+- Images from source: direct links, no proxy, no R2
+- ~32 MB per chapter makes storage impractical (verified via analysis)
 
 ## Auth
 
@@ -48,5 +64,7 @@
 - Client helper in `lib/auth-client.ts`
 - Route handler in `app/api/auth/[...all]/route.ts`
 - Route protection via `proxy.ts` (Next.js 16 proxy convention)
-- Public routes: `/`, `/login`, search, manga detail
+- Cookie: `__Secure-better-auth.session_token` (HTTPS) or `better-auth.session_token` (HTTP)
+- Public routes: `/`, search, manga detail, reader
 - Protected routes: `/library`, `/settings`
+- Login: lightbox dialog on current page (`?login=true&callbackUrl=...`)
