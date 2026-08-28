@@ -18,7 +18,12 @@ const sources: Record<string, MangaSource> = {
 	atsumaru,
 };
 
-/** Get a source by id. Throws if not found. */
+/** Check if a source is enabled (defaults to true) */
+function isEnabled(source: MangaSource): boolean {
+	return source.enabled !== false;
+}
+
+/** Get a source by id. Throws if not found. Works for disabled sources too. */
 export function getSource(id: string): MangaSource {
 	const source = sources[id];
 	if (!source) {
@@ -27,14 +32,16 @@ export function getSource(id: string): MangaSource {
 	return source;
 }
 
-/** Get all registered source ids */
+/** Get all registered source ids (enabled only) */
 export function getSourceIds(): string[] {
-	return Object.keys(sources);
+	return Object.values(sources)
+		.filter(isEnabled)
+		.map((s) => s.id);
 }
 
-/** Get all registered sources */
+/** Get all registered sources (enabled only) */
 export function getAllSources(): MangaSource[] {
-	return Object.values(sources);
+	return Object.values(sources).filter(isEnabled);
 }
 
 /** Default source */

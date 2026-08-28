@@ -35,19 +35,27 @@ describe("Scraper Registry", () => {
 		expect(ids).toContain("comick");
 		expect(ids).toContain("omegascans");
 		expect(ids).toContain("toonily");
-		expect(ids).toContain("toongod");
 		expect(ids).toContain("weebcentral");
 		expect(ids).toContain("atsumaru");
-		expect(ids).toHaveLength(7);
+		expect(ids).not.toContain("toongod"); // disabled (CF-blocked)
+		expect(ids).toHaveLength(6);
 	});
 
 	it("should return all sources", () => {
 		const sources = getAllSources();
-		expect(sources.length).toBe(7);
+		expect(sources.length).toBe(6);
 		for (const source of sources) {
 			expect(source.id).toBeDefined();
 			expect(source.name).toBeDefined();
 			expect(source.baseUrl).toBeDefined();
 		}
+		expect(sources.map((s) => s.id)).not.toContain("toongod");
+	});
+
+	it("should still access disabled sources via getSource", () => {
+		const source = getSource("toongod");
+		expect(source.id).toBe("toongod");
+		expect(source.name).toBe("ToonGod");
+		expect(source.enabled).toBe(false);
 	});
 });

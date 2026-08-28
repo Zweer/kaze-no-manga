@@ -14,6 +14,8 @@ export interface MadaraConfig {
 	name: string;
 	/** Base URL of the source website */
 	baseUrl: string;
+	/** Whether this source is enabled for search/browsing (default: true) */
+	enabled?: boolean;
 	/** Manga sub-directory (e.g. "manga", "serie", "webtoons") */
 	mangaSubString: string;
 	/**

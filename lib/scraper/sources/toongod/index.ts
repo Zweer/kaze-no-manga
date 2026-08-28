@@ -16,4 +16,5 @@ export const toongod = new Madara({
 	baseUrl: "https://www.toongod.org",
 	mangaSubString: "webtoons",
 	useAjaxChapters: false,
+	enabled: false,
 });

@@ -10,6 +10,13 @@ export interface MangaSource {
 	readonly name: string;
 	/** Base URL of the source website */
 	readonly baseUrl: string;
+	/**
+	 * Whether this source is enabled for search and browsing.
+	 * Disabled sources are still accessible via getSource() (for existing library entries)
+	 * but excluded from getAllSources() and multi-source search.
+	 * Defaults to true if not set.
+	 */
+	readonly enabled?: boolean;
 
 	/** Search for manga by query */
 	search(query: string, page?: number): Promise<SearchResult>;

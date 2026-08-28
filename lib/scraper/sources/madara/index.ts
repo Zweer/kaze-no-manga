@@ -17,6 +17,7 @@ export class Madara implements MangaSource {
 	readonly id: string;
 	readonly name: string;
 	readonly baseUrl: string;
+	readonly enabled: boolean;
 
 	private readonly config: MadaraConfig;
 
@@ -24,6 +25,7 @@ export class Madara implements MangaSource {
 		this.id = config.id;
 		this.name = config.name;
 		this.baseUrl = config.baseUrl;
+		this.enabled = config.enabled !== false;
 		this.config = config;
 	}
 
