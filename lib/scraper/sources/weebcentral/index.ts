@@ -14,6 +14,7 @@
  */
 
 import * as cheerio from "cheerio";
+import type { Element } from "domhandler";
 import { fetchWithRetry } from "../../fetch-utils";
 import type { Chapter, MangaDetail, MangaSource, MangaSummary, SearchResult } from "../../types";
 
@@ -208,7 +209,7 @@ export class WeebCentral implements MangaSource {
 
 	// ─── HTML Helpers ─────────────────────────────────────────
 
-	private sourceImg(el: cheerio.Cheerio<cheerio.Element>): string | null {
+	private sourceImg(el: cheerio.Cheerio<Element>): string | null {
 		// Prefer <source srcset> (replace "small" with "normal" for better quality)
 		const srcset = el.find("source").attr("srcset");
 		if (srcset) return srcset.replace("small", "normal");
@@ -219,7 +220,7 @@ export class WeebCentral implements MangaSource {
 
 	private buildDescription(
 		$: cheerio.CheerioAPI,
-		section: cheerio.Cheerio<cheerio.Element>,
+		section: cheerio.Cheerio<Element>,
 	): string {
 		const parts: string[] = [];
 

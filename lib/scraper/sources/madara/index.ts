@@ -9,6 +9,7 @@
  */
 
 import * as cheerio from "cheerio";
+import type { Element } from "domhandler";
 import { fetchWithRetry } from "../../fetch-utils";
 import type { Chapter, MangaDetail, MangaSource, MangaSummary, SearchResult } from "../../types";
 import { IMAGE_ATTR_PRIORITY, MADARA_SELECTORS, type MadaraConfig } from "./types";
@@ -296,7 +297,7 @@ export class Madara implements MangaSource {
 	/**
 	 * Extract image URL from an element, following Madara's priority order.
 	 */
-	private imageFromElement(el: cheerio.Cheerio<cheerio.Element>): string | null {
+	private imageFromElement(el: cheerio.Cheerio<Element>): string | null {
 		for (const attr of IMAGE_ATTR_PRIORITY) {
 			const value = el.attr(attr);
 			if (!value) continue;
