@@ -51,8 +51,9 @@ export class Comick implements MangaSource {
 			throw new Error(`Comick getManga failed: ${response.status}`);
 		}
 
-		const data = await safeJson<{ comic: ComickSearchResult }>(response);
-		const comic = data.comic;
+		const raw = await safeJson<Record<string, unknown>>(response);
+		// API may return { comic: {...} } or the comic object directly
+		const comic = (raw.comic ?? raw) as ComickSearchResult;
 
 		return {
 			sourceId: this.id,
@@ -82,9 +83,12 @@ export class Comick implements MangaSource {
 				throw new Error(`Comick getChapters failed: ${response.status}`);
 			}
 
-			const data = await safeJson<ComickChaptersResponse>(response);
+			const raw = await safeJson<Record<string, unknown>>(response);
+			// API may return { chapters: [...], total } or just { chapters: [...] }
+			const chaptersData = (raw.chapters ?? []) as ComickChapter[];
+			const total = (raw.total as number) ?? 0;
 
-			for (const ch of data.chapters) {
+			for (const ch of chaptersData) {
 				if (!ch.chap) continue;
 
 				chapters.push({
@@ -97,7 +101,7 @@ export class Comick implements MangaSource {
 				});
 			}
 
-			hasMore = data.chapters.length >= 100;
+			hasMore = chaptersData.length >= 100;
 			page++;
 		}
 

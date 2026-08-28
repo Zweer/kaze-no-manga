@@ -150,7 +150,7 @@ export class MangaDex implements MangaSource {
 	private getCoverUrl(manga: MangaDexManga): string {
 		const cover = manga.relationships.find((r) => r.type === "cover_art");
 		if (cover?.attributes?.fileName) {
-			return `${COVER_URL}/${manga.id}/${cover.attributes.fileName}.256.jpg`;
+			return `${COVER_URL}/${manga.id}/${cover.attributes.fileName}`;
 		}
 		return "";
 	}
